@@ -1,0 +1,10 @@
+{
+  "id": "hindsight-garden",
+  "name": "时光花园",
+  "version": "0.1.0",
+  "permissions": ["focus.changed", "focus.app", "focus.title", "notifications"],
+  "storage_mb": 4,
+  "opens_in": "window",
+  "window": { "width": 460, "height": 720 },
+  "runs_in_background": true
+}

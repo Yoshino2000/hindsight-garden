@@ -1,0 +1,61 @@
+# Time Garden
+
+[简体中文](intro/zh/README.md) · English
+
+Grow a small garden while you use your computer. A third-party plugin for [Hindsight](https://github.com/Tomotsugu-dev/Hindsight), with cute, original AI-generated plants. No account, network connection or runtime dependencies.
+
+## Features
+
+- **Four plants**: sunflower, hydrangea, tulip and daisy, each with five growth stages.
+- **Your own rules**: match one or more foreground apps or website domains. Any matching rule grows the current plant; overlapping rules never multiply time.
+- **Cumulative growth**: collect time across visits and days. Switching away pauses growth by default.
+- **Optional interruption penalty**: after a grace period, subtract either a percentage of the current progress or a fixed number of minutes. Each uninterrupted visit to other apps applies at most one deduction. Progress never goes below zero.
+- **A lasting garden**: completed plants remain in your collection, with names and planting/bloom dates. One plant grows at a time.
+- **A little window**: compact view shows just the current pot. Bloom notifications are optional and silent.
+
+Manual pause, an away event, background restart and an unobserved clock gap do not cause a penalty. Closing the plugin page does not stop its background worker while Hindsight is running.
+
+## Install
+
+Requires Hindsight **0.10.0 or later**. This is an experimental personal plugin, not an official Hindsight plugin. It has not been exhaustively tested and may contain problems or risks.
+
+1. Use the supplied `hindsight-garden-0.1.0.zip`, or build it below. This initial local build has not been publicly released or listed in the market.
+2. In Hindsight, open **Settings → Plugins** and choose the local ZIP installation option.
+3. Review the four permissions and the 4 MB database allowance, then install.
+4. Open **时光花园**, pick a plant, give it a name and add app/domain rules.
+
+The default opens in a separate **ordinary window**. Its title bar, background and overlap with other windows are controlled by Hindsight. Transparent desktop overlays, always-on-top, click-through and autonomous window movement are not supported. Use Hindsight's plugin settings to change where the page opens; compact view only changes this plugin's layout.
+
+## Growth rules
+
+The target is 1–1,440 minutes. App rules can match a whole app name or part of it, ignoring case and a trailing `.exe`. Website rules match a domain and its subdomains on label boundaries: `example.com` includes `docs.example.com`, not `notexample.com`. A full URL is reduced to its hostname; page paths are not tracked. Multiple rules are alternatives.
+
+Optional penalties have a 0–300 second grace period. A percentage applies to the accumulated progress at the time of deduction, **not the target**. For example, 40 accumulated minutes with a 10% penalty becomes 36 minutes. A five-minute penalty leaves 35 minutes. Returning within the grace period cancels it. Away/manual pause cancels a pending deduction; returning from a break does not itself incur a penalty.
+
+Time means observed, matching **foreground use**, not proof of attention or completion. Hindsight's sampling and idle settings affect it. Background tabs do not count. A worker restart waits for a fresh focus event. A gap over ten seconds or a backwards clock change discards that unobserved stretch and waits for a fresh event. No offline time or past Hindsight activity is backfilled. Page commands may conservatively lose a partial tick rather than invent usage.
+
+## Data and permissions
+
+| Permission | Why |
+|---|---|
+| `focus.changed` | Observe foreground changes and away events |
+| `focus.app` | Match app rules |
+| `focus.title` | Obtain the website domain; the API also exposes window titles, which this plugin discards |
+| `notifications` | Send an optional bloom notification |
+| `storage_mb: 4` | Store the current plant, preferences and collection in this plugin's SQLite database |
+
+No history/statistics, screenshot, file-system or program-launch permission is requested. The runtime makes no network requests. It does not keep window titles or an activity history. Rule text, plant metadata and the latest observed app/domain are local to the plugin. Hindsight does not sync plugin databases across devices. Uninstalling can delete the garden if you choose to remove plugin data.
+
+## Development
+
+The structure follows the author's [Focus](https://github.com/Tomotsugu-dev/hindsight-focus) plugin: classic JavaScript, `importScripts`, small pure rules, a SQLite store and a plain DOM page. Its implementation and illustrations are original. See [development notes](docs/development.md), [artwork](docs/artwork.md), [verification](docs/verification.md) and [release procedure](docs/releasing.md).
+
+```text
+npm test
+python scripts/package.py
+python scripts/preview.py --port 8766
+```
+
+Tests need Node 22.13 or later. Packaging and preview use Python 3 standard-library modules. The preview also needs a sibling `Hindsight` source checkout to extract its actual page/worker bridges. Visit `http://127.0.0.1:8766`; its focus events and notifications are simulated, and its SQLite database is temporary. Preview tools and test data are excluded from the installable ZIP.
+
+Code is under the [MIT license](LICENSE). Plant art was created with the built-in image-generation tool; its prompts and provenance are documented separately. Public-market listing requires a maintainer-reviewed pull request and is not implied by a local build.

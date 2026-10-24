@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>时光花园</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">一小段时间，一点点生长</p>
+          <h1>时光花园<span class="brand-dot" aria-hidden="true"></span></h1>
+        </div>
+        <button
+          id="compact-toggle"
+          class="button quiet small"
+          type="button"
+          aria-pressed="false"
+        >
+          紧凑模式
+        </button>
+      </header>
+
+      <nav class="tabs" role="tablist" aria-label="花园页面">
+        <button
+          id="tab-current"
+          class="tab"
+          type="button"
+          role="tab"
+          aria-controls="view-current"
+          aria-selected="true"
+        >
+          当前盆栽
+        </button>
+        <button
+          id="tab-garden"
+          class="tab"
+          type="button"
+          role="tab"
+          aria-controls="view-garden"
+          aria-selected="false"
+          tabindex="-1"
+        >
+          我的花园 <span id="garden-count" class="count">0</span>
+        </button>
+      </nav>
+
+      <p id="error" class="message error" role="alert" hidden></p>
+      <p id="notice" class="message notice" role="status" hidden></p>
+      <p id="loading" class="loading" role="status">正在打开你的小花园…</p>
+
+      <section
+        id="view-current"
+        role="tabpanel"
+        aria-labelledby="tab-current"
+        tabindex="0"
+      >
+        <article class="card hero">
+          <div class="hero-top">
+            <span id="growth-status" class="badge">等待连接</span>
+            <span id="stage-name" class="stage-name">从一颗种子开始</span>
+          </div>
+          <div class="plant-scene" aria-hidden="true">
+            <div class="scene-halo"></div>
+            <div id="hero-sprite" class="plant-sprite"></div>
+          </div>
+          <h2 id="plant-name">给时间种一朵花</h2>
+          <p id="plant-caption" class="hero-caption">
+            把一盆花和你常用的程序、网站关联起来。
+          </p>
+          <div id="progress-area" hidden>
+            <div
+              id="progress"
+              class="progress"
+              role="progressbar"
+              aria-label="植物生长进度"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <div class="progress-text">
+              <span id="progress-time"></span
+              ><span id="progress-percent"></span>
+            </div>
+          </div>
+          <p id="growth-hint" class="hint">
+            符合规则时慢慢生长，离开时安心暂停。
+          </p>
+          <div class="hero-actions">
+            <button id="start-plant" class="button primary" type="button">
+              种下第一颗种子
+            </button>
+            <button id="pause" class="button primary" type="button" hidden>
+              暂停生长
+            </button>
+          </div>
+        </article>
+
+        <section id="active-details" class="card detail-card" hidden>
+          <div class="section-heading">
+            <h2>这盆花的约定</h2>
+            <button id="rename-active" class="button quiet small" type="button">
+              重命名
+            </button>
+          </div>
+          <ul id="active-rules" class="rule-summary"></ul>
+          <p id="penalty-summary" class="hint"></p>
+          <div class="detail-footer">
+            <span id="planted-at" class="subtle"></span
+            ><button
+              id="delete-active"
+              class="button text-danger small"
+              type="button"
+            >
+              移除盆栽
+            </button>
+          </div>
+        </section>
+
+        <section
+          id="plant-form-panel"
+          class="card form-card"
+          aria-labelledby="plant-form-title"
+          hidden
+        >
+          <div class="section-heading">
+            <h2 id="plant-form-title">种下一点期待</h2>
+            <button id="cancel-plant" class="button quiet small" type="button">
+              取消
+            </button>
+          </div>
+          <form id="plant-form" novalidate>
+            <fieldset>
+              <legend>挑一株喜欢的植物</legend>
+              <div id="species-options" class="species-options"></div>
+            </fieldset>
+            <label class="field" for="plant-name-input"
+              ><span>给它取个名字</span
+              ><input
+                id="plant-name-input"
+                name="plantName"
+                maxlength="40"
+                required
+                placeholder="例如：论文阅读的绣球"
+                autocomplete="off"
+            /></label>
+            <label class="field" for="target-minutes"
+              ><span>累计多少分钟开花</span>
+              <div class="input-unit">
+                <input
+                  id="target-minutes"
+                  name="targetMinutes"
+                  type="number"
+                  min="1"
+                  max="1440"
+                  step="1"
+                  value="60"
+                  required
+                /><span>分钟</span>
+              </div>
+              <small>可以分多次、跨天完成，已有进度会保存。</small></label
+            >
+            <fieldset>
+              <legend>哪些活动可以让它生长</legend>
+              <p class="hint field-intro">
+                满足任意一条即可。程序按名称匹配，网站按域名匹配并包含子域名。
+              </p>
+              <div id="rules"></div>
+              <button id="add-rule" class="button quiet small" type="button">
+                ＋ 添加规则
+              </button>
+            </fieldset>
+            <fieldset class="penalty-fieldset">
+              <legend>中断时怎么办</legend>
+              <label class="check-row" for="penalty-enabled"
+                ><input id="penalty-enabled" type="checkbox" /><span
+                  >开启中断惩罚<span class="subtle block"
+                    >默认关闭：切到其他活动只暂停，不扣进度。</span
+                  ></span
+                ></label
+              >
+              <div id="penalty-options" class="penalty-options" hidden>
+                <label class="field" for="penalty-kind"
+                  ><span>扣减方式</span
+                  ><select id="penalty-kind">
+                    <option value="percent">扣除当前进度的百分比</option>
+                    <option value="minutes">扣除固定分钟数</option>
+                  </select></label
+                >
+                <div class="field-pair">
+                  <label class="field" for="penalty-amount"
+                    ><span id="penalty-amount-label">扣减比例（%）</span
+                    ><input
+                      id="penalty-amount"
+                      type="number"
+                      min="1"
+                      max="100"
+                      step="1"
+                      value="10" /></label
+                  ><label class="field" for="penalty-grace"
+                    ><span>宽限时间（秒）</span
+                    ><input
+                      id="penalty-grace"
+                      type="number"
+                      min="0"
+                      max="300"
+                      step="1"
+                      value="30"
+                  /></label>
+                </div>
+                <p class="hint">
+                  切到不匹配的活动，超过宽限后只扣一次；及时返回不扣。手动暂停、离开电脑和关闭
+                  Hindsight 都不扣进度。进度最低为零。
+                </p>
+              </div>
+            </fieldset>
+            <button
+              id="confirm-plant"
+              class="button primary wide"
+              type="button"
+            >
+              种下这颗种子
+            </button>
+          </form>
+        </section>
+
+        <section class="card settings-card">
+          <label class="check-row" for="notify"
+            ><input id="notify" type="checkbox" checked /><span
+              >花开时告诉我<span class="subtle block"
+                >发送一条无声的系统通知。</span
+              ></span
+            ></label
+          >
+          <p class="hint window-hint">
+            在 Hindsight「设置 →
+            插件」中可选择独立窗口。紧凑模式会收起其他内容，留下一盆花。
+          </p>
+        </section>
+      </section>
+
+      <section
+        id="view-garden"
+        role="tabpanel"
+        aria-labelledby="tab-garden"
+        tabindex="0"
+        hidden
+      >
+        <div class="garden-heading">
+          <div>
+            <h2>慢慢长成一座花园</h2>
+            <p class="hint">每一株花，都留住了一段时间。</p>
+          </div>
+        </div>
+        <div id="garden-empty" class="card garden-empty">
+          <p class="empty-symbol" aria-hidden="true">✧</p>
+          <h3>这里会开出第一朵花</h3>
+          <p class="hint">完成一盆植物的累计时间，它就会搬进花园。</p>
+          <button id="garden-start" class="button quiet" type="button">
+            去看看当前盆栽
+          </button>
+        </div>
+        <div id="garden-grid" class="garden-grid"></div>
+        <section id="flower-details" class="card detail-card" hidden></section>
+      </section>
+
+      <section
+        id="rename-panel"
+        class="card action-panel"
+        aria-labelledby="rename-title"
+        hidden
+      >
+        <h2 id="rename-title">给这株植物换个名字</h2>
+        <label class="field" for="rename-input"
+          ><span>植物名称</span
+          ><input id="rename-input" maxlength="40" required autocomplete="off"
+        /></label>
+        <div class="action-row">
+          <button id="rename-save" class="button primary" type="button">
+            保存名字</button
+          ><button id="rename-cancel" class="button quiet" type="button">
+            取消
+          </button>
+        </div>
+      </section>
+      <section
+        id="delete-panel"
+        class="card action-panel"
+        aria-labelledby="delete-title"
+        hidden
+      >
+        <h2 id="delete-title">确认移除这株植物？</h2>
+        <p id="delete-message" class="hint"></p>
+        <div class="action-row">
+          <button id="delete-confirm" class="button danger" type="button">
+            确认移除</button
+          ><button id="delete-cancel" class="button quiet" type="button">
+            保留它
+          </button>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <p id="connection">正在连接后台…</p>
+        <p>原创植物插画由 AI 生成 · 数据保存在本机</p>
+      </footer>
+    </main>
+    <script src="../_page.js"></script>
+    <script src="../core.js"></script>
+    <script src="../store.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>
