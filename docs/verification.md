@@ -1,10 +1,17 @@
 # Verification
 
-Version: **0.1.0**. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.2.0**. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified on 2026-10-25 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Recorded results
+## Current 0.2.0 results
+
+- **51 automated tests passed**: 31 rule tests, 10 actual SQLite store tests and 10 worker integration tests. The added coverage verifies category/group matching by stable ID, rename independence, missing-category behavior, category-field minimization, editing rules without resetting progress or charging penalties, and compatibility with old 0.1.0 gardens.
+- **14 connected Chrome checks passed** using synthetic categories and an isolated temporary database, with the real host bridges and sandbox. They exercise category/group dropdowns, category rename/deletion, empty or failed list reads, manual-rule fallback, refresh recovery while preserving form values, category-driven growth, rules editing while retaining progress and target, group/child matching, missing-category rejection, reload persistence and mixed category/app/domain rules. The edited pot retained exactly `18 seconds / 60 minutes` through reload; an earlier paused edit retained exactly `17 seconds / 60 minutes`.
+- 0.2.0 adds exactly three permissions: `focus.category`, `categories.read`, `super_categories.read`. The storage allowance stays 4 MB. No user Hindsight database was opened or edited during development.
+- The 0.1.0 ZIP remains unchanged (SHA-256 `f9b1a200d399db0e73f1efeb07949fb4d13070c8576f855f77933990f5488017`). The new package is a separate 0.2.0 build with the same plugin identity and database schema.
+
+## Previous 0.1.0 results
 
 - **42 automated tests passed**: 23 pure-rule tests, 10 actual SQLite store tests, 9 worker integration tests. Command: `npm test`.
 - `node --check` passed for the page and background entry. The Python package/preview scripts compiled successfully.
@@ -30,7 +37,7 @@ Use the isolated preview with the actual Hindsight bridge, restrictive CSP and s
 
 ## Native checks
 
-**Not yet performed for Time Garden 0.1.0.** The final ZIP has not been installed into a real Hindsight instance, and a real operating-system bloom notification has not been verified. The earlier reminder plugin's successful Windows notification is not evidence for this new plugin. Install the final ZIP through the normal permission review and verify actual app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
+**Not yet performed for Time Garden 0.2.0.** The final ZIP has not been installed into a real Hindsight instance, and a real operating-system bloom notification has not been verified. The earlier reminder plugin's successful Windows notification is not evidence for this new plugin. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
 
 macOS/Linux, long-duration use, sleep/resume, multiple monitors, clock changes under a real host and every notification configuration require separate verification. Market installation is subject to a published release and maintainer review. No public-market listing is implied by a local package.
 

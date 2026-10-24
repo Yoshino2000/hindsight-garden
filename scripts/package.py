@@ -33,7 +33,8 @@ def main():
     assert manifest["id"] == "hindsight-garden"
     assert re.fullmatch(r"\d+\.\d+\.\d+", manifest["version"])
     assert metadata["version"] == manifest["version"], "Version mismatch"
-    assert manifest["permissions"] == ["focus.changed", "focus.app", "focus.title", "notifications"]
+    assert manifest["permissions"] == ["focus.changed", "focus.app", "focus.title", "focus.category",
+                                       "categories.read", "super_categories.read", "notifications"]
     assert manifest["storage_mb"] == 4 and manifest["runs_in_background"] is True
     assert manifest["opens_in"] == "window"
     for name in FILES:
@@ -72,8 +73,8 @@ def main():
     entry = {
         "id": manifest["id"], "name": manifest["name"], "author": "Yoshino2000",
         "description": {
-            "zh-CN": "使用指定程序或网站时累计种花，支持可选中断惩罚和永久花园收藏",
-            "en": "Grow flowers from foreground app or website time, with optional interruption penalties and a lasting garden",
+            "zh-CN": "直接使用 Hindsight 分类、大类或程序网站规则累计种花，支持可选中断惩罚和花园收藏",
+            "en": "Grow flowers with Hindsight categories, groups, apps or websites, with optional interruption penalties and a lasting garden",
         },
         "repo": "Yoshino2000/hindsight-garden",
         "versions": [{

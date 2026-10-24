@@ -192,6 +192,49 @@ test("turning off bloom notifications still grows and saves the plant", async (t
   assert.equal(host.notifications.length, 0);
 });
 
+test("live category rules use stable IDs across category renames and stop when category is absent", async (t) => {
+  const host = hostFor(t);
+  const page = await seeded(host);
+  await page.apply(
+    {
+      type: "rules",
+      id: "p1",
+      rules: [{ type: "category", value: "reading", label: "阅读" }],
+    },
+    0,
+  );
+  const live = worker(host);
+  t.after(() => live.close());
+  await live.focus({
+    app: "unrelated",
+    category: { id: "reading", name: "阅读" },
+  });
+  await live.grow(10000);
+  await live.focus({
+    app: "another",
+    category: { id: "reading", name: "新名称", color: "PRIVATE_COLOR" },
+  });
+  await live.grow(20000);
+  assert.equal((await live.store.load()).active.progressMs, 20000);
+  await live.focus({ app: "reader", category: null });
+  await live.grow(30000);
+  await live.focus({
+    app: "reader",
+    category: { id: "different", name: "阅读" },
+  });
+  await live.grow(40000);
+  const paused = await live.store.load();
+  assert.equal(paused.active.progressMs, 20000);
+  assert.equal(JSON.stringify(paused).includes("PRIVATE_COLOR"), false);
+  await live.focus({
+    app: "another",
+    category: { id: "reading", name: "新名称" },
+  });
+  await live.grow(80000);
+  assert.equal((await live.store.load()).garden.length, 1);
+  assert.equal(host.notifications.length, 1);
+});
+
 test("restarting waits for fresh focus, keeps existing progress, and old session ticks cannot grow", async (t) => {
   const host = hostFor(t);
   await seeded(host);

@@ -85,13 +85,29 @@
       : "";
   }
 
-  function cleanRules(value) {
+  function validateRules(value) {
     if (!Array.isArray(value) || value.length < 1 || value.length > 20) {
-      throw new Error("请设置 1～20 条程序或网站规则。");
+      throw new Error("请设置 1～20 条分类、程序或网站规则。");
     }
     return value.map((rule) => {
-      if (!rule || !["app", "website"].includes(rule.type)) {
+      if (
+        !rule ||
+        !["app", "website", "category", "superCategory"].includes(rule.type)
+      ) {
         throw new Error("规则类型不正确。");
+      }
+      if (rule.type === "category" || rule.type === "superCategory") {
+        const id = typeof rule.value === "string" ? rule.value.trim() : "";
+        if (!id || id.length > 128)
+          throw new Error("分类标识需要 1～128 个字符。");
+        const result = { type: rule.type, value: id, exact: false };
+        if (rule.label !== undefined) {
+          if (typeof rule.label !== "string" || rule.label.trim().length > 80) {
+            throw new Error("分类名称最多 80 个字符。");
+          }
+          result.label = rule.label.trim();
+        }
+        return result;
       }
       if (
         typeof rule.value !== "string" ||
@@ -125,14 +141,26 @@
       }
     }
     return rules.some((rule) => {
+      if (rule.type === "category") {
+        return Boolean(focus.category?.id && focus.category.id === rule.value);
+      }
+      if (rule.type === "superCategory") {
+        return Boolean(
+          focus.category?.superCategory?.id &&
+            focus.category.superCategory.id === rule.value,
+        );
+      }
       if (rule.type === "app") {
         const value = normalizeApp(rule.value);
         return Boolean(
           app && value && (rule.exact ? app === value : app.includes(value)),
         );
       }
-      return Boolean(
-        host && (host === rule.value || host.endsWith("." + rule.value)),
+      return (
+        rule.type === "website" &&
+        Boolean(
+          host && (host === rule.value || host.endsWith("." + rule.value)),
+        )
       );
     });
   }
@@ -168,7 +196,7 @@
       name: nameOf(value.name),
       species: species.id,
       targetMs: targetMinutes * 60000,
-      rules: cleanRules(value.rules),
+      rules: validateRules(value.rules),
       penalty: {
         enabled: supplied.enabled === true,
         kind,
@@ -248,6 +276,21 @@
     return { ...base, rules: settings.rules, penalty: settings.penalty };
   }
 
+  function cleanCategory(value, includeParent = true) {
+    if (!value || typeof value !== "object" || typeof value.id !== "string")
+      return null;
+    const id = value.id.trim();
+    if (!id || id.length > 128) return null;
+    const category = {
+      id,
+      name:
+        typeof value.name === "string" ? value.name.trim().slice(0, 80) : "",
+    };
+    if (includeParent)
+      category.superCategory = cleanCategory(value.superCategory, false);
+    return category;
+  }
+
   function cleanFocus(value) {
     if (!value || typeof value !== "object") return null;
     let host = null;
@@ -267,6 +310,7 @@
           ? value.app.slice(0, 120)
           : null,
       host: away ? null : host,
+      category: away ? null : cleanCategory(value.category),
     };
   }
 
@@ -495,6 +539,14 @@
           throw new Error("通知设置不正确。");
         state.notify = input.enabled;
         break;
+      case "rules":
+        if (!state.active || state.active.id !== input.id)
+          throw new Error("这株植物已不在生长，请刷新后重试。");
+        state.active.rules = validateRules(input.rules);
+        // Editing what grows the plant is a user choice, never an interruption.
+        state.interruption = null;
+        state.lastPenalty = null;
+        break;
       case "rename": {
         const plant =
           state.active?.id === input.id
@@ -539,6 +591,7 @@
     normalizeState,
     normalizeHost,
     normalizeApp,
+    validateRules,
     validatePlant,
     matches,
     stage,

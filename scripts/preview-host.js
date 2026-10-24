@@ -18,7 +18,9 @@ function renderNotifications() {
     item.append(at, document.createTextNode(notice.body));
     list.append(item);
   }
-  document.getElementById("notification-count").textContent = String(notifications.length);
+  document.getElementById("notification-count").textContent = String(
+    notifications.length,
+  );
 }
 
 async function callHost(request, reply, isCurrent = () => true) {
@@ -26,16 +28,31 @@ async function callHost(request, reply, isCurrent = () => true) {
     const response = await fetch("/api/call", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ method: request.method, params: request.params ?? null }),
+      body: JSON.stringify({
+        method: request.method,
+        params: request.params ?? null,
+      }),
     });
     const payload = await response.json();
     if (!isCurrent()) return;
+    if (["categories.list", "super_categories.list"].includes(request.method) && Array.isArray(payload.result)) {
+      const mode = document.getElementById("catalog-mode").value;
+      if (mode === "fail") throw new Error("模拟：分类读取权限不足");
+      if (mode === "empty") payload.result = [];
+      if (request.method === "categories.list") {
+        if (mode === "renamed") payload.result = payload.result.map((item) => item.id === "reading" ? { ...item, name: "文献阅读" } : item);
+        if (mode === "deleted") payload.result = payload.result.filter((item) => item.id !== "reading");
+      }
+    }
     if ("error" in payload) {
       reply({ id: request.id, error: payload.error });
       return;
     }
     if (request.method === "notifications.send") {
-      notifications.push({ at: new Date().toISOString(), body: request.params.body });
+      notifications.push({
+        at: new Date().toISOString(),
+        body: request.params.body,
+      });
       renderNotifications();
     }
     reply({ id: request.id, result: payload.result });
@@ -45,23 +62,65 @@ async function callHost(request, reply, isCurrent = () => true) {
 }
 
 function isRequest(value) {
-  return value && typeof value === "object" && typeof value.id === "number" && typeof value.method === "string";
+  return (
+    value &&
+    typeof value === "object" &&
+    typeof value.id === "number" &&
+    typeof value.method === "string"
+  );
 }
 
 window.addEventListener("message", (event) => {
-  if (event.source !== frame.contentWindow || event.origin !== location.origin || !isRequest(event.data)) return;
-  void callHost(event.data, (message) => frame.contentWindow.postMessage(message, location.origin));
+  if (
+    event.source !== frame.contentWindow ||
+    event.origin !== location.origin ||
+    !isRequest(event.data)
+  )
+    return;
+  void callHost(event.data, (message) =>
+    frame.contentWindow.postMessage(message, location.origin),
+  );
 });
 
 function sendFocus(input = {}) {
   if (!worker || !window.preview.ready) throw new Error("后台尚未就绪");
   const away = Boolean(input.away);
+  const categoryId = document.getElementById("focus-category").value;
+  const fixtureCategories = {
+    reading: {
+      id: "reading",
+      name: "阅读",
+      superCategory: { id: "work", name: "工作" },
+    },
+    code: {
+      id: "code",
+      name: "编程",
+      superCategory: { id: "work", name: "工作" },
+    },
+    games: {
+      id: "games",
+      name: "游戏",
+      superCategory: { id: "leisure", name: "娱乐" },
+    },
+  };
   const data = {
     at: input.at ?? new Date().toISOString(),
     away,
-    app: away ? null : ("app" in input ? input.app : (document.getElementById("focus-app").value.trim() || null)),
-    host: away ? null : ("host" in input ? input.host : (document.getElementById("focus-host").value.trim() || null)),
-    category: input.category ?? null,
+    app: away
+      ? null
+      : "app" in input
+        ? input.app
+        : document.getElementById("focus-app").value.trim() || null,
+    host: away
+      ? null
+      : "host" in input
+        ? input.host
+        : document.getElementById("focus-host").value.trim() || null,
+    category: away
+      ? null
+      : "category" in input
+        ? input.category
+        : fixtureCategories[categoryId] || null,
     title: input.title ?? null,
   };
   worker.postMessage({ eventName: "focus.changed", data });
@@ -95,7 +154,11 @@ function restartWorker() {
           resolve();
         }
       } else if (isRequest(event.data)) {
-        void callHost(event.data, (message) => currentWorker.postMessage(message), () => generation === currentGeneration);
+        void callHost(
+          event.data,
+          (message) => currentWorker.postMessage(message),
+          () => generation === currentGeneration,
+        );
       }
     });
     currentWorker.addEventListener("error", (event) => {
@@ -121,8 +184,12 @@ function restartWorker() {
 }
 
 window.preview = { sendFocus, notifications, restartWorker, ready: false };
-document.getElementById("send-focus").addEventListener("click", () => sendFocus());
-document.getElementById("send-away").addEventListener("click", () => sendFocus({ away: true }));
+document
+  .getElementById("send-focus")
+  .addEventListener("click", () => sendFocus());
+document
+  .getElementById("send-away")
+  .addEventListener("click", () => sendFocus({ away: true }));
 document.getElementById("restart-worker").addEventListener("click", () => {
   void restartWorker().catch(console.error);
 });

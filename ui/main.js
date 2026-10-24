@@ -53,6 +53,12 @@
   let firstRender = true;
   let gardenSignature = "";
   let errorSource = "";
+  let editPlantId = null;
+  let catalogRequest = null;
+  const catalogs = {
+    category: { items: [], loaded: false, error: null },
+    superCategory: { items: [], loaded: false, error: null },
+  };
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -129,9 +135,142 @@
   }
 
   function ruleText(rule) {
+    if (rule.type === "category" || rule.type === "superCategory") {
+      const catalog = catalogs[rule.type];
+      const item = catalog.items.find((entry) => entry.id === rule.value);
+      const type = rule.type === "category" ? "分类" : "大类";
+      const name = item?.name || rule.label || rule.value;
+      return item || !catalog.loaded
+        ? `${type} · ${name}`
+        : `已删除${type}（${name}）`;
+    }
     return rule.type === "website"
       ? `网站 · ${rule.value}`
       : `程序${rule.exact ? "（精确）" : "（包含）"} · ${rule.value}`;
+  }
+
+  function catalogStatus() {
+    const failed = Object.entries(catalogs).filter(([, value]) => value.error);
+    const text = catalogRequest
+      ? "正在读取 Hindsight 分类…"
+      : failed.length
+        ? `${failed.map(([type]) => (type === "category" ? "分类" : "大类")).join("、")}读取失败，可刷新重试；程序和网站仍可手动填写。`
+        : `已读取 ${catalogs.category.items.length} 个分类、${catalogs.superCategory.items.length} 个大类。分类变动后请刷新。`;
+    for (const id of ["catalog-status", "edit-catalog-status"])
+      $(id).textContent = text;
+    for (const id of ["refresh-catalogs", "refresh-edit-catalogs"])
+      $(id).disabled = Boolean(catalogRequest);
+  }
+
+  function readCatalog(method) {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error("读取分类超时，请稍后刷新。")),
+        8000,
+      );
+      Promise.resolve()
+        .then(() => hindsight.call(method, {}))
+        .then(
+          (items) => {
+            clearTimeout(timeout);
+            if (!Array.isArray(items)) throw new Error("分类列表格式不正确。");
+            resolve(
+              items.filter(
+                (item) =>
+                  item &&
+                  typeof item.id === "string" &&
+                  item.id &&
+                  typeof item.name === "string",
+              ),
+            );
+          },
+          (error) => {
+            clearTimeout(timeout);
+            reject(error);
+          },
+        )
+        .catch(reject);
+    });
+  }
+
+  function refreshRuleOptions(row) {
+    const type = row.querySelector(".rule-type").value;
+    const select = row.querySelector(".rule-category");
+    if (!["category", "superCategory"].includes(type)) return;
+    const selectedId = select.value || select.dataset.savedValue || "";
+    const savedLabel =
+      select.selectedOptions[0]?.dataset.label ||
+      select.dataset.savedLabel ||
+      selectedId;
+    const catalog = catalogs[type];
+    const typeName = type === "category" ? "分类" : "大类";
+    const placeholder = el(
+      "option",
+      "",
+      catalog.items.length
+        ? `请选择${typeName}`
+        : catalogRequest
+          ? `正在读取${typeName}…`
+          : catalog.error
+            ? `${typeName}读取失败，可切换为程序或网站`
+            : `暂无${typeName}，可切换为程序或网站`,
+    );
+    placeholder.value = "";
+    const options = [
+      placeholder,
+      ...catalog.items.map((item) => {
+        const parent = type === "category" ? item.superCategory?.name : null;
+        const option = el(
+          "option",
+          "",
+          parent ? `${item.name} · ${parent}` : item.name,
+        );
+        option.value = item.id;
+        option.dataset.label = item.name;
+        return option;
+      }),
+    ];
+    if (selectedId && !catalog.items.some((item) => item.id === selectedId)) {
+      const label = catalog.loaded
+        ? `已删除${type === "category" ? "分类" : "大类"}（${savedLabel}）`
+        : `${savedLabel}（等待读取）`;
+      const missing = el("option", "", label);
+      missing.value = selectedId;
+      missing.dataset.label = savedLabel;
+      options.push(missing);
+    }
+    select.replaceChildren(...options);
+    select.value = selectedId;
+    select.dataset.savedValue = selectedId;
+    select.dataset.savedLabel = savedLabel;
+  }
+
+  async function refreshCatalogs() {
+    if (catalogRequest) return catalogRequest;
+    catalogRequest = Promise.allSettled([
+      readCatalog("categories.list"),
+      readCatalog("super_categories.list"),
+    ]);
+    catalogStatus();
+    try {
+      const results = await catalogRequest;
+      for (const [index, type] of ["category", "superCategory"].entries()) {
+        const result = results[index];
+        if (result.status === "fulfilled") {
+          catalogs[type].items = result.value;
+          catalogs[type].loaded = true;
+          catalogs[type].error = null;
+        } else
+          catalogs[type].error =
+            result.reason?.message || String(result.reason);
+      }
+      for (const row of document.querySelectorAll(".rule-row"))
+        refreshRuleOptions(row);
+      if (state) renderCurrent();
+    } finally {
+      catalogRequest = null;
+      catalogStatus();
+    }
   }
 
   function penaltyText(penalty) {
@@ -170,7 +309,8 @@
       $("growth-status").textContent = state.paused ? "已暂停" : "等待播种";
       $("stage-name").textContent = "从一颗种子开始";
       $("plant-name").textContent = "给时间种一朵花";
-      $("plant-caption").textContent = "把一盆花和你常用的程序、网站关联起来。";
+      $("plant-caption").textContent =
+        "选一个现有分类，让日常活动慢慢养出一朵花。";
       $("growth-hint").textContent = state.garden.length
         ? "上一朵花已留在花园，准备好再种下一盆。"
         : "符合规则时慢慢生长，离开时安心暂停。";
@@ -293,6 +433,10 @@
     $("loading").hidden = true;
     renderCurrent();
     renderGarden();
+    if (!$("rules-edit-panel").hidden && editPlantId !== state.active?.id) {
+      $("rules-edit-panel").hidden = true;
+      editPlantId = null;
+    }
     if (state.lastError) showError(new Error(state.lastError), "runtime");
     else if (["runtime", "connection"].includes(errorSource)) {
       $("error").hidden = true;
@@ -317,7 +461,7 @@
     busy = true;
     generation += 1;
     for (const button of document.querySelectorAll(
-      ".action-panel button, #confirm-plant, #pause, #rename-save",
+      ".action-panel button, #confirm-plant, #pause, #rename-save, #save-rules-edit",
     ))
       button.disabled = true;
     $("error").hidden = true;
@@ -333,14 +477,15 @@
     } finally {
       busy = false;
       for (const button of document.querySelectorAll(
-        ".action-panel button, #confirm-plant, #pause, #rename-save",
+        ".action-panel button, #confirm-plant, #pause, #rename-save, #save-rules-edit",
       ))
         button.disabled = false;
     }
   }
 
-  function addRule() {
-    if ($("rules").children.length >= 20) {
+  function addRule(containerId = "rules", seed = null, focusNew = true) {
+    const container = $(containerId);
+    if (container.children.length >= 20) {
       notice("每株植物最多添加 20 条规则。");
       return;
     }
@@ -350,6 +495,8 @@
     const type = el("select", "rule-type");
     type.setAttribute("aria-label", `规则 ${number} 类型`);
     for (const [value, text] of [
+      ["category", "分类"],
+      ["superCategory", "大类"],
       ["app", "程序"],
       ["website", "网站"],
     ]) {
@@ -357,11 +504,12 @@
       option.value = value;
       type.append(option);
     }
+    type.value = seed?.type || "category";
     const remove = el("button", "button text-danger small remove-rule", "移除");
     remove.type = "button";
     remove.setAttribute("aria-label", `移除规则 ${number}`);
     remove.addEventListener("click", () => {
-      if ($("rules").children.length === 1) {
+      if (container.children.length === 1) {
         notice("至少保留一条生长规则。");
         return;
       }
@@ -373,22 +521,78 @@
     value.maxLength = 120;
     value.placeholder = "例如：Code、Acrobat";
     value.setAttribute("aria-label", `规则 ${number} 内容`);
+    value.value = ["app", "website"].includes(seed?.type) ? seed.value : "";
+    const category = el("select", "rule-category");
+    category.required = true;
+    category.setAttribute("aria-label", `规则 ${number} 分类`);
+    category.dataset.savedValue = ["category", "superCategory"].includes(
+      seed?.type,
+    )
+      ? seed.value
+      : "";
+    category.dataset.savedLabel = seed?.label || category.dataset.savedValue;
+    category.addEventListener("change", () => {
+      category.dataset.savedValue = category.value;
+      category.dataset.savedLabel =
+        category.selectedOptions[0]?.dataset.label || "";
+      category.setCustomValidity("");
+    });
     const exactLabel = el("label", "rule-exact");
     const exact = el("input");
     exact.type = "checkbox";
+    exact.className = "rule-exact-input";
+    exact.checked = seed?.exact === true;
     exactLabel.append(exact, "精确匹配程序名（忽略大小写和 .exe）");
-    type.addEventListener("change", () => {
-      exactLabel.hidden = type.value === "website";
+    function changeType() {
+      const grouped = ["category", "superCategory"].includes(type.value);
+      category.hidden = !grouped;
+      category.disabled = !grouped;
+      value.hidden = grouped;
+      value.disabled = grouped;
+      exactLabel.hidden = type.value !== "app";
+      exact.disabled = type.value !== "app";
       value.placeholder =
         type.value === "website"
           ? "例如：example.com，或粘贴网址"
           : "例如：Code、Acrobat";
       value.setCustomValidity("");
+      refreshRuleOptions(row);
+    }
+    type.addEventListener("change", () => {
+      category.value = "";
+      category.dataset.savedValue = "";
+      category.dataset.savedLabel = "";
+      changeType();
     });
     value.addEventListener("input", () => value.setCustomValidity(""));
-    row.append(top, value, exactLabel);
-    $("rules").append(row);
-    if (number > 1) value.focus();
+    row.append(top, category, value, exactLabel);
+    container.append(row);
+    changeType();
+    if (focusNew && container.children.length > 1) {
+      (category.disabled ? value : category).focus();
+    }
+  }
+
+  function readRules(containerId) {
+    return [...$(containerId).children].map((row) => {
+      const type = row.querySelector(".rule-type").value;
+      const grouped = ["category", "superCategory"].includes(type);
+      const category = row.querySelector(".rule-category");
+      return {
+        type,
+        value: grouped
+          ? category.value
+          : row.querySelector(".rule-value").value,
+        label: grouped
+          ? (
+              category.selectedOptions[0]?.dataset.label ||
+              category.dataset.savedLabel ||
+              category.value
+            ).slice(0, 80)
+          : "",
+        exact: type === "app" && row.querySelector(".rule-exact-input").checked,
+      };
+    });
   }
 
   function rawPlant() {
@@ -398,11 +602,7 @@
         document.querySelector('input[name="species"]:checked')?.value ||
         C.SPECIES[0].id,
       targetMinutes: Number($("target-minutes").value),
-      rules: [...$("rules").children].map((row) => ({
-        type: row.querySelector("select").value,
-        value: row.querySelector(".rule-value").value,
-        exact: row.querySelector('input[type="checkbox"]').checked,
-      })),
+      rules: readRules("rules"),
       penalty: {
         enabled: $("penalty-enabled").checked,
         kind: $("penalty-kind").value,
@@ -416,7 +616,7 @@
     $("plant-form").reset();
     $("rules").replaceChildren();
     ruleCounter = 0;
-    addRule();
+    addRule("rules", null, false);
     $("penalty-options").hidden = true;
     for (const input of $("penalty-options").querySelectorAll("input, select"))
       input.disabled = true;
@@ -437,6 +637,7 @@
     $("plant-form-panel").hidden = false;
     $("start-plant").hidden = true;
     $("plant-name-input").focus();
+    refreshCatalogs();
   }
 
   function closePlant() {
@@ -459,7 +660,36 @@
       `plant-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     await command({ type: "plant", id, plant: input }, () => {
       closePlant();
-      notice("种好了。回到设定的程序或网站，它就会开始生长。");
+      notice("种好了。回到符合分类或规则的活动，它就会开始生长。");
+    });
+  }
+
+  function openRulesEdit() {
+    if (!state?.active) return;
+    editPlantId = state.active.id;
+    $("edit-rules-list").replaceChildren();
+    for (const rule of state.active.rules)
+      addRule("edit-rules-list", rule, false);
+    $("rules-edit-panel").hidden = false;
+    $("rename-panel").hidden = true;
+    $("delete-panel").hidden = true;
+    $("cancel-rules-edit").focus();
+    refreshCatalogs();
+  }
+
+  async function saveRulesEdit() {
+    if (!$("rules-edit-form").reportValidity()) return;
+    const rules = readRules("edit-rules-list");
+    try {
+      C.validateRules(rules);
+    } catch (error) {
+      showError(error);
+      return;
+    }
+    await command({ type: "rules", id: editPlantId, rules }, () => {
+      $("rules-edit-panel").hidden = true;
+      editPlantId = null;
+      notice("生长规则已更新，已有进度、开花目标和惩罚设置都已保留。");
     });
   }
 
@@ -551,7 +781,32 @@
   $("garden-start").addEventListener("click", () => tab("current", true));
   $("cancel-plant").addEventListener("click", closePlant);
   $("confirm-plant").addEventListener("click", plant);
-  $("add-rule").addEventListener("click", addRule);
+  $("add-rule").addEventListener("click", () => addRule());
+  $("edit-rules").addEventListener("click", openRulesEdit);
+  $("add-edit-rule").addEventListener("click", () =>
+    addRule("edit-rules-list"),
+  );
+  $("save-rules-edit").addEventListener("click", saveRulesEdit);
+  $("cancel-rules-edit").addEventListener("click", () => {
+    $("rules-edit-panel").hidden = true;
+    editPlantId = null;
+  });
+  for (const id of ["refresh-catalogs", "refresh-edit-catalogs"]) {
+    $(id).addEventListener("click", refreshCatalogs);
+  }
+  $("rules-edit-form").addEventListener("submit", (event) =>
+    event.preventDefault(),
+  );
+  $("rules-edit-form").addEventListener("keydown", (event) => {
+    if (
+      event.key !== "Enter" ||
+      event.target.tagName !== "INPUT" ||
+      event.target.type === "checkbox"
+    )
+      return;
+    event.preventDefault();
+    saveRulesEdit();
+  });
   $("plant-form").addEventListener("submit", (event) => event.preventDefault());
   $("plant-form").addEventListener("keydown", (event) => {
     if (
@@ -624,6 +879,7 @@
     compact(false);
   }
   resetPlantForm();
+  refreshCatalogs();
   poll();
   setInterval(poll, 2000);
 })();

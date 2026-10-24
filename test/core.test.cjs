@@ -80,6 +80,145 @@ test("app matching is case insensitive, strips exe, supports exact and OR rules"
   assert.equal(core.matches(rules, { app: "reader", away: true }), false);
 });
 
+test("category rules validate opaque IDs without app normalization and bound optional labels", () => {
+  assert.deepEqual(
+    core.validateRules([
+      {
+        type: "category",
+        value: " Reading.EXE ",
+        label: " 阅读 ",
+        exact: true,
+      },
+      { type: "superCategory", value: " Work-A ", exact: true },
+    ]),
+    [
+      { type: "category", value: "Reading.EXE", label: "阅读", exact: false },
+      { type: "superCategory", value: "Work-A", exact: false },
+    ],
+  );
+  assert.equal(
+    core.validateRules([{ type: "category", value: "x".repeat(128) }])[0].value
+      .length,
+    128,
+  );
+  for (const rule of [
+    { type: "category", value: " " },
+    { type: "category", value: -1 },
+    { type: "category", value: "x".repeat(129) },
+    { type: "category", value: "reading", label: "x".repeat(81) },
+    { type: "category", value: "reading", label: 100 },
+    { type: "supercategory", value: "work" },
+  ])
+    assert.throws(() => core.validateRules([rule]));
+});
+
+test("category matching uses exact stable IDs, ignores renames, and separates parent from child", () => {
+  const child = core.validateRules([
+    { type: "category", value: "Reading.EXE", label: "旧名称" },
+  ]);
+  const parent = core.validateRules([
+    { type: "superCategory", value: "Work-A", label: "工作" },
+  ]);
+  const event = {
+    category: {
+      id: "Reading.EXE",
+      name: "新名称",
+      superCategory: { id: "Work-A", name: "重命名" },
+    },
+  };
+  assert.equal(core.matches(child, event), true);
+  assert.equal(core.matches(parent, event), true);
+  assert.equal(core.matches(child, { category: { id: "reading.exe" } }), false);
+  assert.equal(core.matches(child, { category: { id: "reading" } }), false);
+  assert.equal(
+    core.matches(child, { category: { id: "different", name: "旧名称" } }),
+    false,
+  );
+  assert.equal(core.matches(child, { category: { id: "Work-A" } }), false);
+  assert.equal(
+    core.matches(parent, { category: { id: "Work-A", superCategory: null } }),
+    false,
+  );
+  assert.equal(
+    core.matches(parent, {
+      category: { id: "Reading.EXE", superCategory: { id: "work-a" } },
+    }),
+    false,
+  );
+  assert.equal(core.matches(child, { category: null }), false);
+  assert.equal(core.matches(parent, {}), false);
+  assert.equal(core.matches(child, { ...event, away: true }), false);
+  assert.equal(
+    core.matches([...child, { type: "app", value: "reader", exact: true }], {
+      app: "reader",
+    }),
+    true,
+  );
+  assert.equal(
+    core.matches([{ type: "unknown", value: "example.com" }], {
+      host: "example.com",
+    }),
+    false,
+  );
+});
+
+test("focus persistence keeps only the category identity and name, without titles or decorative fields", () => {
+  let state = planted({
+    rules: [{ type: "category", value: "reading", label: "阅读" }],
+  });
+  state = focus(state, "unrelated", 0, {
+    category: {
+      id: "reading",
+      name: "阅读",
+      color: "SECRET_COLOR",
+      icon: "SECRET_ICON",
+      superCategory: {
+        id: "leisure",
+        name: "休闲",
+        color: "SECRET_PARENT_COLOR",
+        icon: "SECRET_PARENT_ICON",
+      },
+    },
+    title: "SECRET_TITLE",
+  });
+  assert.deepEqual(state.focus.category, {
+    id: "reading",
+    name: "阅读",
+    superCategory: { id: "leisure", name: "休闲" },
+  });
+  state = tick(state, 5000);
+  assert.equal(state.active.progressMs, 5000);
+  assert.equal(JSON.stringify(state).includes("SECRET"), false);
+  state = focus(state, null, 5000, {
+    away: true,
+    category: { id: "reading", name: "阅读" },
+  });
+  assert.equal(state.focus.category, null);
+});
+
+test("a parent category grows across its child categories but not unrelated or missing categories", () => {
+  let state = planted({ rules: [{ type: "superCategory", value: "work" }] });
+  state = focus(state, "editor", 0, {
+    category: { id: "code", superCategory: { id: "work", name: "工作" } },
+  });
+  state = tick(state, 5000);
+  state = focus(state, "reader", 5000, {
+    category: {
+      id: "reading",
+      superCategory: { id: "work", name: "新工作名" },
+    },
+  });
+  state = tick(state, 10000);
+  assert.equal(state.active.progressMs, 10000);
+  state = focus(state, "game", 10000, {
+    category: { id: "game", superCategory: { id: "play" } },
+  });
+  state = tick(state, 15000);
+  state = focus(state, "unknown", 15000, { category: null });
+  state = tick(state, 20000);
+  assert.equal(state.active.progressMs, 10000);
+});
+
 test("input validation constrains all settings and ignores forged progress", () => {
   const value = core.validatePlant(
     settings({ progressMs: 99999, penalty: {} }),
@@ -337,6 +476,130 @@ test("rename and delete work for the collection; no implicit replacement", () =>
   );
   state = change(state, { type: "delete", id: "plant-2" }, 60000);
   assert.equal(state.active, null);
+});
+
+test("editing an active plant's rules keeps its growth and identity while cancelling old penalties", () => {
+  let state = focus(planted({ penalty: strict }), "reader", 0);
+  state = grow(state, 0, 20000);
+  state = focus(state, "chat", 20000);
+  state = grow(state, 20000, 25000);
+  assert.equal(state.active.progressMs, 15000);
+  assert.ok(state.lastPenalty);
+  assert.ok(state.interruption);
+  const previous = structuredClone(state);
+  const result = core.reduce(
+    state,
+    {
+      type: "rules",
+      id: "plant-1",
+      rules: [{ type: "category", value: "reading", label: "阅读" }],
+    },
+    26000,
+  );
+  state = result.state;
+  assert.deepEqual(result.notes, []);
+  assert.equal(state.interruption, null);
+  assert.equal(state.lastPenalty, null);
+  const { rules, ...retained } = state.active;
+  const { rules: oldRules, ...expected } = previous.active;
+  assert.deepEqual(retained, expected);
+  assert.deepEqual(rules, [
+    { type: "category", value: "reading", label: "阅读", exact: false },
+  ]);
+  assert.deepEqual(previous.active.rules, oldRules);
+  assert.deepEqual(previous, core.normalizeState(previous));
+  state = tick(state, 27000);
+  assert.equal(state.active.progressMs, 15000);
+  assert.equal(state.lastPenalty, null);
+  state = focus(state, "any-app", 28000, {
+    category: { id: "reading", name: "重新命名的分类" },
+  });
+  state = tick(state, 29000);
+  assert.equal(state.active.progressMs, 16000);
+});
+
+test("changing from a matching to nonmatching rule is not itself a punishable interruption", () => {
+  let state = focus(planted({ penalty: strict }), "reader", 0);
+  state = grow(state, 0, 10000);
+  state = change(
+    state,
+    {
+      type: "rules",
+      id: "plant-1",
+      rules: [{ type: "superCategory", value: "work", label: "工作" }],
+    },
+    11000,
+  );
+  state = grow(state, 11000, 21000);
+  assert.equal(state.active.progressMs, 10000);
+  assert.equal(state.interruption, null);
+  assert.equal(state.lastPenalty, null);
+  assert.throws(() =>
+    change(
+      state,
+      {
+        type: "rules",
+        id: "missing",
+        rules: [{ type: "category", value: "reading" }],
+      },
+      21000,
+    ),
+  );
+  assert.throws(() =>
+    change(state, { type: "rules", id: "plant-1", rules: [] }, 21000),
+  );
+});
+
+test("0.1.0 saved flowers, app rules, and progress load without a category field or destructive migration", () => {
+  let legacy = focus(planted(), "reader", 0);
+  legacy = tick(legacy, 7000);
+  delete legacy.focus.category;
+  legacy.garden = [
+    {
+      id: "old-flower",
+      name: "旧花",
+      species: "daisy",
+      createdAt: 0,
+      bloomAt: 1000,
+      targetMs: 60000,
+      progressMs: 60000,
+    },
+  ];
+  const raw = JSON.stringify(legacy);
+  const loaded = core.normalizeState(JSON.parse(raw));
+  assert.equal(loaded.schema, 1);
+  assert.equal(loaded.focus.category, null);
+  assert.deepEqual(loaded.active, legacy.active);
+  assert.deepEqual(loaded.garden, legacy.garden);
+  assert.equal(loaded.active.progressMs, 7000);
+  assert.equal(JSON.stringify(legacy), raw);
+  const next = change(
+    loaded,
+    {
+      type: "rules",
+      id: "plant-1",
+      rules: [{ type: "category", value: "reading" }],
+    },
+    7000,
+  );
+  assert.equal(next.active.progressMs, 7000);
+  assert.deepEqual(next.garden, legacy.garden);
+});
+
+test("malformed or missing category identities are unknown, never accidental matches", () => {
+  for (const category of [
+    undefined,
+    null,
+    { id: " " },
+    { id: -1 },
+    { id: "x".repeat(129) },
+  ]) {
+    let state = planted({ rules: [{ type: "category", value: "reading" }] });
+    state = focus(state, "reader", 0, { category });
+    state = tick(state, 5000);
+    assert.equal(state.focus.category, null);
+    assert.equal(state.active.progressMs, 0);
+  }
 });
 
 test("saved state validation rejects unknown schema and corrupted progress", () => {

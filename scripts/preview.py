@@ -34,6 +34,17 @@ HOST_CSP = ("default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; "
             "frame-src 'self'; worker-src 'self'; connect-src 'self'; "
             "base-uri 'none'; form-action 'none'")
 
+# Synthetic categories only. Never read the user's Hindsight database for a preview.
+SUPER_CATEGORIES = [
+    {"id": "work", "name": "工作", "color": "#8b5cf6", "icon": "Briefcase"},
+    {"id": "leisure", "name": "娱乐", "color": "#f59e0b", "icon": "Gamepad2"},
+]
+CATEGORIES = [
+    {"id": "reading", "name": "阅读", "color": "#55a879", "icon": "BookOpen", "superCategory": SUPER_CATEGORIES[0]},
+    {"id": "code", "name": "编程", "color": "#a78bfa", "icon": "Code", "superCategory": SUPER_CATEGORIES[0]},
+    {"id": "games", "name": "游戏", "color": "#f59e0b", "icon": "Gamepad2", "superCategory": SUPER_CATEGORIES[1]},
+]
+
 
 def bridges():
     source = HINDSIGHT_SOURCE.read_text(encoding="utf-8-sig")
@@ -157,6 +168,10 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError(f"Unknown or unapproved method: {method}")
             if method in ("db.execute", "db.query"):
                 result = database_call(self.server, method, params)
+            elif method == "categories.list":
+                result = CATEGORIES
+            elif method == "super_categories.list":
+                result = SUPER_CATEGORIES
             else:
                 body = params.get("body") if isinstance(params, dict) else None
                 if not isinstance(body, str) or not body.strip():
@@ -185,6 +200,10 @@ def main():
         server.allowed_methods = {"db.execute", "db.query"}
         if "notifications" in manifest.get("permissions", []):
             server.allowed_methods.add("notifications.send")
+        if "categories.read" in manifest.get("permissions", []):
+            server.allowed_methods.add("categories.list")
+        if "super_categories.read" in manifest.get("permissions", []):
+            server.allowed_methods.add("super_categories.list")
         print(f"Test host (not real Hindsight/OS notifications): http://127.0.0.1:{options.port}", flush=True)
         print("SQLite data is temporary and will be removed when this server exits.", flush=True)
         try:

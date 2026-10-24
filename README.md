@@ -7,7 +7,8 @@ Grow a small garden while you use your computer. A third-party plugin for [Hinds
 ## Features
 
 - **Four plants**: sunflower, hydrangea, tulip and daisy, each with five growth stages.
-- **Your own rules**: match one or more foreground apps or website domains. Any matching rule grows the current plant; overlapping rules never multiply time.
+- **Use your Hindsight categories**: pick an existing category or super-category from a dropdown. No need to re-enter the apps and websites assigned to it. App/domain rules remain available, and any matching rule grows the current plant without multiplying time.
+- **Change rules while growing**: edit the active pot's rules without resetting its progress, target or penalty settings.
 - **Cumulative growth**: collect time across visits and days. Switching away pauses growth by default.
 - **Optional interruption penalty**: after a grace period, subtract either a percentage of the current progress or a fixed number of minutes. Each uninterrupted visit to other apps applies at most one deduction. Progress never goes below zero.
 - **A lasting garden**: completed plants remain in your collection, with names and planting/bloom dates. One plant grows at a time.
@@ -19,16 +20,20 @@ Manual pause, an away event, background restart and an unobserved clock gap do n
 
 Requires Hindsight **0.10.0 or later**. This is an experimental personal plugin, not an official Hindsight plugin. It has not been exhaustively tested and may contain problems or risks.
 
-1. Use the supplied `hindsight-garden-0.1.0.zip`, or build it below. This initial local build has not been publicly released or listed in the market.
+1. Use the supplied `hindsight-garden-0.2.0.zip`, or build it below. This local build has not been publicly released or listed in the market.
 2. In Hindsight, open **Settings → Plugins** and choose the local ZIP installation option.
-3. Review the four permissions and the 4 MB database allowance, then install.
-4. Open **时光花园**, pick a plant, give it a name and add app/domain rules.
+3. Review the seven permissions and the 4 MB database allowance, then install.
+4. Open **时光花园**, pick a plant, give it a name and select a Hindsight category or group. App/domain rules are optional.
+
+To upgrade from 0.1.0, install this ZIP as an update to the same plugin rather than deleting its data. It preserves the existing garden and rules. The update adds `focus.category`, `categories.read` and `super_categories.read`; review these in Hindsight's update dialog. An existing pot's **修改规则** action lets it use categories without planting again.
 
 The default opens in a separate **ordinary window**. Its title bar, background and overlap with other windows are controlled by Hindsight. Transparent desktop overlays, always-on-top, click-through and autonomous window movement are not supported. Use Hindsight's plugin settings to change where the page opens; compact view only changes this plugin's layout.
 
 ## Growth rules
 
-The target is 1–1,440 minutes. App rules can match a whole app name or part of it, ignoring case and a trailing `.exe`. Website rules match a domain and its subdomains on label boundaries: `example.com` includes `docs.example.com`, not `notexample.com`. A full URL is reduced to its hostname; page paths are not tracked. Multiple rules are alternatives.
+The target is 1–1,440 minutes. Category rules use Hindsight's stable category IDs; super-category rules match any category currently assigned to that group. Renaming a category does not change the rule. Deleted categories do not match; use **刷新分类** to refresh names and choices. Assignment changes take effect when Hindsight reports a new foreground event. The plugin does not copy category memberships or edit Hindsight's classifications.
+
+App rules can match a whole app name or part of it, ignoring case and a trailing `.exe`. Website rules match a domain and its subdomains on label boundaries: `example.com` includes `docs.example.com`, not `notexample.com`. A full URL is reduced to its hostname; page paths are not tracked. Multiple rules are alternatives.
 
 Optional penalties have a 0–300 second grace period. A percentage applies to the accumulated progress at the time of deduction, **not the target**. For example, 40 accumulated minutes with a 10% penalty becomes 36 minutes. A five-minute penalty leaves 35 minutes. Returning within the grace period cancels it. Away/manual pause cancels a pending deduction; returning from a break does not itself incur a penalty.
 
@@ -41,10 +46,13 @@ Time means observed, matching **foreground use**, not proof of attention or comp
 | `focus.changed` | Observe foreground changes and away events |
 | `focus.app` | Match app rules |
 | `focus.title` | Obtain the website domain; the API also exposes window titles, which this plugin discards |
+| `focus.category` | Match the current foreground category and its super-category |
+| `categories.read` | List existing Hindsight categories for the dropdown |
+| `super_categories.read` | List existing Hindsight super-categories for the dropdown |
 | `notifications` | Send an optional bloom notification |
 | `storage_mb: 4` | Store the current plant, preferences and collection in this plugin's SQLite database |
 
-No history/statistics, screenshot, file-system or program-launch permission is requested. The runtime makes no network requests. It does not keep window titles or an activity history. Rule text, plant metadata and the latest observed app/domain are local to the plugin. Hindsight does not sync plugin databases across devices. Uninstalling can delete the garden if you choose to remove plugin data.
+No history/statistics, screenshot, file-system or program-launch permission is requested. The runtime makes no network requests. It does not keep window titles or an activity history. Rule text, selected category IDs/names, plant metadata and the latest observed app/domain/category are local to the plugin. Hindsight does not sync plugin databases across devices. Uninstalling can delete the garden if you choose to remove plugin data.
 
 ## Development
 

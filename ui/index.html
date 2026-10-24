@@ -68,7 +68,7 @@
           </div>
           <h2 id="plant-name">给时间种一朵花</h2>
           <p id="plant-caption" class="hero-caption">
-            把一盆花和你常用的程序、网站关联起来。
+            选一个现有分类，让日常活动慢慢养出一朵花。
           </p>
           <div id="progress-area" hidden>
             <div
@@ -103,9 +103,18 @@
         <section id="active-details" class="card detail-card" hidden>
           <div class="section-heading">
             <h2>这盆花的约定</h2>
-            <button id="rename-active" class="button quiet small" type="button">
-              重命名
-            </button>
+            <div class="detail-actions">
+              <button id="edit-rules" class="button quiet small" type="button">
+                修改规则
+              </button>
+              <button
+                id="rename-active"
+                class="button quiet small"
+                type="button"
+              >
+                重命名
+              </button>
+            </div>
           </div>
           <ul id="active-rules" class="rule-summary"></ul>
           <p id="penalty-summary" class="hint"></p>
@@ -119,6 +128,52 @@
               移除盆栽
             </button>
           </div>
+        </section>
+
+        <section
+          id="rules-edit-panel"
+          class="card form-card"
+          aria-labelledby="rules-edit-title"
+          hidden
+        >
+          <div class="section-heading">
+            <h2 id="rules-edit-title">修改生长规则</h2>
+            <button
+              id="cancel-rules-edit"
+              class="button quiet small"
+              type="button"
+            >
+              取消
+            </button>
+          </div>
+          <p class="hint field-intro">
+            只修改哪些活动可以生长，已有进度、开花目标和惩罚设置都会保留。
+          </p>
+          <form id="rules-edit-form" novalidate>
+            <div class="catalog-tools">
+              <button
+                id="refresh-edit-catalogs"
+                class="button quiet small"
+                type="button"
+              >
+                刷新分类
+              </button>
+              <p id="edit-catalog-status" class="hint" role="status">
+                正在读取 Hindsight 分类…
+              </p>
+            </div>
+            <div id="edit-rules-list"></div>
+            <button id="add-edit-rule" class="button quiet small" type="button">
+              ＋ 添加规则
+            </button>
+            <button
+              id="save-rules-edit"
+              class="button primary wide save-rules"
+              type="button"
+            >
+              保存生长规则
+            </button>
+          </form>
         </section>
 
         <section
@@ -167,8 +222,21 @@
             <fieldset>
               <legend>哪些活动可以让它生长</legend>
               <p class="hint field-intro">
-                满足任意一条即可。程序按名称匹配，网站按域名匹配并包含子域名。
+                直接选择 Hindsight
+                已有的分类或大类，无需填写程序名。满足任意一条即可；也可以添加程序或网站规则。
               </p>
+              <div class="catalog-tools">
+                <button
+                  id="refresh-catalogs"
+                  class="button quiet small"
+                  type="button"
+                >
+                  刷新分类
+                </button>
+                <p id="catalog-status" class="hint" role="status">
+                  正在读取 Hindsight 分类…
+                </p>
+              </div>
               <div id="rules"></div>
               <button id="add-rule" class="button quiet small" type="button">
                 ＋ 添加规则

@@ -7,7 +7,7 @@ Follow the author's [CONTRIBUTING.md](https://github.com/Tomotsugu-dev/hindsight
 3. Set a new three-number version in `manifest.json` and `package.json`, then run tests and `python scripts/package.py`.
 4. Publish a GitHub Release in the source repository, with the ZIP and SHA-256 file as release assets. An issue attachment is not a valid market download URL.
 5. Download the public asset and verify its SHA-256 against the locally built ZIP. Never replace an already listed ZIP; bump the version instead.
-6. Fork `Tomotsugu-dev/hindsight-plugins`, branch from the current upstream and add the generated `dist/market-entry.json` entry. Match the manifest's id, name, version, four permissions and `storage_mb: 4` exactly. Copy `icon.png` byte-for-byte to `icons/hindsight-garden.png`.
+6. Fork `Tomotsugu-dev/hindsight-plugins`, branch from the current upstream and add the generated `dist/market-entry.json` entry. Match the manifest's id, name, version, seven permissions and `storage_mb: 4` exactly. Copy `icon.png` byte-for-byte to `icons/hindsight-garden.png`.
 7. Validate the JSON and open a PR titled `feat: list 时光花园`. State that this is an experimental third-party plugin, describe validation limits and disclose AI-generated original plant art. The maintainer reviews before listing.
 
 ## Market format

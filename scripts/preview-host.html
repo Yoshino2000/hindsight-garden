@@ -12,7 +12,7 @@
     .controls, .notifications { background: white; border: 1px solid #d4dce8; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
     .controls { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; }
     label { display: grid; gap: 4px; }
-    input, button { padding: 8px 11px; font: inherit; border: 1px solid #aebed1; border-radius: 6px; }
+    input, select, button { padding: 8px 11px; font: inherit; border: 1px solid #aebed1; border-radius: 6px; }
     button { cursor: pointer; background: #f0f6ff; }
     #worker-status { font-size: 13px; }
     iframe { width: 100%; height: 760px; border: 1px solid #d4dce8; border-radius: 10px; background: white; }
@@ -30,6 +30,8 @@
   <section class="controls" aria-label="模拟焦点">
     <label>当前应用<input id="focus-app" value="Chrome" autocomplete="off"></label>
     <label>网站域名<input id="focus-host" value="example.com" autocomplete="off"></label>
+    <label>活动分类<select id="focus-category"><option value="reading">阅读（工作）</option><option value="code">编程（工作）</option><option value="games">游戏（娱乐）</option><option value="">未分类</option></select></label>
+    <label>分类列表模拟<select id="catalog-mode"><option value="normal">正常</option><option value="renamed">阅读分类改名</option><option value="deleted">删除阅读分类</option><option value="empty">空列表</option><option value="fail">读取失败</option></select></label>
     <button id="send-focus" type="button">发送焦点事件</button>
     <button id="send-away" type="button">用户离开</button>
     <button id="restart-worker" type="button">重新启动后台</button>

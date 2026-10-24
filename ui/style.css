@@ -307,6 +307,28 @@ input[type="radio"] {
   gap: 10px;
   margin-bottom: 15px;
 }
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.catalog-tools {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 9px 0 12px;
+}
+.catalog-tools .button {
+  flex-shrink: 0;
+}
+.catalog-tools .hint {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.save-rules {
+  margin-top: 18px;
+}
 .rule-summary {
   list-style: none;
   padding: 0;
