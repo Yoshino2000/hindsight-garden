@@ -9,13 +9,14 @@ import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SPECIES = ("sunflower", "hydrangea", "tulip", "daisy")
+SPECIES = ("sunflower", "hydrangea", "tulip", "daisy", "rose", "lavender", "cosmos", "lily")
 FILES = [
-    "manifest.json", "icon.png", "background.js", "core.js", "store.js",
+    "manifest.json", "icon.png", "background.js", "core.js", "store.js", "garden-layout.js",
     "ui/index.html", "ui/style.css", "ui/main.js",
     *(f"assets/{name}.png" for name in SPECIES),
+    *(f"assets/garden/{name}.png" for name in SPECIES),
     "README.md", "intro/zh/README.md", "docs/development.md",
-    "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "LICENSE",
+    "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/screenshots/garden.png", "LICENSE",
 ]
 
 
@@ -45,6 +46,8 @@ def main():
     for name in SPECIES:
         width, height = png_size((ROOT / "assets" / f"{name}.png").read_bytes())
         assert width > height and width >= 500, f"{name}: expected a five-column horizontal image strip"
+        small_width, small_height = png_size((ROOT / "assets" / "garden" / f"{name}.png").read_bytes())
+        assert min(small_width, small_height) >= 64, f"{name}: missing dedicated garden illustration"
     html = (ROOT / "ui/index.html").read_text(encoding="utf-8-sig")
     assert "../_page.js" in html, "Missing injected page bridge reference"
     assert "_page.js" not in FILES and "_worker.js" not in FILES

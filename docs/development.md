@@ -15,7 +15,9 @@ The reference plugin is [Focus](https://github.com/Tomotsugu-dev/hindsight-focus
 | `store.js` | Parameter-bound SQLite reads and version-checked writes |
 | `ui/main.js` | DOM UI, validated commands and polling |
 | `ui/style.css` | Responsive garden, compact view and stage-sprite display |
-| `assets/*.png` | Original four-species, five-stage image strips |
+| `garden-layout.js` | Pure stable center-out isometric positions, 25 flowers per bed |
+| `assets/*.png` | Eight high-definition five-stage potted plant strips for growth and selection |
+| `assets/garden/*.png` | Eight independently generated, simpler ground-planted garden sprites |
 | `test/*.test.cjs` | Isolated deterministic rules/store/worker tests |
 | `scripts/preview.py` | Local simulated host, actual extracted bridges and temporary SQLite |
 | `scripts/package.py` | Allowlisted, deterministic installable ZIP and release metadata |
@@ -27,6 +29,8 @@ The worker and page share versioned state. Compare-and-swap writes retry from a 
 Only matching, not-away foreground stretches observed by the running worker earn time. No sleep or offline catch-up. A backwards clock or gap over ten seconds invalidates the observed focus and pending penalty. Boot also clears them. Page commands do not invent elapsed time.
 
 Category rules use the `category.id` or `category.superCategory.id` in `focus.changed`. The page reads `categories.list` and `super_categories.list` to display choices. It never copies application membership lists or infers categories from names. IDs are opaque, case-sensitive values; stored labels are optional display snapshots, not matching keys. A rules-only page command preserves the active plant and its progress and clears pending interruption, so changing a rule cannot itself charge a penalty. Existing schema-1 app/domain gardens from 0.1.0 remain readable without a destructive migration.
+
+The garden view is a decorative SVG/CSS scene plus real interactive plant images, not a metadata card grid. `GardenLayout` places completed plants by planting date and ID, using fixed center-out slots with depth order. The garden sprites are different compositions from the high-definition pot artwork, not just CSS-scaled versions of it. Plant details are opened only by an explicit user selection. Polling, blooming and pagination must not implicitly select the first flower. Demo gardens of 0/1/8/26/200 plants exist only in the isolated preview tools and are excluded from the package.
 
 An interruption begins when a matching stretch switches to a nonmatching app/domain. Other nonmatching events do not restart its grace period. After grace, one deduction applies to that whole interruption. Matching return cancels/rearms it. Away, manual pause and unobserved gaps cancel it without penalty. A percentage is measured against the progress at deduction time; a fixed penalty is measured in minutes; both clamp at zero.
 

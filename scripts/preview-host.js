@@ -35,13 +35,22 @@ async function callHost(request, reply, isCurrent = () => true) {
     });
     const payload = await response.json();
     if (!isCurrent()) return;
-    if (["categories.list", "super_categories.list"].includes(request.method) && Array.isArray(payload.result)) {
+    if (
+      ["categories.list", "super_categories.list"].includes(request.method) &&
+      Array.isArray(payload.result)
+    ) {
       const mode = document.getElementById("catalog-mode").value;
       if (mode === "fail") throw new Error("模拟：分类读取权限不足");
       if (mode === "empty") payload.result = [];
       if (request.method === "categories.list") {
-        if (mode === "renamed") payload.result = payload.result.map((item) => item.id === "reading" ? { ...item, name: "文献阅读" } : item);
-        if (mode === "deleted") payload.result = payload.result.filter((item) => item.id !== "reading");
+        if (mode === "renamed")
+          payload.result = payload.result.map((item) =>
+            item.id === "reading" ? { ...item, name: "文献阅读" } : item,
+          );
+        if (mode === "deleted")
+          payload.result = payload.result.filter(
+            (item) => item.id !== "reading",
+          );
       }
     }
     if ("error" in payload) {
@@ -196,5 +205,27 @@ document.getElementById("restart-worker").addEventListener("click", () => {
 document.getElementById("clear-notifications").addEventListener("click", () => {
   notifications.length = 0;
   renderNotifications();
+});
+document.getElementById("seed-garden").addEventListener("click", async () => {
+  const button = document.getElementById("seed-garden");
+  button.disabled = true;
+  try {
+    const response = await fetch("/api/call", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        method: "preview.seed",
+        params: { count: Number(document.getElementById("scene-count").value) },
+      }),
+    });
+    const result = await response.json();
+    if (result.error) throw new Error(result.error);
+    await restartWorker();
+    frame.src = "/plugin/ui/index.html";
+  } catch (error) {
+    status.textContent = String(error.message || error);
+  } finally {
+    button.disabled = false;
+  }
 });
 void restartWorker().catch(console.error);

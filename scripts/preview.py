@@ -18,10 +18,12 @@ from urllib.parse import urlsplit
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 HINDSIGHT_SOURCE = PLUGIN_ROOT.parent / "Hindsight" / "src-tauri" / "src" / "plugins" / "file_reader.rs"
 FILES = {
-    "manifest.json", "background.js", "core.js", "store.js",
+    "manifest.json", "background.js", "core.js", "store.js", "garden-layout.js",
     "ui/index.html", "ui/style.css", "ui/main.js",
     "icon.png", "assets/sunflower.png", "assets/hydrangea.png",
     "assets/tulip.png", "assets/daisy.png",
+    "assets/rose.png", "assets/lavender.png", "assets/cosmos.png", "assets/lily.png",
+    *(f"assets/garden/{name}.png" for name in ("sunflower", "hydrangea", "tulip", "daisy", "rose", "lavender", "cosmos", "lily")),
 }
 PLUGIN_CSP = "; ".join([
     "default-src 'none'", "script-src 'self'", "worker-src 'self'",
@@ -116,6 +118,31 @@ def database_call(server, method, params):
         return rows
 
 
+def seed_garden(server, params):
+    """Explicit synthetic scene fixtures, available only in the development host."""
+    count = params.get("count") if isinstance(params, dict) else None
+    if type(count) is not int or count not in (0, 1, 8, 26, 200):
+        raise ValueError("Choose a supported synthetic garden size")
+    names = [("sunflower", "向日葵"), ("hydrangea", "绣球"), ("tulip", "郁金香"), ("daisy", "雏菊"),
+             ("rose", "玫瑰"), ("lavender", "薰衣草"), ("cosmos", "波斯菊"), ("lily", "百合")]
+    base = int(time.time() * 1000) - (count + 1) * 3600000
+    garden = []
+    for index in range(count):
+        species, name = names[index % len(names)]
+        at = base + index * 3600000
+        garden.append({"id": f"demo-{index:03d}", "name": f"演示{name}{index + 1}", "species": species,
+                       "createdAt": at, "bloomAt": at + 1800000, "targetMs": 1800000, "progressMs": 1800000})
+    state = {"schema": 1, "paused": False, "notify": False, "active": None, "garden": garden,
+             "focus": None, "lastAt": None, "sessionId": None, "interruption": None,
+             "heartbeatAt": None, "lastPenalty": None, "lastBloom": None, "lastError": None}
+    database_call(server, "db.execute", {
+        "sql": "CREATE TABLE IF NOT EXISTS garden_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, version INTEGER NOT NULL)", "params": []})
+    database_call(server, "db.execute", {
+        "sql": "INSERT INTO garden_store (key, value, version) VALUES (?, ?, 0) ON CONFLICT(key) DO UPDATE SET value=excluded.value, version=version+1",
+        "params": ["state", json.dumps(state, ensure_ascii=False)]})
+    return {"synthetic": True, "count": count}
+
+
 class Handler(BaseHTTPRequestHandler):
     def send(self, status, data, content_type, csp=None):
         self.send_response(status)
@@ -172,6 +199,8 @@ class Handler(BaseHTTPRequestHandler):
                 result = CATEGORIES
             elif method == "super_categories.list":
                 result = SUPER_CATEGORIES
+            elif method == "preview.seed":
+                result = seed_garden(self.server, params)
             else:
                 body = params.get("body") if isinstance(params, dict) else None
                 if not isinstance(body, str) or not body.strip():
@@ -197,7 +226,7 @@ def main():
         server.db_path = Path(temporary) / "plugin.sqlite3"
         server.db_lock = threading.Lock()
         server.storage_mb = manifest.get("storage_mb")
-        server.allowed_methods = {"db.execute", "db.query"}
+        server.allowed_methods = {"db.execute", "db.query", "preview.seed"}
         if "notifications" in manifest.get("permissions", []):
             server.allowed_methods.add("notifications.send")
         if "categories.read" in manifest.get("permissions", []):

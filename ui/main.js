@@ -36,6 +36,44 @@
       [1220, 325],
       [1599, 367],
     ],
+    rose: [
+      [51, 277],
+      [437, 276],
+      [799, 319],
+      [1160, 374],
+      [1562, 402],
+    ],
+    lavender: [
+      [51, 275],
+      [451, 275],
+      [837, 286],
+      [1216, 310],
+      [1595, 359],
+    ],
+    cosmos: [
+      [48, 280],
+      [446, 279],
+      [797, 343],
+      [1171, 373],
+      [1566, 411],
+    ],
+    lily: [
+      [50, 275],
+      [449, 274],
+      [800, 343],
+      [1177, 364],
+      [1542, 430],
+    ],
+  };
+  const GARDEN_FRAMES = {
+    sunflower: [238, 188, 806, 839],
+    hydrangea: [210, 269, 853, 738],
+    tulip: [286, 204, 697, 845],
+    daisy: [199, 299, 892, 721],
+    rose: [255, 251, 761, 766],
+    lavender: [234, 191, 794, 857],
+    cosmos: [183, 178, 939, 896],
+    lily: [247, 208, 797, 814],
   };
   const store = GardenStore.createStore((method, params) =>
     hindsight.call(method, params),
@@ -52,6 +90,7 @@
   let seenBloom = null;
   let firstRender = true;
   let gardenSignature = "";
+  let gardenPage = 0;
   let errorSource = "";
   let editPlantId = null;
   let catalogRequest = null;
@@ -75,8 +114,10 @@
     const safeId = species(id).id;
     const frame = Math.max(0, Math.min(4, Math.floor(Number(stage) || 0)));
     const [left, width] = FRAMES[safeId][frame];
-    const frameWidth = width + 6;
-    const x = left - 3;
+    // The last two lily frames are only one pixel apart, so they need no extra padding.
+    const padding = safeId === "lily" && frame >= 3 ? 0 : 3;
+    const frameWidth = width + padding * 2;
+    const x = left - padding;
     node.style.setProperty("--sprite-ratio", String(frameWidth / 793));
     node.style.backgroundImage = `url("../assets/${safeId}.png")`;
     node.style.backgroundSize = `${(1983 / frameWidth) * 100}% 100%`;
@@ -88,6 +129,34 @@
     return value < 1
       ? `${Math.floor(value * 60)} 秒`
       : `${Number(value.toFixed(1))} 分钟`;
+  }
+
+  function previewSpecies(id) {
+    const item = species(id);
+    sprite($("species-preview-sprite"), item.id, 4);
+    $("species-preview-name").textContent = item.name;
+    $("species-preview-description").textContent = item.description;
+  }
+
+  function gardenArtwork(id) {
+    const safeId = species(id).id;
+    const [x, y, width, height] = GARDEN_FRAMES[safeId];
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("class", "garden-flower-art");
+    svg.setAttribute(
+      "viewBox",
+      `${Math.max(0, x - 4)} ${Math.max(0, y - 4)} ${width + 8} ${height + 8}`,
+    );
+    svg.setAttribute("preserveAspectRatio", "xMidYMax meet");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    const image = document.createElementNS(ns, "image");
+    image.setAttribute("href", `../assets/garden/${safeId}.png`);
+    image.setAttribute("width", "1254");
+    image.setAttribute("height", "1254");
+    svg.append(image);
+    return svg;
   }
 
   function date(at) {
@@ -361,37 +430,45 @@
   }
 
   function renderGarden() {
-    $("garden-count").textContent = String(state.garden.length);
-    $("garden-empty").hidden = state.garden.length > 0;
-    const signature = JSON.stringify(state.garden);
+    const layout = GardenLayout.createLayout(state.garden, gardenPage);
+    gardenPage = layout.page;
+    $("garden-count").textContent = String(layout.total);
+    $("garden-total").textContent = `${layout.total} 株已开花`;
+    $("garden-empty").hidden = layout.total > 0;
+    $("garden-start").hidden = layout.total > 0;
+    $("garden-interaction-hint").hidden = layout.total === 0;
+    $("garden-pagination").hidden = layout.pageCount <= 1;
+    $("garden-prev").disabled = layout.page === 0;
+    $("garden-next").disabled = layout.page + 1 >= layout.pageCount;
+    $("garden-page-label").textContent =
+      `第 ${layout.page + 1} / ${Math.max(1, layout.pageCount)} 片花圃`;
+    const signature = JSON.stringify({
+      plants: state.garden,
+      page: gardenPage,
+    });
     if (signature === gardenSignature) return;
     gardenSignature = signature;
-    const cards = [...state.garden]
-      .sort((a, b) => b.bloomAt - a.bloomAt)
-      .map((plant) => {
-        const button = el("button", "flower-card");
-        button.type = "button";
-        button.dataset.plantId = plant.id;
-        button.setAttribute("aria-label", `查看 ${plant.name}`);
-        button.setAttribute(
-          "aria-pressed",
-          String(selectedFlower === plant.id),
-        );
-        const picture = el("div", "plant-sprite");
-        picture.setAttribute("aria-hidden", "true");
-        sprite(picture, plant.species, 4);
-        button.append(
-          picture,
-          el("span", "flower-name", plant.name),
-          el("span", "subtle", `${date(plant.bloomAt)} 开花`),
-        );
-        button.addEventListener("click", () => {
-          selectedFlower = plant.id;
-          renderFlower();
-        });
-        return button;
+    if (!layout.plots.some((plot) => plot.plant.id === selectedFlower))
+      selectedFlower = null;
+    const flowers = layout.plots.map(({ plant, x, y, z, rotation }) => {
+      const button = el("button", "garden-flower");
+      button.type = "button";
+      button.dataset.plantId = plant.id;
+      button.setAttribute("aria-label", `查看 ${plant.name}`);
+      button.setAttribute("aria-expanded", String(selectedFlower === plant.id));
+      button.setAttribute("aria-controls", "flower-details");
+      button.style.left = `${x / 10}%`;
+      button.style.top = `${y / 7.6}%`;
+      button.style.zIndex = String(z + 1);
+      button.style.setProperty("--flower-rotation", `${rotation}deg`);
+      button.append(gardenArtwork(plant.species));
+      button.addEventListener("click", () => {
+        selectedFlower = plant.id;
+        renderFlower();
       });
-    $("garden-grid").replaceChildren(...cards);
+      return button;
+    });
+    $("garden-grid").replaceChildren(...flowers);
     renderFlower();
   }
 
@@ -400,20 +477,36 @@
     $("flower-details").hidden = !plant;
     for (const button of $("garden-grid").querySelectorAll("button")) {
       button.setAttribute(
-        "aria-pressed",
+        "aria-expanded",
         String(button.dataset.plantId === selectedFlower),
       );
     }
-    if (!plant) return;
+    if (!plant) {
+      selectedFlower = null;
+      return;
+    }
     const heading = el("div", "section-heading");
-    heading.append(
-      el("h2", "", plant.name),
-      el("span", "badge", species(plant.species).name),
-    );
+    const close = el("button", "button quiet small", "收起详情");
+    close.type = "button";
+    close.addEventListener("click", () => {
+      const previous = selectedFlower;
+      selectedFlower = null;
+      renderFlower();
+      [...$("garden-grid").querySelectorAll("button")]
+        .find((button) => button.dataset.plantId === previous)
+        ?.focus();
+    });
+    heading.append(el("h2", "", plant.name), close);
     const metadata = el("dl", "flower-metadata");
+    const artwork = el("div", "flower-detail-art");
+    const picture = el("div", "plant-sprite");
+    picture.setAttribute("aria-hidden", "true");
+    sprite(picture, plant.species, 4);
+    artwork.append(picture);
     for (const [label, value] of [
       ["种下", date(plant.createdAt)],
       ["开花", date(plant.bloomAt)],
+      ["品种", species(plant.species).name],
       ["累计生长", minutes(plant.targetMs)],
     ]) {
       metadata.append(el("dt", "", label), el("dd", "", value));
@@ -426,7 +519,14 @@
     remove.type = "button";
     remove.addEventListener("click", () => openDelete(plant));
     actions.append(rename, remove);
-    $("flower-details").replaceChildren(heading, metadata, actions);
+    $("flower-details").replaceChildren(heading, artwork, metadata, actions);
+  }
+
+  function changeGardenPage(delta) {
+    gardenPage += delta;
+    selectedFlower = null;
+    gardenSignature = "";
+    if (state) renderGarden();
   }
 
   function render() {
@@ -614,6 +714,7 @@
 
   function resetPlantForm() {
     $("plant-form").reset();
+    previewSpecies(C.SPECIES[0].id);
     $("rules").replaceChildren();
     ruleCounter = 0;
     addRule("rules", null, false);
@@ -751,6 +852,7 @@
     radio.checked = index === 0;
     radio.defaultChecked = index === 0;
     radio.setAttribute("aria-label", item.name);
+    radio.addEventListener("change", () => previewSpecies(item.id));
     label.title = item.description;
     label.append(picture, el("span", "", item.name), radio);
     $("species-options").append(label);
@@ -779,6 +881,8 @@
   );
   $("start-plant").addEventListener("click", openPlant);
   $("garden-start").addEventListener("click", () => tab("current", true));
+  $("garden-prev").addEventListener("click", () => changeGardenPage(-1));
+  $("garden-next").addEventListener("click", () => changeGardenPage(1));
   $("cancel-plant").addEventListener("click", closePlant);
   $("confirm-plant").addEventListener("click", plant);
   $("add-rule").addEventListener("click", () => addRule());

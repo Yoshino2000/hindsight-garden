@@ -6,7 +6,9 @@ Grow a small garden while you use your computer. A third-party plugin for [Hinds
 
 ## Features
 
-- **Four plants**: sunflower, hydrangea, tulip and daisy, each with five growth stages.
+- **Eight plants**: sunflower, hydrangea, tulip, daisy, rose, lavender, cosmos and lily, each with five growth stages.
+- **A complete garden scene**: finished flowers grow on an isometric garden island with paths, pond, fence and bench. Names and records stay hidden until you choose a flower; close its details to return to the whole garden.
+- **Two illustration roles**: the planting picker uses high-definition potted plant artwork and a large selected-plant preview. The garden uses separately generated, simplified ground-planted flower sprites, without pots or permanent labels.
 - **Use your Hindsight categories**: pick an existing category or super-category from a dropdown. No need to re-enter the apps and websites assigned to it. App/domain rules remain available, and any matching rule grows the current plant without multiplying time.
 - **Change rules while growing**: edit the active pot's rules without resetting its progress, target or penalty settings.
 - **Cumulative growth**: collect time across visits and days. Switching away pauses growth by default.
@@ -16,16 +18,22 @@ Grow a small garden while you use your computer. A third-party plugin for [Hinds
 
 Manual pause, an away event, background restart and an unobserved clock gap do not cause a penalty. Closing the plugin page does not stop its background worker while Hindsight is running.
 
+![Time Garden overview](docs/screenshots/garden.png)
+
+Preview with synthetic test data. Scenery is original; plant art was created for this plugin with the built-in image generation tool.
+
 ## Install
 
-Requires Hindsight **0.10.0 or later**. This is an experimental personal plugin, not an official Hindsight plugin. It has not been exhaustively tested and may contain problems or risks.
+Requires Hindsight **0.10.0 or later**. This is an experimental personal plugin, not an official Hindsight plugin. Basic functionality is usable, and development and iteration are ongoing. It has not been exhaustively tested and may contain problems or risks.
 
-1. Use the supplied `hindsight-garden-0.2.0.zip`, or build it below. This local build has not been publicly released or listed in the market.
+1. Download `hindsight-garden-0.3.0.zip` from [Releases](https://github.com/Yoshino2000/hindsight-garden/releases), or build it below.
 2. In Hindsight, open **Settings → Plugins** and choose the local ZIP installation option.
 3. Review the seven permissions and the 4 MB database allowance, then install.
 4. Open **时光花园**, pick a plant, give it a name and select a Hindsight category or group. App/domain rules are optional.
 
-To upgrade from 0.1.0, install this ZIP as an update to the same plugin rather than deleting its data. It preserves the existing garden and rules. The update adds `focus.category`, `categories.read` and `super_categories.read`; review these in Hindsight's update dialog. An existing pot's **修改规则** action lets it use categories without planting again.
+To upgrade, install this ZIP as an update to the same plugin rather than deleting its data. Existing plants, growth and rules remain. Version 0.3.0 has the same seven permissions and 4 MB storage allowance as 0.2.0. An upgrade from 0.1.0 also adds the three category permissions introduced in 0.2.0. An existing pot's **修改规则** action lets it use categories without planting again.
+
+Each garden bed shows up to 25 real completed flowers, filling from the center outward. Additional beds hold the rest of the collection, up to 200 plants. The scenery is decorative; it does not add fake flowers or completed time. Selecting a flower opens its dates and controls. Closing details or moving to another bed hides the record; background refresh does not open it automatically.
 
 The default opens in a separate **ordinary window**. Its title bar, background and overlap with other windows are controlled by Hindsight. Transparent desktop overlays, always-on-top, click-through and autonomous window movement are not supported. Use Hindsight's plugin settings to change where the page opens; compact view only changes this plugin's layout.
 

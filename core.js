@@ -25,6 +25,26 @@
       name: "雏菊",
       description: "平常的一天，也值得开一朵小花。",
     },
+    {
+      id: "rose",
+      name: "玫瑰",
+      description: "把积累的时光，留成层层舒展的花瓣。",
+    },
+    {
+      id: "lavender",
+      name: "薰衣草",
+      description: "让细碎的片刻，长成一簇温柔的紫色。",
+    },
+    {
+      id: "cosmos",
+      name: "波斯菊",
+      description: "轻轻摇曳的小花，也有自己的生长节奏。",
+    },
+    {
+      id: "lily",
+      name: "百合",
+      description: "等待花苞打开，收藏一段安静的时光。",
+    },
   ];
 
   function integer(value, min, max, message) {

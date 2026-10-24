@@ -638,3 +638,38 @@ test("five stages include seed and mature, with safe boundary clamps", () => {
   assert.equal(core.stage(-10, 60000), 0);
   assert.equal(core.stage(100, 0), 0);
 });
+
+test("new flower species can be planted, saved and bloomed through the same timing rules", () => {
+  assert.deepEqual(core.SPECIES.map((species) => species.id), [
+    "sunflower", "hydrangea", "tulip", "daisy", "rose", "lavender", "cosmos", "lily",
+  ]);
+  assert.equal(new Set(core.SPECIES.map((species) => species.id)).size, 8);
+  for (const species of ["rose", "lavender", "cosmos", "lily"]) {
+    let state = planted({ species });
+    state = core.normalizeState(JSON.parse(JSON.stringify(state)));
+    state = focus(state, "reader", 0);
+    state = grow(state, 0, 60000);
+    assert.equal(state.active, null);
+    assert.equal(state.garden[0].species, species);
+    assert.equal(state.garden[0].progressMs, 60000);
+    assert.deepEqual(core.normalizeState(state).garden, state.garden);
+  }
+});
+
+test("older four-species collections and a growing plant keep their IDs and progress", () => {
+  let previous = planted({ species: "hydrangea", rules: [
+    { type: "category", value: "reading", label: "阅读" },
+  ] });
+  previous = focus(previous, "reader", 0, { category: { id: "reading", name: "阅读" } });
+  previous = tick(previous, 7000);
+  previous.garden = ["sunflower", "hydrangea", "tulip", "daisy"].map((species, index) => ({
+    id: "old-" + species, name: "旧花" + index, species, createdAt: index,
+    bloomAt: index + 1000, targetMs: 60000, progressMs: 60000,
+  }));
+  const loaded = core.normalizeState(JSON.parse(JSON.stringify(previous)));
+  assert.deepEqual(loaded, previous);
+  assert.equal(loaded.active.progressMs, 7000);
+  assert.deepEqual(loaded.garden.map((plant) => plant.id), [
+    "old-sunflower", "old-hydrangea", "old-tulip", "old-daisy",
+  ]);
+});

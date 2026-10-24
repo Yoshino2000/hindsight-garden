@@ -1,10 +1,17 @@
 # Verification
 
-Version: **0.2.0**. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.3.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified on 2026-10-25 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.2.0 results
+## Current 0.3.0 results
+
+- **61 automated tests passed**: 33 pure-rule tests, 8 garden-layout tests, 10 actual SQLite store tests and 10 worker integration tests. New checks cover all eight species, old-garden compatibility, stable center-out positions, pagination, malformed inputs and collection limits.
+- Eight high-definition five-stage strips and eight dedicated ground-planted garden PNGs were checked read-only for dimensions, alpha transparency and frame bounds. All PNG source pixels are retained. The source plant artwork totals 15,104,288 bytes.
+- **16 connected Chrome checks passed** with the real host bridges, restrictive CSP, sandbox and an isolated synthetic database. They cover the full garden scene, initially collapsed records, explicit click and keyboard selection, closing details without polling reopening them, 0/1/8/26/200-plant layouts, 25-plant paging and page limits, eight high-definition species previews, dedicated garden image paths, narrow layouts without horizontal overflow, and a new rose completing an actual one-minute browser test cycle without automatically opening its record. The narrow plugin viewport measured 329 CSS pixels. The final browser warning/error log was empty.
+- The seven permissions, 4 MB storage allowance, plugin identity and database schema remain unchanged from 0.2.0. No personal Hindsight data was modified.
+
+## Previous 0.2.0 results
 
 - **51 automated tests passed**: 31 rule tests, 10 actual SQLite store tests and 10 worker integration tests. The added coverage verifies category/group matching by stable ID, rename independence, missing-category behavior, category-field minimization, editing rules without resetting progress or charging penalties, and compatibility with old 0.1.0 gardens.
 - **14 connected Chrome checks passed** using synthetic categories and an isolated temporary database, with the real host bridges and sandbox. They exercise category/group dropdowns, category rename/deletion, empty or failed list reads, manual-rule fallback, refresh recovery while preserving form values, category-driven growth, rules editing while retaining progress and target, group/child matching, missing-category rejection, reload persistence and mixed category/app/domain rules. The edited pot retained exactly `18 seconds / 60 minutes` through reload; an earlier paused edit retained exactly `17 seconds / 60 minutes`.
@@ -37,7 +44,7 @@ Use the isolated preview with the actual Hindsight bridge, restrictive CSP and s
 
 ## Native checks
 
-**Not yet performed for Time Garden 0.2.0.** The final ZIP has not been installed into a real Hindsight instance, and a real operating-system bloom notification has not been verified. The earlier reminder plugin's successful Windows notification is not evidence for this new plugin. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
+**A native installation of the final 0.3.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.3.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
 
 macOS/Linux, long-duration use, sleep/resume, multiple monitors, clock changes under a real host and every notification configuration require separate verification. Market installation is subject to a published release and maintainer review. No public-market listing is implied by a local package.
 

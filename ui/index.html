@@ -191,6 +191,17 @@
           <form id="plant-form" novalidate>
             <fieldset>
               <legend>挑一株喜欢的植物</legend>
+              <section class="species-preview" aria-label="植物高清预览">
+                <div class="species-preview-art" aria-hidden="true">
+                  <div id="species-preview-sprite" class="plant-sprite"></div>
+                </div>
+                <div class="species-preview-copy">
+                  <p class="eyebrow">花园植物图鉴</p>
+                  <h3 id="species-preview-name">向日葵</h3>
+                  <p id="species-preview-description" class="hint"></p>
+                  <span class="preview-tag">高清原画 · 五阶段生长</span>
+                </div>
+              </section>
               <div id="species-options" class="species-options"></div>
             </fieldset>
             <label class="field" for="plant-name-input"
@@ -318,21 +329,207 @@
         tabindex="0"
         hidden
       >
-        <div class="garden-heading">
-          <div>
-            <h2>慢慢长成一座花园</h2>
-            <p class="hint">每一株花，都留住了一段时间。</p>
+        <section class="garden-island-card" aria-label="时光花园全景">
+          <div class="garden-heading">
+            <div>
+              <p class="eyebrow">你的时间，在这里留下花朵</p>
+              <h2>慢慢长成一座花园</h2>
+            </div>
+            <span id="garden-total" class="badge">0 株已开花</span>
           </div>
-        </div>
-        <div id="garden-empty" class="card garden-empty">
-          <p class="empty-symbol" aria-hidden="true">✧</p>
-          <h3>这里会开出第一朵花</h3>
-          <p class="hint">完成一盆植物的累计时间，它就会搬进花园。</p>
-          <button id="garden-start" class="button quiet" type="button">
+          <div class="garden-scene">
+            <svg
+              class="garden-landscape"
+              viewBox="0 0 1000 760"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <defs>
+                <linearGradient id="grass-top" x1="0" y1="0" x2="0" y2="1">
+                  <stop stop-color="#d8e6b7" />
+                  <stop offset="1" stop-color="#b5ce93" />
+                </linearGradient>
+                <linearGradient id="island-side" x1="0" y1="0" x2="0" y2="1">
+                  <stop stop-color="#87ab75" />
+                  <stop offset="1" stop-color="#6b9466" />
+                </linearGradient>
+                <linearGradient id="pond-water" x1="0" y1="0" x2="1" y2="1">
+                  <stop stop-color="#badfda" />
+                  <stop offset="1" stop-color="#8fc8c5" />
+                </linearGradient>
+              </defs>
+              <ellipse
+                cx="500"
+                cy="662"
+                rx="363"
+                ry="54"
+                fill="#506d3a"
+                opacity=".07"
+              />
+              <path
+                d="M65 398 500 151 935 398 935 430 518 702Q500 715 482 702L65 430Z"
+                fill="url(#island-side)"
+              />
+              <path
+                d="M482 153Q500 141 518 153L929 389Q946 399 929 410L518 676Q500 689 482 676L71 410Q54 399 71 389Z"
+                fill="url(#grass-top)"
+                stroke="#adc58c"
+                stroke-width="3"
+              />
+              <path
+                d="M500 166 918 402 500 672 82 402Z"
+                fill="none"
+                stroke="#e9f0d4"
+                stroke-width="4"
+                opacity=".65"
+              />
+              <path
+                d="M180 430 500 631 835 429"
+                fill="none"
+                stroke="#a9bf86"
+                stroke-width="39"
+                stroke-linecap="round"
+              />
+              <path
+                d="M180 425 500 626 835 424"
+                fill="none"
+                stroke="#ede4c8"
+                stroke-width="29"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M180 425 500 626 835 424"
+                fill="none"
+                stroke="#fff6df"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-dasharray="1 17"
+                opacity=".8"
+              />
+              <path
+                d="M500 300 829 468 500 634 171 468Z"
+                fill="#bbce98"
+                stroke="#a5bd82"
+                stroke-width="3"
+              />
+              <path
+                d="M500 312 807 468 500 622 193 468Z"
+                fill="none"
+                stroke="#dce8ba"
+                stroke-width="3"
+                opacity=".7"
+              />
+              <path
+                d="M277 425 610 593M388 369 720 537M388 593 720 425M277 537 610 369"
+                fill="none"
+                stroke="#aec58a"
+                stroke-width="2"
+                opacity=".5"
+              />
+              <ellipse cx="749" cy="330" rx="91" ry="44" fill="#a6bd91" />
+              <ellipse cx="749" cy="325" rx="82" ry="36" fill="#e5e9d4" />
+              <ellipse
+                cx="749"
+                cy="324"
+                rx="74"
+                ry="29"
+                fill="url(#pond-water)"
+              />
+              <path
+                d="M702 320Q724 310 748 315M754 336Q781 340 797 328"
+                fill="none"
+                stroke="#e5f6ee"
+                stroke-width="4"
+                stroke-linecap="round"
+                opacity=".8"
+              />
+              <ellipse cx="702" cy="352" rx="15" ry="8" fill="#b7c1a8" />
+              <ellipse cx="799" cy="300" rx="19" ry="10" fill="#b8c3ae" />
+              <ellipse cx="808" cy="340" rx="12" ry="7" fill="#ced4bf" />
+              <g stroke-linejoin="round" stroke-linecap="round">
+                <path
+                  d="M238 286 238 312M301 322 301 347M338 300 338 321"
+                  stroke="#8e9b73"
+                  stroke-width="9"
+                />
+                <path
+                  d="M224 284 264 260 349 308 306 334Z"
+                  fill="#b99871"
+                  stroke="#987f62"
+                  stroke-width="2"
+                />
+                <path
+                  d="M237 280 320 327M250 272 333 319"
+                  stroke="#d6bc91"
+                  stroke-width="5"
+                />
+                <path
+                  d="M225 281 225 254 268 230 268 257Z"
+                  fill="#c4aa7f"
+                  stroke="#a58c67"
+                  stroke-width="2"
+                />
+                <path
+                  d="M229 258 265 238M229 271 265 251"
+                  stroke="#e0cba0"
+                  stroke-width="5"
+                />
+              </g>
+              <g
+                fill="#f5f0db"
+                stroke="#c3c8a6"
+                stroke-width="2"
+                stroke-linejoin="round"
+              >
+                <path d="M380 223 380 183 389 177 398 183 398 213Z" />
+                <path d="M426 197 426 157 435 151 444 157 444 187Z" />
+                <path d="M472 171 472 132 481 126 490 132 490 161Z" />
+                <path
+                  d="M389 185 481 133 481 142 389 194ZM389 204 481 152 481 161 389 213Z"
+                />
+              </g>
+              <g fill="#a7b99a">
+                <ellipse cx="176" cy="389" rx="18" ry="10" />
+                <ellipse cx="191" cy="380" rx="12" ry="7" />
+                <ellipse cx="778" cy="490" rx="14" ry="8" />
+              </g>
+              <g stroke="#92ae77" stroke-width="4" stroke-linecap="round">
+                <path
+                  d="m143 424-4-12m4 12 7-9M574 640l-1-13m1 13 7-10M872 397l-3-11m3 11 6-8M352 579l-3-10m3 10 5-8"
+                />
+              </g>
+            </svg>
+            <div
+              id="garden-grid"
+              class="garden-plants"
+              role="group"
+              aria-label="已开花的植物，点击展开详情"
+            ></div>
+          </div>
+          <p id="garden-empty" class="garden-scene-caption">
+            第一朵花会种在这里。完成当前盆栽，它就会留在这座花园里。
+          </p>
+          <p id="garden-interaction-hint" class="garden-scene-caption" hidden>
+            点击一朵花，看看它留下的时间。
+          </p>
+          <button id="garden-start" class="button quiet small" type="button">
             去看看当前盆栽
           </button>
-        </div>
-        <div id="garden-grid" class="garden-grid"></div>
+          <nav
+            id="garden-pagination"
+            class="garden-pagination"
+            aria-label="花圃分页"
+            hidden
+          >
+            <button id="garden-prev" class="button quiet small" type="button">
+              上一片</button
+            ><span id="garden-page-label" class="subtle"></span
+            ><button id="garden-next" class="button quiet small" type="button">
+              下一片
+            </button>
+          </nav>
+        </section>
         <section id="flower-details" class="card detail-card" hidden></section>
       </section>
 
@@ -380,6 +577,7 @@
     <script src="../_page.js"></script>
     <script src="../core.js"></script>
     <script src="../store.js"></script>
+    <script src="../garden-layout.js"></script>
     <script src="main.js"></script>
   </body>
 </html>
