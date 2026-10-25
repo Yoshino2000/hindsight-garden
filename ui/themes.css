@@ -1,0 +1,70 @@
+/* Each palette belongs to the same ground geometry; flowers retain their original colours. */
+#view-garden[data-theme="rain"] {
+  --theme-prop-ratio: 2164 / 2181;
+  --theme-props: url("../assets/collection/props-rain.png");
+  --ground-a: #b7d8cc; --ground-b: #8cbdae; --ground-edge: #7ca99b;
+  --face-left-a: #80aa9c; --face-left-b: #628f83; --face-right-a: #6c9d90; --face-right-b: #527e75;
+  --soil: #acc8ba; --grid: #85ad99; --bed-rim: #c7d0b4; --bed-line: #9da88f;
+  --water-a: #afd8e0; --water-b: #79aebb; --pond-rim: #d4e1d8;
+  --fence: #d9e6de; --fence-line: #a2b9ac; --stones: #d2dccc; --stone-line: #a8bdb1;
+  --leaf-a: #afd0bd; --leaf-b: #7eaa96; --ground-shadow: #3d7166;
+}
+#view-garden[data-theme="dusk"] {
+  --theme-props: url("../assets/collection/props-dusk.png");
+  --ground-a: #ccc2db; --ground-b: #a99fbf; --ground-edge: #a097b4;
+  --face-left-a: #9d95af; --face-left-b: #7e7596; --face-right-a: #8c829f; --face-right-b: #69617f;
+  --soil: #b8b0c1; --grid: #9d93ad; --bed-rim: #cbbda9; --bed-line: #a7998e;
+  --water-a: #b7c1e3; --water-b: #8d99c8; --pond-rim: #d9d6e2;
+  --fence: #ede4dd; --fence-line: #bdb2b9; --stones: #e2d6c6; --stone-line: #b7aab2;
+  --leaf-a: #c8bfd3; --leaf-b: #9d95b0; --ground-shadow: #565071;
+}
+#view-garden[data-theme="blossom"] {
+  --theme-props: url("../assets/collection/props-blossom.png");
+  --ground-a: #eadbd1; --ground-b: #d3c2b4; --ground-edge: #c4b1a5;
+  --face-left-a: #bcb39d; --face-left-b: #9a9981; --face-right-a: #aaa28b; --face-right-b: #86866d;
+  --soil: #c5cfab; --grid: #a4b68f; --bed-rim: #d7b7a3; --bed-line: #b99680;
+  --water-a: #c7dfd6; --water-b: #9abfb5; --pond-rim: #e7ddd2;
+  --fence: #f7e5dd; --fence-line: #c8b6ad; --stones: #e8ddca; --stone-line: #c1b29e;
+  --leaf-a: #e5ccd0; --leaf-b: #cfaab4; --ground-shadow: #72775a;
+}
+body:has(#view-garden[data-theme="rain"]:not([hidden])) { background: radial-gradient(ellipse at 85% 0%, #cfdfdd, transparent 65%), #edf4ef; }
+body:has(#view-garden[data-theme="dusk"]:not([hidden])) { background: radial-gradient(ellipse at 85% 0%, #d9d3e6, transparent 65%), #f2eef5; }
+body:has(#view-garden[data-theme="blossom"]:not([hidden])) { background: radial-gradient(ellipse at 85% 0%, #f2dce0, transparent 65%), #fbf4ef; }
+#view-garden[data-theme="rain"] .garden-island-card { background: linear-gradient(150deg, #e8f1ed, #dbe9e5); border-color: #c5d9cc; }
+#view-garden[data-theme="dusk"] .garden-island-card { background: linear-gradient(150deg, #f1e9ef, #deddee); border-color: #d4c9df; }
+#view-garden[data-theme="blossom"] .garden-island-card { background: linear-gradient(150deg, #fff1ed, #f1e6df); border-color: #e4ccca; }
+#view-garden:not([data-theme="meadow"]) [id$="grass-top"] stop:first-child { stop-color: var(--ground-a); }
+#view-garden:not([data-theme="meadow"]) [id$="grass-top"] stop:last-child { stop-color: var(--ground-b); }
+#view-garden:not([data-theme="meadow"]) [data-scene-part="grass-surface"] { stroke: var(--ground-edge); }
+#view-garden:not([data-theme="meadow"]) [id$="island-left"] stop:first-child { stop-color: var(--face-left-a); }
+#view-garden:not([data-theme="meadow"]) [id$="island-left"] stop:last-child { stop-color: var(--face-left-b); }
+#view-garden:not([data-theme="meadow"]) [id$="island-right"] stop:first-child { stop-color: var(--face-right-a); }
+#view-garden:not([data-theme="meadow"]) [id$="island-right"] stop:last-child { stop-color: var(--face-right-b); }
+#view-garden:not([data-theme="meadow"]) [data-scene-part="flowerbed-soil"] { fill: var(--soil); stroke: var(--bed-rim); }
+#view-garden:not([data-theme="meadow"]) [data-scene-part="flowerbed-border"] { fill: var(--bed-rim); stroke: var(--bed-line); }
+#view-garden:not([data-theme="meadow"]) [data-scene-part="flowerbed-grid"] { stroke: var(--grid); }
+#view-garden:not([data-theme="meadow"]) [id$="pond-water"] stop:first-child { stop-color: var(--water-a); }
+#view-garden:not([data-theme="meadow"]) [id$="pond-water"] stop:last-child { stop-color: var(--water-b); }
+#view-garden:not([data-theme="meadow"]) [data-scene-part="pond-rim"] { fill: var(--pond-rim); }
+#view-garden:not([data-theme="meadow"]) [data-scene-part="back-fence"] { fill: var(--fence); stroke: var(--fence-line); }
+#view-garden:not([data-theme="meadow"]) [data-scene-part="side-stepping-stones"] { stroke: var(--stone-line); }
+#view-garden:not([data-theme="meadow"]) [data-scene-part="side-stepping-stones"] path { fill: var(--stones); }
+#view-garden:not([data-theme="meadow"]) [id$="scenery-leaf"] stop:first-child { stop-color: var(--leaf-a); }
+#view-garden:not([data-theme="meadow"]) [id$="scenery-leaf"] stop:last-child { stop-color: var(--leaf-b); }
+#view-garden:not([data-theme="meadow"]) .scene-shadow { fill: var(--ground-shadow); }
+#view-garden:not([data-theme="meadow"]) .ambience-swing,
+#view-garden:not([data-theme="meadow"]) [data-scene-part="swing-frame-shadow"],
+#view-garden:not([data-theme="meadow"]) [data-scene-part="watering-can"],
+#view-garden:not([data-theme="meadow"]) [data-scene-part="little-sign"] { display: none; }
+.theme-prop-shadows { display: none; }
+#view-garden:not([data-theme="meadow"]) .theme-prop-shadows { display: block; fill: var(--ground-shadow); }
+.theme-props { display: none; position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+#view-garden:not([data-theme="meadow"]) .theme-props { display: block; }
+.theme-prop { position: absolute; aspect-ratio: var(--theme-prop-ratio, 1); background-image: var(--theme-props); background-size: 300% 100%; background-repeat: no-repeat; }
+.theme-prop[data-slot="0"] { left: 14%; top: 26%; width: 17%; background-position: 0% center; }
+.theme-prop[data-slot="1"] { left: 61%; top: 21%; width: 11%; background-position: 50% center; clip-path: inset(0 6%); }
+.theme-prop[data-slot="2"] { left: 9%; top: 42%; width: 8%; background-position: 100% center; }
+#view-garden[data-theme="rain"] .theme-ornament,
+#view-garden[data-theme="dusk"] .theme-ornament { display: none; }
+#view-garden:not([data-theme="meadow"]) .garden-heading .badge { background: var(--pond-rim); color: #4a5c4e; }
+#view-garden:not([data-theme="meadow"]) .garden-album-panel { background: #fffefbc9; border-color: var(--ground-edge); }

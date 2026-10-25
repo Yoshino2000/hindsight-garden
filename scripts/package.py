@@ -15,12 +15,14 @@ FILES = [
     "manifest.json", "icon.png", "background.js", "core.js", "store.js", "garden-layout.js",
     "ui/index.html", "ui/style.css", "ui/album.css", "ui/drawer.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js", "ui/collection.js", "ui/features.css",
     "assets/collection/milestones.png", "assets/collection/themes.png",
+    "ui/compact.css", "ui/achievements.css", "ui/themes.css",
+    *(f"assets/collection/props-{theme}.png" for theme in ("rain", "dusk", "blossom")),
     *(f"assets/{name}.png" for name in SPECIES),
     *(f"assets/garden/{name}.png" for name in SPECIES),
     *(f"assets/ambience/{name}.png" for name in AMBIENCE),
     "README.md", "intro/zh/README.md", "docs/development.md",
-    "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md", "docs/artwork-ambience-070.md", "docs/plant-guide-sources.md", "docs/design-notes-forest.md", "docs/features-0110.md", "docs/artwork-collection-0110.md",
-    "docs/screenshots/garden.png", "docs/screenshots/album.png", "docs/screenshots/drawer.png", "docs/screenshots/current.png", "docs/screenshots/guide.png", "docs/screenshots/collection.png", "LICENSE",
+    "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md", "docs/artwork-ambience-070.md", "docs/plant-guide-sources.md", "docs/design-notes-forest.md", "docs/features-0110.md", "docs/artwork-collection-0110.md", "docs/features-0120.md", "docs/artwork-themes-0120.md",
+    "docs/screenshots/garden.png", "docs/screenshots/album.png", "docs/screenshots/drawer.png", "docs/screenshots/current.png", "docs/screenshots/guide.png", "docs/screenshots/collection.png", "docs/screenshots/growing.png", "docs/screenshots/achievement.png", "docs/screenshots/rain.png", "docs/screenshots/dusk.png", "LICENSE",
 ]
 
 
@@ -56,6 +58,10 @@ def main():
     for name in ("milestones", "themes"):
         data = (ROOT / f"assets/collection/{name}.png").read_bytes()
         assert png_size(data) == (2172, 724) and data[25] == 6, f"{name}: expected original RGBA atlas"
+    for theme in ("rain", "dusk", "blossom"):
+        data = (ROOT / f"assets/collection/props-{theme}.png").read_bytes()
+        width, height = png_size(data)
+        assert width >= 2000 and abs(width - height * 3) < 32 and data[25] == 6, f"{theme}: expected original three-cell RGBA atlas"
     for name in AMBIENCE:
         width, height = png_size((ROOT / "assets/ambience" / f"{name}.png").read_bytes())
         assert min(width, height) >= 64, f"{name}: missing ambience illustration"

@@ -193,6 +193,19 @@ function restartWorker() {
 }
 
 window.preview = { sendFocus, notifications, restartWorker, ready: false };
+
+// Scroll only: inspect the whole scene inside the constrained host iframe without resizing it.
+const showScene = document.createElement("button");
+showScene.id = "show-scene";
+showScene.textContent = "全景定位（仅测试）";
+showScene.addEventListener("click", () => {
+  const page = document.getElementById("plugin-ui").contentDocument;
+  const scene = page?.querySelector("#view-garden:not([hidden]) .garden-scene:not(.garden-miniature)");
+  if (!scene) return;
+  scene.scrollIntoView({ block: "start", behavior: "instant" });
+  page.defaultView.scrollBy(0, -70);
+});
+document.getElementById("seed-garden").after(showScene);
 document
   .getElementById("send-focus")
   .addEventListener("click", () => sendFocus());

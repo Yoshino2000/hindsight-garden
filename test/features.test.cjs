@@ -109,6 +109,7 @@ async function seedOldArchive(host, count) {
   delete old.lastPlanting;
   delete old.collection;
   delete old.earnedAchievements;
+  delete old.achievementRevision;
   await host.call("db.execute", {
     sql: "CREATE TABLE garden_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, version INTEGER NOT NULL)", params: [],
   });
@@ -123,6 +124,20 @@ async function seedOldArchive(host, count) {
     await host.call("db.execute", { sql: "INSERT INTO garden_plants VALUES (?, ?)", params: [item.id, JSON.stringify(item)] });
   }
   return old;
+}
+
+async function seed011Collection(host, count = 1) {
+  await seedOldArchive(host, count);
+  const state = {
+    ...core.initialState(),
+    collection: { totalBlooms: 1000, species: core.SPECIES.map((item) => item.id), verifiedAt: 100 },
+    earnedAchievements: { "first-bloom": 0, "ten-blooms": 20, "all-species": 30, "hundred-blooms": 40 },
+  };
+  delete state.achievementRevision;
+  await host.call("db.execute", {
+    sql: "UPDATE garden_store SET value = ?, version = version + 1 WHERE key = 'state'", params: [JSON.stringify(state)],
+  });
+  return state;
 }
 
 test("planting plans retain stable rules and explicit penalty settings without reusing flower names or task memories", () => {
@@ -208,9 +223,10 @@ test("achievement baselines are verified now, not backdated, and deletion never 
   assert.deepEqual(state.collection, {
     totalBlooms: 10, species: core.SPECIES.map((item) => item.id), verifiedAt: 500000,
   });
-  assert.deepEqual(state.earnedAchievements, {
-    "first-bloom": 500000, "ten-blooms": 500000, "all-species": 500000,
-  });
+  assert.equal(Object.keys(state.earnedAchievements).length, 14);
+  assert.ok(Object.values(state.earnedAchievements).every((at) => at === 500000));
+  for (const id of ["first-bloom", "ten-blooms", "all-species"])
+    assert.equal(state.earnedAchievements[id], 500000);
   for (const item of [...state.garden])
     state = change(state, { type: "delete", id: item.id }, 500001);
   assert.equal(state.garden.length, 0);
@@ -255,7 +271,7 @@ test("pre-0.11 row archives establish a durable baseline with one summary, and s
   const store = createStore(host.call);
   const state = await store.load();
   assert.equal(state.collection.totalBlooms, 100);
-  assert.equal(Object.keys(state.earnedAchievements).length, 4);
+  assert.equal(Object.keys(state.earnedAchievements).length, 17);
   assert.ok(Object.values(state.earnedAchievements).every((at) => at === state.collection.verifiedAt));
   assert.equal(state.garden[0].note, "旧插件保留的其他元数据");
   assert.equal(state.garden[0].taskNote, undefined);
@@ -456,5 +472,160 @@ test("the guard rejects dropping any protected field but permits other keys and 
   host.db.prepare("INSERT INTO garden_store VALUES (?, ?, ?)").run("other", "non-JSON data", 0);
   host.db.prepare("UPDATE garden_store SET value = ? WHERE key = 'other'").run("still non-JSON data");
   assert.equal(host.db.prepare("SELECT value FROM garden_store WHERE key = 'other'").get().value, "still non-JSON data");
+  assert.deepEqual(host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get(), before);
+});
+
+test("the expanded catalog keeps four original identities and supplies twenty distinct, explainable achievements", () => {
+  assert.equal(core.ACHIEVEMENTS.length, 20);
+  assert.equal(new Set(core.ACHIEVEMENTS.map((item) => item.id)).size, 20);
+  assert.deepEqual(core.ACHIEVEMENTS.slice(0, 4).map(({ id, name, badge }) => ({ id, name, badge })), [
+    { id: "first-bloom", name: "第一朵花", badge: 0 },
+    { id: "ten-blooms", name: "小小花匠", badge: 1 },
+    { id: "all-species", name: "八色收藏", badge: 2 },
+    { id: "hundred-blooms", name: "百花成园", badge: 3 },
+  ]);
+  assert.deepEqual(core.ACHIEVEMENTS.filter((item) => item.metric === "blooms").map((item) => item.target).sort((a, b) => a - b),
+    [1, 5, 10, 25, 50, 100, 250, 500, 1000]);
+  assert.deepEqual(core.ACHIEVEMENTS.filter((item) => item.metric === "species").map((item) => item.target).sort((a, b) => a - b), [2, 4, 8]);
+  for (const item of core.ACHIEVEMENTS) {
+    assert.ok(item.condition.length > 0 && item.description.length > 0);
+    if (item.metric === "speciesBloom") {
+      assert.equal(item.id, "first-" + item.species);
+      assert.equal(item.badge, null);
+      assert.equal(item.target, 1);
+      assert.ok(core.SPECIES.some((entry) => entry.id === item.species));
+    } else assert.ok(Number.isInteger(item.badge) && item.badge >= 0 && item.badge <= 3);
+  }
+});
+
+test("each species achievement only records a completed flower and stays earned after the flower is deleted", () => {
+  let state = planted();
+  assert.equal(core.achievementProgress(state).find((item) => item.id === "first-hydrangea").current, 0);
+  state = finish(state);
+  let progress = core.achievementProgress(state);
+  assert.equal(progress.find((item) => item.id === "first-hydrangea").current, 1);
+  assert.equal(progress.find((item) => item.id === "first-hydrangea").earnedAt, 60000);
+  assert.equal(progress.find((item) => item.id === "first-rose").current, 0);
+  assert.equal(progress.find((item) => item.id === "first-rose").earnedAt, null);
+  state = change(state, { type: "delete", id: "new-flower" }, 61000);
+  progress = core.achievementProgress(state);
+  assert.equal(progress.find((item) => item.id === "first-hydrangea").current, 1);
+  assert.equal(progress.find((item) => item.id === "first-hydrangea").earnedAt, 60000);
+  assert.equal(state.garden.length, 0);
+});
+
+test("a threshold bloom grants only newly reached milestones and never changes earlier achievement dates", () => {
+  let state = core.initializeCollection(planted(), 249, ["hydrangea"], 500);
+  const earned = structuredClone(state.earnedAchievements);
+  assert.equal(core.achievementProgress(state).find((item) => item.id === "two-hundred-fifty-blooms").current, 249);
+  assert.equal(state.earnedAchievements["two-hundred-fifty-blooms"], undefined);
+  state = finish(state);
+  assert.equal(state.collection.totalBlooms, 250);
+  assert.equal(state.earnedAchievements["two-hundred-fifty-blooms"], 60000);
+  assert.equal(state.earnedAchievements["five-hundred-blooms"], undefined);
+  for (const [id, at] of Object.entries(earned)) assert.equal(state.earnedAchievements[id], at);
+  state = change(state, { type: "tick", sessionId: "worker" }, 61000);
+  assert.equal(state.collection.totalBlooms, 250);
+  assert.equal(state.earnedAchievements["two-hundred-fifty-blooms"], 60000);
+});
+
+test("an 0.11 collection upgrades on page load using lifetime counters, preserving old dates and avoiding recounts", async (t) => {
+  const host = hostFor(t);
+  const old = await seed011Collection(host);
+  const before = host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get();
+  const startedAt = Date.now();
+  const store = createStore(host.call);
+  const state = await store.load();
+  const finishedAt = Date.now();
+  assert.equal(state.achievementRevision, core.ACHIEVEMENT_REVISION);
+  assert.equal(Object.keys(state.earnedAchievements).length, 20);
+  assert.deepEqual(state.collection, old.collection);
+  assert.equal(state.garden.length, 1, "Deleted historical flowers are not recreated");
+  for (const [id, at] of Object.entries(old.earnedAchievements)) assert.equal(state.earnedAchievements[id], at);
+  for (const item of core.ACHIEVEMENTS.filter((entry) => !Object.hasOwn(old.earnedAchievements, entry.id)))
+    assert.ok(state.earnedAchievements[item.id] >= startedAt && state.earnedAchievements[item.id] <= finishedAt);
+  assert.equal(host.calls.filter(({ params }) => params.sql.includes("COUNT(*) AS count FROM garden_plants GROUP BY")).length, 0);
+  assert.equal(host.db.prepare("SELECT version FROM garden_store WHERE key = 'state'").get().version, before.version + 1);
+  const after = host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get();
+  host.calls.length = 0;
+  const polled = await store.load();
+  assert.deepEqual(polled.earnedAchievements, state.earnedAchievements);
+  assert.deepEqual(host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get(), after);
+  assert.equal(host.calls.filter(({ params }) => params.sql.includes("FROM garden_plants")).length, 0);
+  await store.apply({ type: "delete", id: "flower-0" }, Date.now());
+  const reopened = await createStore(host.call).load();
+  assert.equal(reopened.garden.length, 0);
+  assert.deepEqual(reopened.earnedAchievements, state.earnedAchievements);
+  assert.deepEqual(reopened.collection, old.collection);
+});
+
+test("concurrent catalog upgrades and page actions preserve all twenty achievements without awarding twice", async (t) => {
+  const host = hostFor(t);
+  const old = await seed011Collection(host, 0);
+  const first = createStore(host.call);
+  const second = createStore(host.call);
+  const before = host.db.prepare("SELECT version FROM garden_store WHERE key = 'state'").get().version;
+  await Promise.all([first.load(), second.apply({ type: "notifications", enabled: false }, 1000)]);
+  let state = await first.load();
+  assert.equal(state.notify, false);
+  assert.equal(state.collection.totalBlooms, 1000);
+  assert.equal(Object.keys(state.earnedAchievements).length, 20);
+  assert.equal(host.db.prepare("SELECT version FROM garden_store WHERE key = 'state'").get().version, before + 2);
+  const earned = structuredClone(state.earnedAchievements);
+  await first.apply({ type: "boot", sessionId: "worker" }, 1000);
+  for (let now = 2000; now <= 10000; now += 1000)
+    await first.apply({ type: "tick", sessionId: "worker" }, now);
+  state = await first.load();
+  assert.deepEqual(state.earnedAchievements, earned);
+  for (const [id, at] of Object.entries(old.earnedAchievements)) assert.equal(state.earnedAchievements[id], at);
+  assert.equal(host.calls.filter(({ params }) => params.sql.includes("COUNT(*) AS count FROM garden_plants GROUP BY")).length, 0);
+});
+
+test("a failed catalog upgrade preserves the original 0.11 row and retries without losing original award dates", async (t) => {
+  const host = hostFor(t);
+  const old = await seed011Collection(host, 0);
+  const before = host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get();
+  let fail = true;
+  host.intercept = async (method, params) => {
+    if (fail && method === "db.execute" && params.sql.startsWith("UPDATE")) throw new Error("database or disk is full");
+  };
+  const store = createStore(host.call);
+  await assert.rejects(store.load(), /存储空间不足/);
+  assert.deepEqual(host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get(), before);
+  fail = false;
+  const recovered = await store.load();
+  assert.equal(Object.keys(recovered.earnedAchievements).length, 20);
+  for (const [id, at] of Object.entries(old.earnedAchievements)) assert.equal(recovered.earnedAchievements[id], at);
+  assert.deepEqual(recovered.collection, old.collection);
+});
+
+test("catalog upgrades work under the host authorizer without changing the saved lifetime verification date", async (t) => {
+  const host = hostFor(t);
+  await seed011Collection(host, 0);
+  await createStore(host.call).load();
+  replayRestricted(host.calls, [
+    "assert hot['achievementRevision']==2",
+    "assert hot['collection']['verifiedAt']==100",
+    "assert hot['collection']['totalBlooms']==1000",
+    "assert len(hot['earnedAchievements'])==20",
+    "assert hot['earnedAchievements']['first-bloom']==0",
+    "assert hot['earnedAchievements']['ten-blooms']==20",
+    "assert hot['earnedAchievements']['all-species']==30",
+    "assert hot['earnedAchievements']['hundred-blooms']==40",
+    "assert hot['earnedAchievements']['first-sunflower']>100",
+  ]);
+});
+
+test("a future achievement catalog revision fails closed instead of replacing newer saved achievements", async (t) => {
+  const host = hostFor(t);
+  const state = await seed011Collection(host, 0);
+  state.achievementRevision = core.ACHIEVEMENT_REVISION + 1;
+  await host.call("db.execute", {
+    sql: "UPDATE garden_store SET value = ?, version = version + 1 WHERE key = 'state'", params: [JSON.stringify(state)],
+  });
+  const before = host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get();
+  const store = createStore(host.call);
+  await assert.rejects(store.load(), /收藏成就版本不支持/);
+  await assert.rejects(store.apply({ type: "notifications", enabled: false }), /收藏成就版本不支持/);
   assert.deepEqual(host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get(), before);
 });

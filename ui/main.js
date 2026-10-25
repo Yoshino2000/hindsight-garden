@@ -89,6 +89,9 @@
   let collectionSignature = "";
   let reviewSignature = "";
   let gardenTheme = "meadow";
+  let selectedAchievement = null;
+  let achievementFilter = "all";
+  let commandScope = null;
   let renameId = null;
   let deleteId = null;
   let ruleCounter = 0;
@@ -197,15 +200,24 @@
   function showError(error, source = "action") {
     errorSource = source;
     $("error").textContent = error?.message || String(error);
-    $("error").hidden = false;
+    $("error").hidden = source === "action" && commandScope !== null && commandScope !== currentTab();
   }
+
+  function currentTab() { return $("view-garden").hidden ? "current" : "garden"; }
 
   function notice(text) {
     $("notice").textContent = text;
-    $("notice").hidden = !text;
+    $("notice").hidden = !text || (commandScope !== null && commandScope !== currentTab());
   }
 
   function tab(name, focus = false) {
+    if (name !== currentTab()) {
+      $("notice").hidden = true;
+      $("notice").textContent = "";
+      if (errorSource === "action") { $("error").hidden = true; $("error").textContent = ""; errorSource = ""; }
+      closeFlowerActions();
+      closeAchievementDrawer(false);
+    }
     if (name !== "garden") closeFlowerDrawer(false);
     for (const item of ["current", "garden"]) {
       const selected = item === name;
@@ -229,7 +241,9 @@
     $("garden-motion").disabled = reducedMotion.matches;
     $("garden-motion-hint").textContent = reducedMotion.matches
       ? "已跟随系统减少动态效果"
-      : "秋千轻摆，小鸟约每 15–30 秒来访，水面泛起微波";
+      : $("view-garden").dataset.theme && $("view-garden").dataset.theme !== "meadow"
+        ? "小鸟约每 15–30 秒来访，蝴蝶偶尔飞舞，水面泛起微波"
+        : "秋千轻摆，小鸟约每 15–30 秒来访，水面泛起微波";
   }
 
   function compact(enabled) {
@@ -376,7 +390,7 @@
       }
       for (const row of document.querySelectorAll(".rule-row"))
         refreshRuleOptions(row);
-      if (state) { renderCurrent(); renderPlanSummary(); }
+      if (state) { renderCurrent(); renderPlans(); }
     } finally {
       catalogRequest = null;
       catalogStatus();
@@ -402,19 +416,31 @@
       : state?.plans.find((item) => item.id === $("plan-select").value);
   }
 
+  function categoryName(rule) {
+    const catalog = catalogs[rule.type];
+    const item = catalog?.items.find((item) => item.id === rule.value);
+    return item?.name || (catalog?.loaded && !catalog.error && rule.value
+      ? `${rule.label || rule.value}（已删除）` : "");
+  }
+
+  function renderPlanNamePreview() {
+    $("plan-name-preview").textContent = "显示为：" + GardenCollection.planLabel({ ...rawPlant(), name: $("plan-name").value }, categoryName);
+  }
+
   function renderPlanSummary() {
     const plan = selectedPlan();
     const editable = Boolean(plan && $("plan-select").value !== "last");
     $("plan-use").disabled = !plan || busy;
     $("plan-update").disabled = !editable || busy;
     $("plan-delete").disabled = !editable || busy;
+    renderPlanNamePreview();
     $("plan-summary").textContent = plan
       ? `${species(plan.species).name} · ${plan.targetMinutes} 分钟 · ${plan.rules.map(ruleText).join("；")}\n${penaltyText(plan.penalty)}`
       : "选好下方设置后，可以把常用的品种、规则和时长保存成方案。";
   }
 
   function renderPlans() {
-    const signature = JSON.stringify([state.plans, state.lastPlanting]);
+    const signature = JSON.stringify([state.plans, state.lastPlanting, catalogs.category.items, catalogs.superCategory.items]);
     if (signature !== planSignature) {
       planSignature = signature;
       const selected = $("plan-select").value;
@@ -427,7 +453,7 @@
         options.push(last);
       }
       for (const plan of state.plans) {
-        const option = el("option", "", `${plan.name} · ${plan.targetMinutes} 分钟`);
+        const option = el("option", "", GardenCollection.planLabel(plan, categoryName));
         option.value = plan.id;
         options.push(option);
       }
@@ -495,26 +521,51 @@
   function renderCollection() {
     const progress = C.achievementProgress(state);
     const chosen = GardenCollection.theme(gardenTheme, state.earnedAchievements);
+    const previousTheme = $("view-garden").dataset.theme;
     $("view-garden").dataset.theme = chosen.id;
+    if (previousTheme !== chosen.id) updateAmbience();
     $("garden-theme-label").textContent = chosen.name;
     $("collection-summary").textContent = `${progress.filter((item) => item.earnedAt !== null).length} / ${progress.length} 枚徽章 · ${chosen.name}`;
-    const signature = JSON.stringify([progress, chosen.id]);
+    const signature = JSON.stringify([progress, chosen.id, achievementFilter]);
     if (signature === collectionSignature) return;
     collectionSignature = signature;
-    $("achievement-list").replaceChildren(...progress.map((item, index) => {
-      const card = el("article", "achievement");
+    const visible = progress.filter((item) => achievementFilter === "all" ||
+      (achievementFilter === "earned" ? item.earnedAt !== null :
+        achievementFilter === "blooms" ? item.metric === "blooms" : item.metric !== "blooms"))
+      .sort((a, b) => (a.metric === "blooms" ? 0 : a.metric === "species" ? 1 : 2) -
+        (b.metric === "blooms" ? 0 : b.metric === "species" ? 1 : 2) || a.target - b.target);
+    for (const button of $("achievement-filters").children) {
+      button.setAttribute("aria-pressed", String(button.dataset.filter === achievementFilter));
+      const filter = button.dataset.filter;
+      const count = progress.filter((item) => filter === "all" ||
+        (filter === "earned" ? item.earnedAt !== null : filter === "blooms" ? item.metric === "blooms" : item.metric !== "blooms")).length;
+      const name = { all: "全部", blooms: "株数里程碑", species: "品种收藏", earned: "已获得" }[filter];
+      button.textContent = `${name} ${count}`;
+    }
+    $("achievement-empty").hidden = visible.length !== 0;
+    $("achievement-list").replaceChildren(...visible.map((item) => {
+      const card = el("button", "achievement");
+      card.type = "button";
+      card.dataset.achievement = item.id;
       card.dataset.earned = String(item.earnedAt !== null);
-      const art = el("div", "achievement-art");
-      art.style.setProperty("--badge-position", `${index / 3 * 100}%`);
-      art.setAttribute("aria-hidden", "true");
-      const unit = item.metric === "species" ? "种" : "株";
+      card.setAttribute("aria-expanded", String(selectedAchievement === item.id));
+      card.setAttribute("aria-controls", "achievement-drawer");
+      card.setAttribute("aria-label", `${item.name}，${item.earnedAt !== null ? "已获得" : `${item.current}/${item.target}`}，查看条件与详情`);
+      card.title = item.condition;
       const bar = el("progress");
       bar.max = item.target;
       bar.value = item.current;
-      bar.setAttribute("aria-label", `${item.name}：${item.current} / ${item.target} ${unit}`);
-      card.append(art, el("h3", "", item.name), el("p", "", item.earnedAt !== null ? `已获得 · ${date(item.earnedAt)}` : `${item.current} / ${item.target} ${unit}`), bar);
+      bar.setAttribute("aria-label", `${item.name} ${item.current}/${item.target}`);
+      card.append(achievementArtwork(item), el("span", "achievement-name", item.name),
+        el("span", "achievement-status", item.earnedAt !== null ? "已获得 · 查看" : `${item.current} / ${item.target}`), bar);
+      card.addEventListener("click", () => {
+        closeFlowerDrawer(false);
+        selectedAchievement = item.id;
+        renderAchievement();
+      });
       return card;
     }));
+    renderAchievement();
     $("theme-options").replaceChildren(...GardenCollection.THEMES.map((item) => {
       const unlocked = !item.achievement || state.earnedAchievements[item.achievement] !== undefined;
       const button = el("button", "theme-card");
@@ -536,6 +587,50 @@
       });
       return button;
     }));
+  }
+
+  function achievementArtwork(item) {
+    const art = el("span", "achievement-art");
+    art.setAttribute("aria-hidden", "true");
+    if (item.metric === "speciesBloom") {
+      art.dataset.species = item.species;
+      art.style.backgroundImage = `url("../assets/garden/${species(item.species).id}.png")`;
+    } else art.style.setProperty("--badge-position", `${item.badge / 3 * 100}%`);
+    return art;
+  }
+
+  function closeAchievementDrawer(restoreFocus = false) {
+    const previous = selectedAchievement;
+    selectedAchievement = null;
+    $("achievement-drawer").hidden = true;
+    for (const button of $("achievement-list").children) button.setAttribute("aria-expanded", "false");
+    if (restoreFocus) [...$("achievement-list").children]
+      .find((button) => button.dataset.achievement === previous)?.focus({ preventScroll: true });
+  }
+
+  function renderAchievement() {
+    const item = C.achievementProgress(state).find((entry) => entry.id === selectedAchievement);
+    if (!item || $("view-garden").hidden) { closeAchievementDrawer(false); return; }
+    const opening = $("achievement-drawer").hidden;
+    const title = el("h2", "flower-detail-title", item.name);
+    title.id = "achievement-detail-title";
+    const art = el("div", "achievement-drawer-art");
+    art.append(achievementArtwork(item));
+    const stats = el("dl", "achievement-detail-stats");
+    const actual = item.metric === "blooms" ? `${state.collection.totalBlooms} 朵花` :
+      item.metric === "species" ? `${state.collection.species.length} 种` : `${item.current} / 1 次首次开花`;
+    const rewards = GardenCollection.THEMES.filter((theme) => theme.achievement === item.id).map((theme) => theme.name);
+    for (const [label, value] of [["获得条件", item.condition], ["当前累计", actual],
+      ["获得状态", item.earnedAt !== null ? "已获得，永久保留" : "还在积累中"],
+      ["获得/核验日", item.earnedAt !== null ? date(item.earnedAt) : "尚未获得"],
+      ["获得内容", rewards.length ? `收藏徽章，并解锁「${rewards.join("、")}」主题` : "永久收藏徽章"]])
+      stats.append(el("dt", "", label), el("dd", "", value));
+    $("achievement-details").replaceChildren(title, art, el("p", "achievement-description", item.description), stats,
+      el("p", "note-privacy", "累计从首次核验时仍保留的收藏开始，此后新开花继续计入，删除不扣回。新成就可能根据已有永久计数补授；获得日期可能为核验日，旧版本已删除的花不能还原。"));
+    for (const button of $("achievement-list").children)
+      button.setAttribute("aria-expanded", String(button.dataset.achievement === item.id));
+    $("achievement-drawer").hidden = false;
+    if (opening) $("achievement-close").focus({ preventScroll: true });
   }
 
   function animateWeekChange() {
@@ -718,6 +813,7 @@
       button.append(gardenArtwork(plant.species));
       button.addEventListener("click", () => {
         closeFlowerActions();
+        closeAchievementDrawer(false);
         selectedFlower = plant.id;
         renderFlower();
       });
@@ -765,6 +861,7 @@
         }
       }
       scene.append(landscape);
+      scene.append(document.querySelector(".garden-island-card .theme-props").cloneNode(true));
       const swing = $("garden-ambience").querySelector(".ambience-swing").cloneNode(true);
       scene.append(swing);
       for (const { plant, x, y, z } of garden.plots) {
@@ -919,6 +1016,7 @@
     if (typeof closeFlowerDrawer === "function") closeFlowerDrawer(false);
     selectedFlower = null;
     closeFlowerActions();
+    closeAchievementDrawer(false);
     gardenSignature = "";
     if (state) renderGarden();
     saveGardenView();
@@ -1032,6 +1130,7 @@
   async function command(input, success) {
     if (busy) return false;
     busy = true;
+    commandScope = currentTab();
     generation += 1;
     for (const button of document.querySelectorAll(
       ".action-panel button, .plant-presets button, #confirm-plant, #pause, #rename-save, #save-rules-edit",
@@ -1049,6 +1148,7 @@
       return false;
     } finally {
       busy = false;
+      commandScope = null;
       for (const button of document.querySelectorAll(
         ".action-panel button, .plant-presets button, #confirm-plant, #pause, #rename-save, #save-rules-edit",
       ))
@@ -1406,6 +1506,24 @@
   }
   $("garden-week-prev").addEventListener("click", () => moveGardenWeek(-1));
   $("garden-week-next").addEventListener("click", () => moveGardenWeek(1));
+  $("plant-form").addEventListener("input", renderPlanNamePreview);
+  $("plant-form").addEventListener("change", renderPlanNamePreview);
+  $("plan-name").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") { event.preventDefault(); savePlan(); }
+  });
+  $("achievement-close").addEventListener("click", () => closeAchievementDrawer(true));
+  for (const button of $("achievement-filters").children) button.addEventListener("click", () => {
+    closeAchievementDrawer(false);
+    achievementFilter = button.dataset.filter;
+    renderCollection();
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!$("achievement-drawer").hidden && !$("achievement-drawer").contains(event.target) &&
+        !event.target.closest?.(".achievement")) closeAchievementDrawer(false);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !$("achievement-drawer").hidden) { event.preventDefault(); closeAchievementDrawer(true); }
+  });
   $("plan-select").addEventListener("change", () => {
     $("plan-delete-confirm").hidden = true;
     const plan = selectedPlan();
@@ -1475,7 +1593,8 @@
       event.key !== "Enter" ||
       event.target.tagName !== "INPUT" ||
       event.target.type === "checkbox" ||
-      event.target.type === "radio"
+      event.target.type === "radio" ||
+      event.target.id === "plan-name"
     )
       return;
     event.preventDefault();

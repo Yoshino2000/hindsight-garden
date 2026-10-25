@@ -123,7 +123,13 @@
           await commit({ ...state, garden: [] }, saved);
           continue;
         }
-        if (saved.state.collection !== null) return saved;
+        if (saved.state.collection !== null) {
+          if (saved.state.achievementRevision >= root.GardenCore.ACHIEVEMENT_REVISION) return saved;
+          // Catalog-only upgrades reuse lifetime counters. No archive scan and no rewriting
+          // earlier award dates; the CAS also preserves concurrent page and worker changes.
+          await commit(root.GardenCore.refreshAchievements(saved.state, Date.now()), saved);
+          continue;
+        }
         // Pre-0.11 schema-2 data already has a separate archive. Count it once, guarded by the
         // SAME archive revision as the hot-row CAS, rather than scanning it on every worker tick.
         await commit(await withArchiveCollection(saved.state), saved);

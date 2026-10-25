@@ -22,6 +22,8 @@ FILES = {
     "manifest.json", "background.js", "core.js", "store.js", "garden-layout.js",
     "ui/index.html", "ui/style.css", "ui/album.css", "ui/drawer.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js", "ui/collection.js", "ui/features.css",
     "assets/collection/milestones.png", "assets/collection/themes.png",
+    "ui/compact.css", "ui/achievements.css", "ui/themes.css",
+    *(f"assets/collection/props-{theme}.png" for theme in ("rain", "dusk", "blossom")),
     "icon.png", "assets/sunflower.png", "assets/hydrangea.png",
     "assets/tulip.png", "assets/daisy.png",
     "assets/rose.png", "assets/lavender.png", "assets/cosmos.png", "assets/lily.png",

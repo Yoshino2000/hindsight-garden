@@ -3,12 +3,7 @@
   "use strict";
 
   const MAX_GAP_MS = 10000;
-  const ACHIEVEMENTS = [
-    { id: "first-bloom", name: "第一朵花", metric: "blooms", target: 1 },
-    { id: "ten-blooms", name: "小小花匠", metric: "blooms", target: 10 },
-    { id: "all-species", name: "八色收藏", metric: "species", target: 8 },
-    { id: "hundred-blooms", name: "百花成园", metric: "blooms", target: 100 },
-  ];
+  const ACHIEVEMENT_REVISION = 2;
   const SPECIES = [
     {
       id: "sunflower",
@@ -50,6 +45,61 @@
       name: "百合",
       description: "等待花苞打开，收藏一段安静的时光。",
     },
+  ];
+  const ACHIEVEMENTS = [
+    {
+      id: "first-bloom", name: "第一朵花", metric: "blooms", target: 1, badge: 0,
+      condition: "累计成功种出 1 朵花。", description: "从第一颗种子开始，留住一段自己的时光。",
+    },
+    {
+      id: "ten-blooms", name: "小小花匠", metric: "blooms", target: 10, badge: 1,
+      condition: "累计成功种出 10 朵花。", description: "十次等待与回来，慢慢积成一束小小的成就。",
+    },
+    {
+      id: "all-species", name: "八色收藏", metric: "species", target: 8, badge: 2,
+      condition: "收集到 8 种曾经开花的植物。", description: "八种不同的花，把平常日子染成自己的颜色。",
+    },
+    {
+      id: "hundred-blooms", name: "百花成园", metric: "blooms", target: 100, badge: 3,
+      condition: "累计成功种出 100 朵花。", description: "许多细小的片刻，已经长成一座丰盛花园。",
+    },
+    {
+      id: "five-blooms", name: "5 朵花开", metric: "blooms", target: 5, badge: 1,
+      condition: "累计成功种出 5 朵花。", description: "五朵花，记录五次愿意为自己留一点时间。",
+    },
+    {
+      id: "twenty-five-blooms", name: "25 朵花开", metric: "blooms", target: 25, badge: 3,
+      condition: "累计成功种出 25 朵花。", description: "一座花园的份量，来自一次次慢慢积累。",
+    },
+    {
+      id: "fifty-blooms", name: "50 朵花开", metric: "blooms", target: 50, badge: 3,
+      condition: "累计成功种出 50 朵花。", description: "五十朵花，像五十张写给日常的小小花笺。",
+    },
+    {
+      id: "two-hundred-fifty-blooms", name: "250 朵花开", metric: "blooms", target: 250, badge: 3,
+      condition: "累计成功种出 250 朵花。", description: "走过许多普通日子，回头看时已有花相伴。",
+    },
+    {
+      id: "five-hundred-blooms", name: "500 朵花开", metric: "blooms", target: 500, badge: 3,
+      condition: "累计成功种出 500 朵花。", description: "五百次绽放，把时间织成一片温柔花海。",
+    },
+    {
+      id: "thousand-blooms", name: "1000 朵花开", metric: "blooms", target: 1000, badge: 3,
+      condition: "累计成功种出 1000 朵花。", description: "千朵花留下千段时光，仍然可以从下一颗种子开始。",
+    },
+    {
+      id: "two-species", name: "双色初见", metric: "species", target: 2, badge: 2,
+      condition: "收集到 2 种曾经开花的植物。", description: "试着种下另一种花，给花园添一点不同。",
+    },
+    {
+      id: "four-species", name: "四色花笺", metric: "species", target: 4, badge: 2,
+      condition: "收集到 4 种曾经开花的植物。", description: "四种花朵，把不同心情留在同一座花园里。",
+    },
+    ...SPECIES.map((item) => ({
+      id: "first-" + item.id, name: item.name + "初绽", metric: "speciesBloom",
+      species: item.id, target: 1, badge: null,
+      condition: `至少让一株${item.name}开花。`, description: item.description,
+    })),
   ];
 
   function integer(value, min, max, message) {
@@ -250,6 +300,7 @@
       lastPlanting: null,
       collection: null,
       earnedAchievements: {},
+      achievementRevision: ACHIEVEMENT_REVISION,
       focus: null,
       lastAt: null,
       sessionId: null,
@@ -305,8 +356,10 @@
     const collection = state.collection;
     return ACHIEVEMENTS.map((item) => ({
       ...item,
-      current: Math.min(item.target, item.metric === "species"
-        ? collection?.species.length || 0 : collection?.totalBlooms || 0),
+      current: Math.min(item.target, item.metric === "speciesBloom"
+        ? Number(collection?.species.includes(item.species) || false)
+        : item.metric === "species"
+          ? collection?.species.length || 0 : collection?.totalBlooms || 0),
       earnedAt: state.earnedAchievements?.[item.id] ?? null,
     }));
   }
@@ -324,6 +377,18 @@
     const next = {
       ...state,
       collection: savedCollection({ totalBlooms, species: [...new Set(species)], verifiedAt: now }),
+      earnedAchievements: savedAchievements(state.earnedAchievements),
+    };
+    return refreshAchievements(next, now);
+  }
+
+  // New catalog entries use the durable baseline, including flowers deleted since it was
+  // established. Existing award dates are facts and are never replaced by an upgrade date.
+  function refreshAchievements(state, now) {
+    timestamp(now);
+    const next = {
+      ...state,
+      achievementRevision: ACHIEVEMENT_REVISION,
       earnedAchievements: savedAchievements(state.earnedAchievements),
     };
     awardAchievements(next, now);
@@ -450,6 +515,10 @@
     state.lastPlanting = value.lastPlanting == null ? null : plantingSettings(value.lastPlanting);
     state.collection = savedCollection(value.collection);
     state.earnedAchievements = savedAchievements(value.earnedAchievements);
+    state.achievementRevision = value.achievementRevision === undefined ? 0 : integer(
+      value.achievementRevision, 0, ACHIEVEMENT_REVISION,
+      "收藏成就版本不支持，请保留数据并使用最新版时光花园。",
+    );
     const ids = [
       ...state.garden.map((plant) => plant.id),
       ...(state.active ? [state.active.id] : []),
@@ -584,6 +653,8 @@
     timestamp(now);
     if (state.collection === null) state = initializeCollection(state, state.garden.length,
       state.garden.map((plant) => plant.species), now);
+    else if (state.achievementRevision < ACHIEVEMENT_REVISION)
+      state = refreshAchievements(state, now);
     if (!input || typeof input !== "object")
       throw new Error("花园操作不正确。");
     if (input.type === "boot") {
@@ -731,6 +802,7 @@
   const api = {
     SPECIES,
     ACHIEVEMENTS,
+    ACHIEVEMENT_REVISION,
     MAX_GAP_MS,
     initialState,
     normalizeState,
@@ -742,6 +814,7 @@
     plantingSettings,
     achievementProgress,
     initializeCollection,
+    refreshAchievements,
     matches,
     stage,
     reduce,

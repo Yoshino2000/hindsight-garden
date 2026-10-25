@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="drawer.css" />
     <link rel="stylesheet" href="album.css" />
     <link rel="stylesheet" href="features.css" />
+    <link rel="stylesheet" href="compact.css" />
+    <link rel="stylesheet" href="achievements.css" />
+    <link rel="stylesheet" href="themes.css" />
   </head>
   <body>
     <main class="app">
@@ -60,6 +63,7 @@
         aria-labelledby="tab-current"
         tabindex="0"
       >
+        <div class="current-pot-layout">
         <article id="current-hero" class="card hero" hidden>
           <div class="hero-top">
             <span id="growth-status" class="badge">等待连接</span>
@@ -143,6 +147,7 @@
           </section>
           <div id="active-notification-slot"></div>
         </section>
+        </div>
 
         <section
           id="rules-edit-panel"
@@ -205,12 +210,14 @@
           <p id="plant-form-hint" class="hint field-intro">
             选品种、设置生长规则和累计时长，然后直接播种。默认切换活动只暂停，不扣进度。
           </p>
+          <form id="plant-form" class="plant-form-grid" novalidate>
+            <section class="plant-catalog" aria-label="种植方案与花种">
           <section class="plant-presets" aria-label="种植方案">
             <div class="preset-heading"><h3>种植方案</h3><select id="plan-select" aria-label="选择保存的种植方案"><option value="">选择方案，或使用上次设置</option></select></div>
             <p id="plan-summary" class="preset-summary"></p>
             <div class="preset-actions"><button id="plan-use" class="button quiet small" type="button" disabled>使用此方案</button><span class="subtle">先载入设置，再确认播种</span></div>
             <details class="preset-manage"><summary>保存或管理方案</summary>
-              <label class="field" for="plan-name"><span>方案名称</span><input id="plan-name" maxlength="40" placeholder="例如：阅读 30 分钟" autocomplete="off"></label>
+              <label class="field" for="plan-name"><span>方案内容</span><input id="plan-name" maxlength="40" placeholder="例如：论文阅读，类别与时长会自动附加" autocomplete="off"><small id="plan-name-preview" class="note-privacy"></small></label>
               <div class="preset-actions">
                 <button id="plan-save" class="button quiet small" type="button">保存为新方案</button>
                 <button id="plan-update" class="button quiet small" type="button" disabled>用当前设置更新</button>
@@ -220,8 +227,6 @@
               <div id="plan-delete-confirm" class="preset-delete-confirm" hidden><p class="hint">只删除方案，已种下的花会保留。</p><div class="preset-actions"><button id="plan-delete-yes" class="button text-danger small" type="button">确认删除方案</button><button id="plan-delete-no" class="button quiet small" type="button">取消</button></div></div>
             </details>
           </section>
-          <form id="plant-form" class="plant-form-grid" novalidate>
-            <section class="plant-catalog" aria-label="选择花种">
             <fieldset>
               <legend>挑一株喜欢的植物</legend>
               <div id="species-options" class="species-options"></div>
@@ -646,7 +651,13 @@
                 <path d="M120 420q-3-11-8-13m8 13 2-15m-2 15 7-8M566 624q-2-11-6-13m6 13 4-16m-4 16 9-9M849 426q-2-12-8-16m8 16 1-17m-1 17 8-9M643 296q-2-10-7-13m7 13 3-13" fill="none" stroke="#91ac78" stroke-width="3" />
                 <g fill="#dce8bd"><ellipse cx="133" cy="423" rx="2.5" ry="1.5" /><ellipse cx="572" cy="625" rx="3" ry="1.5" /><ellipse cx="835" cy="422" rx="2.5" ry="1.5" /></g>
               </g>
+              <g class="theme-prop-shadows" data-scene-part="theme-prop-shadows" clip-path="url(#ground-shadow-clip)" opacity=".16">
+                <ellipse cx="227" cy="339" rx="53" ry="9" />
+                <ellipse cx="665" cy="250" rx="36" ry="7" />
+                <ellipse cx="134" cy="382" rx="24" ry="5" />
+              </g>
             </svg>
+            <div class="theme-props" aria-hidden="true"><span class="theme-prop" data-slot="0"></span><span class="theme-prop" data-slot="1"></span><span class="theme-prop" data-slot="2"></span></div>
             <div id="garden-ambience" class="garden-ambience" data-enabled="false" data-running="false" aria-hidden="true">
               <div class="ambience-swing">
                 <span class="ambience-swing-shadow"></span>
@@ -750,13 +761,23 @@
         </section>
         <details id="collection-settings" class="card collection-settings">
           <summary>收藏成就与主题<span id="collection-summary" class="collection-summary"></span></summary>
+          <div id="achievement-filters" class="achievement-filters" role="group" aria-label="筛选成就">
+            <button type="button" data-filter="all" aria-pressed="true">全部</button><button type="button" data-filter="blooms" aria-pressed="false">株数里程碑</button><button type="button" data-filter="species" aria-pressed="false">品种收藏</button><button type="button" data-filter="earned" aria-pressed="false">已获得</button>
+          </div>
+          <p class="note-privacy">点击任意徽章，查看获得条件、进度与详情。</p>
           <div id="achievement-list" class="achievement-list" aria-label="收藏成就"></div>
           <p class="note-privacy">成就永久保留。首次升级从当时仍在收藏的花开始核验，以后新开花继续累计；删除花朵不撤回成就。旧版本已经移除的花无法还原。</p>
+          <p id="achievement-empty" class="achievement-empty" hidden>还没有符合筛选的成就，先从一朵花开始吧。</p>
           <h3 class="theme-heading">给花园换个心情</h3>
           <div id="theme-options" class="theme-options" role="group" aria-label="选择花园主题"></div>
           <p class="note-privacy">主题只改变颜色与装饰，不改变生长规则。新装饰由 AI 原创绘制。</p>
         </details>
       </section>
+
+      <aside id="achievement-drawer" class="flower-drawer" role="dialog" aria-modal="false" aria-labelledby="achievement-detail-title" tabindex="-1" hidden>
+        <div class="flower-drawer-heading"><p class="eyebrow">花园成就</p><button id="achievement-close" class="button quiet small" type="button">关闭</button></div>
+        <div id="achievement-details" class="flower-drawer-scroll"></div>
+      </aside>
 
       <aside id="flower-drawer" class="flower-drawer" role="dialog" aria-modal="false" aria-labelledby="flower-detail-title" tabindex="-1" hidden>
         <div class="flower-drawer-heading">

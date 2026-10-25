@@ -4,9 +4,9 @@
 
   const THEMES = [
     { id: "meadow", name: "草木晴日", description: "原来的清浅绿意", achievement: null, cell: null },
-    { id: "rain", name: "雨后小憩", description: "陶蛙与带着水珠的蕨叶", achievement: "first-bloom", cell: 0 },
-    { id: "dusk", name: "晚灯花园", description: "一盏暖灯，陪花慢慢长大", achievement: "ten-blooms", cell: 1 },
-    { id: "blossom", name: "樱枝来信", description: "一枝浅粉，把春天留住", achievement: "all-species", cell: 2 },
+    { id: "rain", name: "雨后小憩", description: "青绿色雨后花园、叶伞长椅、苔石鸟浴和陶蛙", achievement: "first-bloom", cell: 0 },
+    { id: "dusk", name: "晚灯花园", description: "紫暮花园、暖灯拱椅、木鸟屋和小小丰收角", achievement: "ten-blooms", cell: 1 },
+    { id: "blossom", name: "樱枝来信", description: "春樱和风花园、鸟居、神社石灯笼和竹筒手水钵", achievement: "all-species", cell: 2 },
   ];
 
   function theme(value, earned = {}) {
@@ -22,7 +22,18 @@
       : `${minutes} 分钟`;
   }
 
-  const api = { THEMES, theme, totalTime };
+  function planLabel(plan, categoryName = () => "") {
+    const labels = (plan.rules || []).map((rule) => {
+      if (["category", "superCategory"].includes(rule.type))
+        return categoryName(rule) || rule.label || rule.value || "待选类别";
+      return `${rule.type === "app" ? "程序" : "网站"} ${rule.value || "待填写"}`;
+    });
+    const duration = Number.isSafeInteger(Number(plan.targetMinutes)) && Number(plan.targetMinutes) > 0
+      ? `${plan.targetMinutes} 分钟` : "待定时长";
+    return `${plan.name?.trim() || "未命名方案"} · ${[...new Set(labels)].join("、") || "待选类别"} · ${duration}`;
+  }
+
+  const api = { THEMES, theme, totalTime, planLabel };
   root.GardenCollection = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : self);

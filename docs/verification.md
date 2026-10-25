@@ -1,10 +1,21 @@
 # Verification
 
-Version: **0.11.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.12.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified on 2026-10-25 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.11.0 results
+## Current 0.12.0 results
+
+- **125 automated tests pass, no skips.** Eight new permanent-achievement cases cover all 20 definitions, one-time revision-2 awards from a 0.11 collection with previously removed flowers, original timestamps including zero, contention, rollback and real host authorizer/recursive-trigger settings. Two presentation-policy tests cover category-aware plan labels and locked/unknown theme fallbacks. Growth, archive geometry and visitor scheduling retain their existing regression tests.
+- **22 connected Chrome result records** use actual host bridges, strict CSP, sandbox and isolated synthetic SQLite. The planting form uses two columns with presets/species left; the active pot uses plant/progress left and rules/task/notification right. Both sections share the same top edge, and compact view remains available. Enter in the plan-name field saves a plan without planting. Plan labels show custom text, current category and minutes; a category rename changes the displayed label.
+- Tab changes clear old success/action-error messages. An observed one-minute test flower awards first-bloom and first-species badges. The dense achievement grid has six columns, 20 buttons, 32 px icons and 278 px total height in the normal-width check. Filters, an unearned 1,000-flower detail, an earned 25-flower detail showing 122 actual cumulative flowers, Escape and close controls work.
+- A 324 CSS-pixel body has equal client/scroll widths. Achievement icons become 28 px in two columns, the settled drawer spans x=8..316, and the planting layout stacks. A 634-pixel body retains the two-column form. Temporary viewport override was reset.
+- All four themes were inspected in the actual browser. Default retains the original swing, sign and can; the three alternatives replace them with their generated furniture and update grass, front faces, bed, pond and fence colours. Miniatures have the same static props and inherited palette. An initial neighbouring-cell fringe was found visually and removed from display with a six-percent sprite gutter; original PNG bytes were not edited. New props use clipped, static low-precision ground shadows. Plant positions and flower colours remain unchanged.
+- A 5,001-flower collection shows 20/20 earned badges and all 201 gardens, with one flower in the final garden. Visible album sprites remain bounded (nine miniatures / 27 prop cells on that final all-time page). Theme and achievement state survive reload. Final warning/error logs are empty.
+- New source PNGs are original built-in generations: rain 2164×727; dusk and blossom 2172×724, all RGBA with alpha 0..255. Prompts are in `artwork-themes-0120.md`. New screenshots use synthetic records; unchanged flower-drawer and guide images retain earlier captures. The preview-only scene-position button changes scroll position, not package content, and does not ship.
+- No personal database was accessed. Permissions remain seven, storage 64 MB, archive schema 2. **The final 0.12.0 ZIP has not been installed into native Hindsight in this run.** OS notification presentation, true hidden-document behaviour, native sleep/resume, multiple platforms and long-duration use retain their previous limits. The reduced-motion logic is unchanged and was not toggled at OS level here.
+
+## Previous 0.11.0 results
 
 - **115 automated tests pass, with no skips**: 33 core, 31 layout/review, 20 store, 17 feature, 10 worker and 4 ambience tests. New cases cover plan validation/upserts/limits, task notes and bloom preservation, permanent achievement baselines, CAS contention, archive rollback, and complete-week review independent of pagination.
 - The real preview authorizer rejects `json_group_array`. An initial development attempt used that function and failed in Chrome; the implementation now uses bounded `GROUP BY` rows and is regression-tested against the actual authorizer. SQL is replayed under host limits, new connections and both recursive-trigger settings.
@@ -116,7 +127,7 @@ Use the isolated preview with the actual Hindsight bridge, restrictive CSP and s
 
 ## Native checks
 
-**A native installation of the final 0.11.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.11.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
+**A native installation of the final 0.12.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.12.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
 
 macOS/Linux, long-duration use, sleep/resume, multiple monitors, clock changes under a real host and every notification configuration require separate verification. Market installation is subject to a published release and maintainer review. No public-market listing is implied by a local package.
 
