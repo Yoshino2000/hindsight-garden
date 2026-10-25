@@ -3,6 +3,12 @@
   "use strict";
 
   const MAX_GAP_MS = 10000;
+  const ACHIEVEMENTS = [
+    { id: "first-bloom", name: "第一朵花", metric: "blooms", target: 1 },
+    { id: "ten-blooms", name: "小小花匠", metric: "blooms", target: 10 },
+    { id: "all-species", name: "八色收藏", metric: "species", target: 8 },
+    { id: "hundred-blooms", name: "百花成园", metric: "blooms", target: 100 },
+  ];
   const SPECIES = [
     {
       id: "sunflower",
@@ -59,6 +65,13 @@
     if (!name || name.length > 40)
       throw new Error("植物名称需要 1～40 个字符。");
     return name;
+  }
+
+  function taskNoteOf(value) {
+    if (value === undefined) return "";
+    if (typeof value !== "string" || value.length > 280)
+      throw new Error("任务记忆最多 280 个字符。");
+    return value.trim();
   }
 
   function normalizeHost(value) {
@@ -213,6 +226,7 @@
     );
     return {
       name: nameOf(value.name),
+      taskNote: taskNoteOf(value.taskNote),
       species: species.id,
       targetMs: targetMinutes * 60000,
       rules: validateRules(value.rules),
@@ -232,6 +246,10 @@
       notify: true,
       active: null,
       garden: [],
+      plans: [],
+      lastPlanting: null,
+      collection: null,
+      earnedAchievements: {},
       focus: null,
       lastAt: null,
       sessionId: null,
@@ -241,6 +259,75 @@
       lastBloom: null,
       lastError: null,
     };
+  }
+
+  // Reusable settings deliberately omit a flower's name and personal task memory.
+  function plantingSettings(value) {
+    const valid = validatePlant({ ...value, name: "种植方案", taskNote: "" });
+    return {
+      species: valid.species,
+      targetMinutes: valid.targetMs / 60000,
+      rules: valid.rules,
+      penalty: valid.penalty,
+    };
+  }
+
+  function savedPlan(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value))
+      throw new Error("已保存的种植方案格式不正确。");
+    return { id: validId(value.id), name: nameOf(value.name), ...plantingSettings(value) };
+  }
+
+  function savedCollection(value) {
+    if (value == null) return null;
+    if (typeof value !== "object" || Array.isArray(value) || !Array.isArray(value.species) ||
+        value.species.length > SPECIES.length ||
+        value.species.some((id) => !SPECIES.some((item) => item.id === id)) ||
+        new Set(value.species).size !== value.species.length)
+      throw new Error("已保存的收藏成就进度不正确。");
+    return {
+      totalBlooms: integer(value.totalBlooms, value.species.length, Number.MAX_SAFE_INTEGER,
+        "已保存的收藏成就数量不正确。"),
+      species: [...value.species],
+      verifiedAt: timestamp(value.verifiedAt),
+    };
+  }
+
+  function savedAchievements(value) {
+    if (value === undefined) return {};
+    if (!value || typeof value !== "object" || Array.isArray(value) ||
+        Object.keys(value).some((id) => !ACHIEVEMENTS.some((item) => item.id === id)))
+      throw new Error("已保存的收藏成就格式不正确。");
+    return Object.fromEntries(Object.entries(value).map(([id, at]) => [id, timestamp(at)]));
+  }
+
+  function achievementProgress(state) {
+    const collection = state.collection;
+    return ACHIEVEMENTS.map((item) => ({
+      ...item,
+      current: Math.min(item.target, item.metric === "species"
+        ? collection?.species.length || 0 : collection?.totalBlooms || 0),
+      earnedAt: state.earnedAchievements?.[item.id] ?? null,
+    }));
+  }
+
+  function awardAchievements(state, now) {
+    for (const item of achievementProgress(state)) {
+      if (item.current >= item.target && item.earnedAt === null)
+        state.earnedAchievements[item.id] = now;
+    }
+  }
+
+  // A one-time verification of the current archive establishes the lifetime baseline.
+  // Older deleted flowers are unknown, and verification time is not their historical earn date.
+  function initializeCollection(state, totalBlooms, species, now) {
+    const next = {
+      ...state,
+      collection: savedCollection({ totalBlooms, species: [...new Set(species)], verifiedAt: now }),
+      earnedAchievements: savedAchievements(state.earnedAchievements),
+    };
+    awardAchievements(next, now);
+    return next;
   }
 
   function validId(value) {
@@ -280,6 +367,8 @@
       ),
       createdAt: timestamp(value.createdAt),
     };
+    // Older unrelated metadata named "note" remains untouched by the store.
+    if (value.taskNote !== undefined) base.taskNote = taskNoteOf(value.taskNote);
     if (!SPECIES.some((item) => item.id === base.species))
       throw new Error("已保存的植物品种不正确。");
     if (mature) {
@@ -292,7 +381,7 @@
       ...value,
       targetMinutes: targetMs / 60000,
     });
-    return { ...base, rules: settings.rules, penalty: settings.penalty };
+    return { ...base, taskNote: settings.taskNote, rules: settings.rules, penalty: settings.penalty };
   }
 
   function cleanCategory(value, includeParent = true) {
@@ -351,6 +440,16 @@
     state.active =
       value.active == null ? null : savedPlant(value.active, false);
     state.garden = value.garden.map((plant) => savedPlant(plant, true));
+    if (value.plans !== undefined) {
+      if (!Array.isArray(value.plans) || value.plans.length > 20)
+        throw new Error("种植方案最多保存 20 个。");
+      state.plans = value.plans.map(savedPlan);
+      if (new Set(state.plans.map((plan) => plan.id)).size !== state.plans.length)
+        throw new Error("种植方案标识重复。");
+    }
+    state.lastPlanting = value.lastPlanting == null ? null : plantingSettings(value.lastPlanting);
+    state.collection = savedCollection(value.collection);
+    state.earnedAchievements = savedAchievements(value.earnedAchievements);
     const ids = [
       ...state.garden.map((plant) => plant.id),
       ...(state.active ? [state.active.id] : []),
@@ -415,8 +514,14 @@
       bloomAt: now,
       targetMs: plant.targetMs,
       progressMs: plant.targetMs,
+      taskNote: plant.taskNote || "",
     };
     state.garden.unshift(mature);
+    state.collection.totalBlooms = integer(state.collection.totalBlooms + 1, 1,
+      Number.MAX_SAFE_INTEGER, "收藏成就数量超出可保存范围。");
+    if (!state.collection.species.includes(mature.species))
+      state.collection.species.push(mature.species);
+    awardAchievements(state, now);
     state.active = null;
     state.interruption = null;
     state.lastBloom = { id: mature.id, at: now };
@@ -474,9 +579,11 @@
   }
 
   function reduce(previous, input, now = Date.now()) {
-    const state = normalizeState(previous);
+    let state = normalizeState(previous);
     const notes = [];
     timestamp(now);
+    if (state.collection === null) state = initializeCollection(state, state.garden.length,
+      state.garden.map((plant) => plant.species), now);
     if (!input || typeof input !== "object")
       throw new Error("花园操作不正确。");
     if (input.type === "boot") {
@@ -538,6 +645,7 @@
           createdAt: now,
           progressMs: 0,
         };
+        state.lastPlanting = plantingSettings(input.plant);
         state.interruption = null;
         state.lastPenalty = null;
         break;
@@ -570,6 +678,29 @@
         plant.name = nameOf(input.name);
         break;
       }
+      case "note": {
+        const plant = state.active?.id === input.id
+          ? state.active : state.garden.find((item) => item.id === input.id);
+        if (!plant) throw new Error("这株植物已不存在，请刷新后重试。");
+        plant.taskNote = taskNoteOf(input.note);
+        break;
+      }
+      case "savePlan": {
+        const id = validId(input.id);
+        const name = nameOf(input.name);
+        const plan = { id, name, ...plantingSettings(input.plant) };
+        const index = state.plans.findIndex((item) => item.id === id);
+        if (index === -1) {
+          if (state.plans.length >= 20) throw new Error("种植方案最多保存 20 个，请先移除一个。");
+          state.plans.push(plan);
+        } else state.plans[index] = plan;
+        break;
+      }
+      case "deletePlan":
+        if (!state.plans.some((plan) => plan.id === input.id))
+          throw new Error("这个种植方案已不存在，请刷新后重试。");
+        state.plans = state.plans.filter((plan) => plan.id !== input.id);
+        break;
       case "delete":
         if (state.active?.id === input.id) {
           state.active = null;
@@ -599,6 +730,7 @@
 
   const api = {
     SPECIES,
+    ACHIEVEMENTS,
     MAX_GAP_MS,
     initialState,
     normalizeState,
@@ -607,6 +739,9 @@
     normalizeApp,
     validateRules,
     validatePlant,
+    plantingSettings,
+    achievementProgress,
+    initializeCollection,
     matches,
     stage,
     reduce,

@@ -9,6 +9,11 @@
   const ARCHIVE_PAGE = "WITH batch AS (SELECT id, value FROM garden_plants WHERE id > ? ORDER BY id LIMIT ?), sized AS (SELECT id, value, SUM(length(CAST(value AS BLOB)) + length(CAST(id AS BLOB)) + 128) OVER (ORDER BY id) AS bytes, ROW_NUMBER() OVER (ORDER BY id) AS item FROM batch) SELECT id, value FROM sized WHERE bytes <= ? OR item = 1 ORDER BY id";
   const TABLES = [
     "CREATE TABLE IF NOT EXISTS garden_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, version INTEGER NOT NULL)",
+    // Keep schema-2 archive compatibility, but reject an older runtime that would strip the new
+    // hot metadata. The guard persists in SQLite after this page/worker closes and aborts the
+    // complete statement before any archive delta can run. Our own json_remove(_archive) keeps
+    // these fields and remains valid with either recursive_triggers setting.
+    "CREATE TRIGGER IF NOT EXISTS garden_require_features_v1 BEFORE UPDATE OF value ON garden_store WHEN OLD.key = 'state' AND NEW.key = 'state' AND json_type(OLD.value, '$.collection') = 'object' AND json_type(OLD.value, '$.plans') = 'array' AND json_type(OLD.value, '$.earnedAchievements') = 'object' AND (json_type(NEW.value, '$.collection') IS NOT 'object' OR json_type(NEW.value, '$.plans') IS NOT 'array' OR json_type(NEW.value, '$.earnedAchievements') IS NOT 'object') BEGIN SELECT RAISE(ABORT, '此版本的时光花园已过期，已阻止写入以保留种植方案、任务记忆和收藏成就。请关闭旧版本窗口并重新打开最新版。'); END",
     "CREATE TABLE IF NOT EXISTS garden_plants (id TEXT PRIMARY KEY, value TEXT NOT NULL)",
     "CREATE TABLE IF NOT EXISTS garden_archive_meta (key TEXT PRIMARY KEY, version INTEGER NOT NULL)",
     "INSERT OR IGNORE INTO garden_archive_meta (key, version) VALUES ('archive', 0)",
@@ -108,14 +113,35 @@
         const saved = await readStored();
         if (saved.version === null) {
           // Establish the hot row before any delta: archive changes always use the UPDATE trigger.
-          await commit(saved.state, saved);
+          await commit(await withArchiveCollection(saved.state), saved);
           continue;
         }
-        if (!saved.legacy) return saved;
-        // CAS + trigger is an atomic migration. A failure leaves the entire schema-1 row intact.
-        await commit({ ...saved.state, garden: [] }, saved);
+        if (saved.legacy) {
+          // CAS + trigger is an atomic migration. The lifetime baseline is committed with it.
+          const state = root.GardenCore.initializeCollection(saved.state, saved.state.garden.length,
+            saved.state.garden.map((plant) => plant.species), Date.now());
+          await commit({ ...state, garden: [] }, saved);
+          continue;
+        }
+        if (saved.state.collection !== null) return saved;
+        // Pre-0.11 schema-2 data already has a separate archive. Count it once, guarded by the
+        // SAME archive revision as the hot-row CAS, rather than scanning it on every worker tick.
+        await commit(await withArchiveCollection(saved.state), saved);
       }
       throw new Error("花园升级正遇到并发更新，请稍后重试。");
+    }
+
+    async function withArchiveCollection(state) {
+      const summary = rows(await call("db.query", {
+        sql: "SELECT json_extract(value, '$.species') AS species, COUNT(*) AS count FROM garden_plants GROUP BY json_extract(value, '$.species') LIMIT 9",
+        params: [],
+      }));
+      if (summary.length > root.GardenCore.SPECIES.length || summary.some((item) =>
+        typeof item.species !== "string" || !Number.isSafeInteger(item.count) || item.count < 1))
+        throw new Error("无法核验收藏成就，已保留原数据。");
+      return root.GardenCore.initializeCollection(state,
+        summary.reduce((total, item) => total + item.count, 0),
+        summary.map((item) => item.species), Date.now());
     }
 
     function readFlower(row) {
@@ -179,7 +205,7 @@
         const saved = await readHot();
         const state = saved.state;
         let existing = null;
-        if (["rename", "delete"].includes(input?.type) && state.active?.id !== input.id) {
+        if (["rename", "delete", "note"].includes(input?.type) && state.active?.id !== input.id) {
           existing = await findFlower(input.id);
           if (existing) state.garden = [existing];
         }

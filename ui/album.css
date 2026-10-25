@@ -1,157 +1,42 @@
-/* Weekly albums stay directly visible. Only twelve week rows and twelve garden previews
-   are mounted at once; CSS changes presentation without changing the stored collection. */
-.garden-browser .garden-browser-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 15px;
-}
-.garden-browser-heading h2 {
-  margin-bottom: 5px;
-}
-.garden-mode-toggle {
-  display: inline-flex;
-  padding: 3px;
-  border: 1px solid #dce5cf;
-  border-radius: 12px;
-  background: #f3f6e9;
-}
-.garden-mode-toggle button {
-  min-width: 52px;
-  padding: 7px 12px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 12px;
-}
-.garden-mode-toggle button[aria-pressed="true"] {
-  background: #fffef8;
-  color: #3d6547;
-  box-shadow: 0 1px 4px #6c89531a;
-}
-.garden-week-browser {
-  padding-bottom: 15px;
-  border-bottom: 1px solid var(--line);
-}
-.garden-week-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.garden-week-heading p {
-  margin: 0;
-}
-.garden-week-list {
-  position: relative;
-  margin: 0;
-  padding: 0 0 0 19px;
-  list-style: none;
-}
-.garden-week-list::before {
-  content: "";
-  position: absolute;
-  left: 5px;
-  top: 25px;
-  bottom: 25px;
-  width: 1px;
-  background: #d5dfc7;
-}
-.garden-week-entry {
-  position: relative;
-  padding-bottom: 9px;
-}
-.garden-week-entry::before {
-  content: "";
-  position: absolute;
-  left: -18px;
-  top: 25px;
-  width: 7px;
-  height: 7px;
-  border: 2px solid #fafbf3;
-  border-radius: 50%;
-  background: #becdad;
-}
-.garden-week-entry[data-selected="true"]::before {
-  background: #668652;
-  box-shadow: 0 0 0 2px #dce8ce;
-}
-.garden-week-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 14px;
-  flex-wrap: wrap;
-  width: 100%;
-  min-width: 0;
-  padding: 11px 12px;
-  border: 1px solid #e0e8d3;
-  border-radius: 13px;
-  background: #fafbf3;
-  text-align: left;
-  color: #34473b;
-}
-.garden-week-card[aria-pressed="true"] {
-  border-color: #91ac75;
-  background: #edf3e1;
-  box-shadow: inset 0 0 0 1px #91ac75;
-}
-.week-card-title {
-  font-size: 12px;
-  font-weight: 600;
-}
-.week-card-dates {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.week-card-range {
-  font-size: 10px;
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-.week-card-count {
-  font-size: 11px;
-  color: #567647;
-}
-.album-week-navigation {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-.album-context {
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.7;
-  margin: 0 0 9px;
-}
-.garden-week-entry .garden-album-panel {
-  padding: 12px 13px 8px;
-  margin-top: -5px;
-  border: 1px solid #dbe5ce;
-  border-top: 0;
-  border-radius: 0 0 13px 13px;
-  background: #f8faf1;
-}
-.garden-week-entry[data-selected="true"] > .garden-week-card {
-  border-radius: 13px 13px 7px 7px;
-}
-.garden-week-entry .garden-jump {
-  margin: 12px 0 2px;
-}
-.garden-week-entry .garden-album-card {
-  background: #fffef8;
-}
-@media (max-width: 420px) {
-  .garden-week-card { padding: 10px; gap: 5px 9px; }
+.garden-browser-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px; }
+.garden-browser-heading h2 { margin-bottom: 5px; }
+.garden-mode-toggle { display: inline-flex; padding: 3px; border: 1px solid #dce5cf; border-radius: 12px; background: #f3f6e9; }
+.garden-mode-toggle button { min-width: 52px; padding: 7px 12px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 12px; }
+.garden-mode-toggle button[aria-pressed="true"] { background: #fffef8; color: #3d6547; box-shadow: 0 1px 4px #6c89531a; }
+.garden-album-layout { display: grid; grid-template-columns: minmax(185px, 33fr) minmax(0, 67fr); gap: 15px; align-items: start; }
+.garden-album-layout[data-mode="all"] { grid-template-columns: minmax(0, 1fr); }
+.garden-week-browser { min-width: 0; }
+.garden-week-heading { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 8px; }
+.garden-week-heading p { font-size: 10px; margin: 0; }
+.garden-week-heading .button { font-size: 10px; padding: 6px 8px; }
+.garden-week-list { position: relative; margin: 0; padding: 2px 3px 2px 0; list-style: none; max-height: 260px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #c2cfaf transparent; }
+.garden-week-entry { position: relative; margin-bottom: 4px; }
+.garden-week-card { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 7px; min-width: 0; border: 1px solid #e0e8d3; border-radius: 9px; background: #fafbf3; text-align: left; color: #34473b; padding: 7px 8px; transition: background-color 160ms ease, border-color 160ms ease; }
+.garden-week-card[aria-pressed="true"] { border-color: #91ac75; background: #edf3e1; box-shadow: inset 2px 0 #91ac75; }
+.week-card-dates { display: flex; gap: 5px; align-items: baseline; min-width: 0; }
+.week-card-title { font-size: 11px; font-weight: 600; white-space: nowrap; }
+.week-card-range { font-size: 9px; color: var(--muted); white-space: nowrap; }
+.week-card-count { font-size: 10px; color: #567647; white-space: nowrap; }
+.album-week-navigation { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-top: 7px; }
+.album-week-navigation .button { padding: 5px 7px; font-size: 10px; }
+#garden-week-range { font-size: 9px; }
+.week-locate { display: flex; gap: 5px; align-items: center; margin-top: 10px; }
+.week-locate label { font-size: 10px; flex-shrink: 0; color: var(--muted); }
+.week-locate input { min-width: 0; width: 100%; min-height: 31px; padding: 4px 5px; font-size: 10px; }
+.week-locate button { flex-shrink: 0; white-space: nowrap; font-size: 10px; padding: 5px 6px; }
+.garden-album-panel { min-width: 0; border: 1px solid #dbe5ce; border-radius: 13px; background: #f8faf1; padding: 13px; }
+.album-context { color: #5c7452; font-size: 11px; line-height: 1.7; margin: 0 0 10px; }
+.garden-album-panel .garden-album-card { flex-basis: 82px; width: 82px; background: #fffef8; }
+.garden-album-panel .garden-jump { margin: 10px 0 0; gap: 6px; font-size: 11px; }
+.garden-album-panel .garden-jump input { width: 60px; padding: 5px 7px; min-height: 32px; }
+.garden-album-panel .garden-jump .button { font-size: 11px; padding: 6px 9px; }
+.garden-album-panel .garden-album-navigation { margin-top: 9px; }
+.garden-album-panel .garden-album-navigation .button { font-size: 10px; padding: 5px 7px; }
+@media (max-width: 620px) {
+  .garden-album-layout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .garden-week-list { max-height: 168px; }
+  .garden-week-card { padding: 6px 9px; }
   .week-card-title { font-size: 11px; }
-  .garden-week-entry .garden-album-panel { padding: 11px 9px 8px; }
+  .week-locate input { width: auto; flex: 1; }
 }
+@media (prefers-reduced-motion: reduce) { .garden-week-card { transition: none; } }

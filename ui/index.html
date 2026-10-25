@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="drawer.css" />
     <link rel="stylesheet" href="album.css" />
+    <link rel="stylesheet" href="features.css" />
   </head>
   <body>
     <main class="app">
@@ -136,6 +137,10 @@
               移除盆栽
             </button>
           </div>
+          <section class="task-memory" aria-label="当前任务记忆">
+            <div class="task-memory-heading"><h3>留给这段时间的记忆</h3><button id="note-active" class="button quiet small" type="button">编辑备注</button></div>
+            <p id="active-task-note" class="task-copy"></p>
+          </section>
           <div id="active-notification-slot"></div>
         </section>
 
@@ -200,6 +205,21 @@
           <p id="plant-form-hint" class="hint field-intro">
             选品种、设置生长规则和累计时长，然后直接播种。默认切换活动只暂停，不扣进度。
           </p>
+          <section class="plant-presets" aria-label="种植方案">
+            <div class="preset-heading"><h3>种植方案</h3><select id="plan-select" aria-label="选择保存的种植方案"><option value="">选择方案，或使用上次设置</option></select></div>
+            <p id="plan-summary" class="preset-summary"></p>
+            <div class="preset-actions"><button id="plan-use" class="button quiet small" type="button" disabled>使用此方案</button><span class="subtle">先载入设置，再确认播种</span></div>
+            <details class="preset-manage"><summary>保存或管理方案</summary>
+              <label class="field" for="plan-name"><span>方案名称</span><input id="plan-name" maxlength="40" placeholder="例如：阅读 30 分钟" autocomplete="off"></label>
+              <div class="preset-actions">
+                <button id="plan-save" class="button quiet small" type="button">保存为新方案</button>
+                <button id="plan-update" class="button quiet small" type="button" disabled>用当前设置更新</button>
+                <button id="plan-delete" class="button text-danger small" type="button" disabled>删除方案</button>
+              </div>
+              <p class="note-privacy">最多保存 20 个方案。只保存品种、目标时长、规则与中断设置，不复制花名或任务备注。</p>
+              <div id="plan-delete-confirm" class="preset-delete-confirm" hidden><p class="hint">只删除方案，已种下的花会保留。</p><div class="preset-actions"><button id="plan-delete-yes" class="button text-danger small" type="button">确认删除方案</button><button id="plan-delete-no" class="button quiet small" type="button">取消</button></div></div>
+            </details>
+          </section>
           <form id="plant-form" class="plant-form-grid" novalidate>
             <section class="plant-catalog" aria-label="选择花种">
             <fieldset>
@@ -218,6 +238,7 @@
                 placeholder="例如：论文阅读的绣球"
                 autocomplete="off"
             /></label>
+            <label class="field" for="plant-task-note"><span>给这朵花留一句任务记忆 <small>可选</small></span><textarea id="plant-task-note" maxlength="280" rows="2" placeholder="例如：读完第三章，记下两个新想法"></textarea><small>保存在本机，开花后也能回看和编辑。方案不会复制这句话。</small></label>
             <label class="field" for="target-minutes"
               ><span>累计多少分钟开花</span>
               <div class="input-unit">
@@ -363,6 +384,7 @@
             <span id="garden-total" class="badge">0 株已开花</span>
           </div>
           <div class="garden-scene">
+            <div class="theme-ornament" aria-hidden="true"></div>
             <svg
               class="garden-landscape"
               viewBox="0 0 1000 760"
@@ -671,6 +693,7 @@
           </nav>
           <div class="garden-motion-setting">
             <label class="garden-motion-control" for="garden-motion"><input id="garden-motion" type="checkbox" checked><span>轻柔动效</span></label>
+            <span id="garden-theme-label" class="subtle"></span>
             <span id="garden-motion-hint" class="subtle">秋千微摆，偶尔有小鸟和蝴蝶来访</span>
           </div>
         </section>
@@ -685,9 +708,10 @@
               <button id="garden-mode-all" type="button" aria-pressed="false">全部</button>
             </div>
           </div>
+          <div id="garden-album-layout" class="garden-album-layout" data-mode="week">
           <section id="garden-week-browser" class="garden-week-browser" aria-label="按周选择花园">
             <div class="garden-week-heading">
-              <p class="subtle">按时间先后，从较早的一周到本周</p>
+              <p class="subtle">从早到晚 · 每组 12 周</p>
               <button id="garden-this-week" class="button quiet small" type="button">回到本周</button>
             </div>
             <ol id="garden-week-list" class="garden-week-list" aria-label="每周相册，从早到晚"></ol>
@@ -696,10 +720,17 @@
               <span id="garden-week-range" class="subtle"></span>
               <button id="garden-week-next" class="button quiet small" type="button">更近一组</button>
             </nav>
+            <div class="week-locate"><label for="garden-week-date">日期直达</label><input id="garden-week-date" type="date" aria-label="选择日期定位到所在周"><button id="garden-week-locate" class="button quiet small" type="button">查看</button></div>
           </section>
           <div id="garden-album-home">
             <div id="garden-album-panel" class="garden-album-panel">
               <p id="garden-album-context" class="album-context" role="status"></p>
+              <section id="week-review" aria-labelledby="week-review-title">
+                <div class="review-heading"><h3 id="week-review-title">这一周的回顾</h3></div>
+                <dl id="week-review-stats" class="week-review-stats"></dl>
+                <p id="week-review-note" class="review-note"></p>
+                <div id="week-review-species" class="review-species" aria-label="开花品种分布"></div>
+              </section>
               <div id="garden-album" class="garden-album" role="group" aria-label="不同花园，选择后查看全景" hidden></div>
               <nav id="garden-album-navigation" class="garden-album-navigation" aria-label="更多花园" hidden>
                 <button id="garden-album-prev" class="button quiet small" type="button">前一组花园</button>
@@ -714,8 +745,17 @@
               </div>
             </div>
           </div>
+          </div>
           <p class="garden-capacity-hint">每座花园最多 25 株，种满后继续分园。按开花日期归入本地周一至周日；展示有花的周、本周和选中的空周。</p>
         </section>
+        <details id="collection-settings" class="card collection-settings">
+          <summary>收藏成就与主题<span id="collection-summary" class="collection-summary"></span></summary>
+          <div id="achievement-list" class="achievement-list" aria-label="收藏成就"></div>
+          <p class="note-privacy">成就永久保留。首次升级从当时仍在收藏的花开始核验，以后新开花继续累计；删除花朵不撤回成就。旧版本已经移除的花无法还原。</p>
+          <h3 class="theme-heading">给花园换个心情</h3>
+          <div id="theme-options" class="theme-options" role="group" aria-label="选择花园主题"></div>
+          <p class="note-privacy">主题只改变颜色与装饰，不改变生长规则。新装饰由 AI 原创绘制。</p>
+        </details>
       </section>
 
       <aside id="flower-drawer" class="flower-drawer" role="dialog" aria-modal="false" aria-labelledby="flower-detail-title" tabindex="-1" hidden>
@@ -730,6 +770,12 @@
       </aside>
 
       <div id="flower-action-home">
+      <section id="note-panel" class="card action-panel" aria-labelledby="note-title" hidden>
+        <h2 id="note-title">给花留一句记忆</h2>
+        <label class="field" for="note-input"><span>任务备注，可留空</span><textarea id="note-input" maxlength="280" rows="4"></textarea></label>
+        <p class="note-privacy">最多 280 个字符。只保存你填写的内容，不记录活动标题或浏览历史。</p>
+        <div class="action-row"><button id="note-save" class="button primary small" type="button">保存备注</button><button id="note-cancel" class="button quiet small" type="button">取消</button></div>
+      </section>
       <section
         id="rename-panel"
         class="card action-panel"
@@ -778,6 +824,7 @@
     <script src="../garden-layout.js"></script>
     <script src="ambience.js"></script>
     <script src="plant-guide.js"></script>
+    <script src="collection.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

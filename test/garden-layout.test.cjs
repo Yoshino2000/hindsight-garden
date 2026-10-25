@@ -672,7 +672,7 @@ test("an empty view always has one empty garden and the current local calendar w
     assert.equal(view.layout.total, 0);
     assert.deepEqual(view.weeks, [{
       key: "2026-10-19", start: localAt(2026, 10, 19, 0), end: localAt(2026, 10, 26, 0),
-      count: 0, current: true,
+      count: 0, current: true, targetMs: 0, speciesCount: 0,
     }]);
   }
 });
@@ -693,6 +693,79 @@ test("weekly gardens group by bloom date while both modes keep the stable planti
   assert.deepEqual(week.weeks.map(({ key, count, current }) => ({ key, count, current })), [
     { key: "2026-10-19", count: 2, current: true },
     { key: "2026-10-05", count: 1, current: false },
+  ]);
+});
+
+test("weekly review assigns completed goals and species to the bloom week without inventing daily activity", () => {
+  const plants = [
+    { ...bloomed("cross-week", localAt(2026, 9, 1), localAt(2026, 10, 20)), species: "rose", targetMs: 3600000,
+      progressMs: 3600000, taskNote: "读完一章", rules: [{ type: "app", value: "editor" }] },
+    { ...bloomed("same-week", localAt(2026, 10, 21), localAt(2026, 10, 21)), species: "daisy", targetMs: 1800000 },
+    { ...bloomed("earlier", localAt(2026, 10, 2), localAt(2026, 10, 10)), species: "rose", targetMs: 60000 },
+  ];
+  const before = structuredClone(plants);
+  const view = createView(plants, { mode: "week", week: "2026-10-19", now: localAt(2026, 10, 25) });
+  assert.deepEqual(view.review, {
+    count: 2, speciesCount: 2, targetMs: 5400000,
+    species: [{ id: "daisy", count: 1, targetMs: 1800000 }, { id: "rose", count: 1, targetMs: 3600000 }],
+  });
+  assert.deepEqual(view.weeks.map(({ key, targetMs, speciesCount }) => ({ key, targetMs, speciesCount })), [
+    { key: "2026-10-19", targetMs: 5400000, speciesCount: 2 },
+    { key: "2026-10-05", targetMs: 60000, speciesCount: 1 },
+  ]);
+  assert.equal(Object.hasOwn(view.review, "daily"), false);
+  assert.equal(Object.hasOwn(view.review, "rules"), false);
+  assert.equal(Object.hasOwn(view.review, "taskNote"), false);
+  assert.deepEqual(plants, before);
+  const all = createView(plants, { mode: "all", now: localAt(2026, 10, 25) });
+  assert.equal(all.review.count, 3);
+  assert.equal(all.review.speciesCount, 2);
+  assert.equal(all.review.targetMs, 5460000);
+  assert.deepEqual(createView(plants, { mode: "week", week: "2026-10-12", now: localAt(2026, 10, 25) }).review,
+    { count: 0, speciesCount: 0, targetMs: 0, species: [] });
+});
+
+test("review keeps flower counts but never guesses missing or malformed goal durations from legacy metadata", () => {
+  const now = localAt(2026, 10, 25);
+  const invalid = [undefined, null, "60000", NaN, Infinity, -60000, 0, 60001, 30000, 86460000, Number.MAX_SAFE_INTEGER];
+  const plants = invalid.map((targetMs, index) => ({
+    ...bloomed(`legacy-${index}`, index, now), targetMs, progressMs: 60000, note: "完成30分钟",
+  }));
+  plants.push({ ...bloomed("good", 100, now), species: "rose", targetMs: 86400000 });
+  plants.push({ ...bloomed("missing-species", 101, now), species: undefined, targetMs: 60000 });
+  const view = createView(plants, { mode: "week", now });
+  assert.equal(view.review.count, invalid.length + 2);
+  assert.equal(view.review.targetMs, 86460000);
+  assert.equal(view.review.speciesCount, 2);
+  assert.deepEqual(view.review.species, [
+    { id: "daisy", count: invalid.length, targetMs: 0 },
+    { id: "rose", count: 1, targetMs: 86400000 },
+  ]);
+  assert.equal(view.weeks[0].targetMs, 86460000);
+});
+
+test("review respects the local Monday boundary and deduplication independently of the selected garden page", () => {
+  const now = localAt(2026, 10, 26, 0);
+  const plants = [
+    { ...bloomed("sunday", 0, localAt(2026, 10, 25, 23, 59, 59, 999)), species: "rose", targetMs: 60000 },
+    { ...bloomed("monday", 1, now), species: "daisy", targetMs: 120000 },
+    { ...bloomed("monday", 2, now), species: "lily", targetMs: 180000 },
+  ];
+  const view = createView(plants, { mode: "week", now, page: 999 });
+  assert.deepEqual(view.review, { count: 1, speciesCount: 1, targetMs: 120000,
+    species: [{ id: "daisy", count: 1, targetMs: 120000 }] });
+  assert.equal(view.weeks.find(({ key }) => key === "2026-10-19").targetMs, 60000);
+  assert.equal(view.weeks.find(({ key }) => key === "2026-10-26").targetMs, 120000);
+  const large = flowers(5001).map((plant, index) => ({ ...plant, bloomAt: now,
+    species: index % 2 ? "rose" : "daisy", targetMs: 60000 }));
+  const last = createView(large, { mode: "week", now, page: 200 });
+  assert.equal(last.layout.plots.length, 1);
+  assert.equal(last.review.count, 5001);
+  assert.equal(last.review.targetMs, 5001 * 60000);
+  assert.equal(last.review.speciesCount, 2);
+  assert.deepEqual(last.review.species, [
+    { id: "daisy", count: 2501, targetMs: 2501 * 60000 },
+    { id: "rose", count: 2500, targetMs: 2500 * 60000 },
   ]);
 });
 

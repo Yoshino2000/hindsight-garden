@@ -1,10 +1,22 @@
 # Verification
 
-Version: **0.10.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.11.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified on 2026-10-25 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.10.0 results
+## Current 0.11.0 results
+
+- **115 automated tests pass, with no skips**: 33 core, 31 layout/review, 20 store, 17 feature, 10 worker and 4 ambience tests. New cases cover plan validation/upserts/limits, task notes and bloom preservation, permanent achievement baselines, CAS contention, archive rollback, and complete-week review independent of pagination.
+- The real preview authorizer rejects `json_group_array`. An initial development attempt used that function and failed in Chrome; the implementation now uses bounded `GROUP BY` rows and is regression-tested against the actual authorizer. SQL is replayed under host limits, new connections and both recursive-trigger settings.
+- Frozen real 0.10.0 core/store code verifies that its normal writes would discard new state fields. The persistent `garden_require_features_v1` guard now rejects those writes, retaining the full hot row and archives. New-version plans, task edits, blooms, migration and archive cleanup still work. This prevents accidental old-runtime writes, not deliberate SQL access to remove the trigger.
+- **24 connected Chrome result records** use actual host bridges, CSP, sandbox and isolated synthetic SQLite. Checks include plan save/update/delete/cancel, explicit strict-mode summary, loading without task/name copying, missing-category refusal, one observed one-minute bloom, task preservation/editing/reload, and a captured notification containing no task text. Removing the test flower leaves its achievement and unlocked theme intact.
+- Four weeks remain chronological in a compact index beside a fixed review/album panel. CSS animation inspection reports `week-panel-in` / 0.22 s on selection; ordinary polling does not request another transition. Reduced-motion branches and CSS overrides were inspected, but the OS preference itself was not changed in this round.
+- A 5,001-flower collection keeps all 201 gardens. The week list mounts at most twelve rows and has a 260 px height cap (168 px narrow); group navigation and date-direct selection of the empty week 2024-12-30 through 2025-01-05 work. All-time review reports 5,001 flowers, eight species and 2,500 h 30 min of completed targets. The final garden contains one flower. SVG IDs remain unique.
+- Plugin body widths of 364 and 324 CSS px have equal client/scroll widths. At 324 px the settled task drawer spans x=8..316. The narrow planting form and week/garden controls were checked, and the viewport override was reset. Four themes and the original geometry were visually inspected; no source plant or ambience PNG changed.
+- Two new built-in-generated RGBA atlases are 2172 × 724 with alpha range 0..255. Prompts and consumption details are in `artwork-collection-0110.md`. Album, garden, current pot, drawer and collection screenshots are actual Chrome captures of synthetic data; the unchanged plant guide retains its earlier screenshot.
+- Final warning/error logs are empty. Tests and preview never open a personal Hindsight database. Permissions remain seven, storage 64 MB and schema 2. No actual daily activity ledger is introduced. **The final 0.11.0 ZIP has not been installed into native Hindsight in this run.** Native OS notification presentation, all platforms, sleep/resume and long-term operation remain separately unverified.
+
+## Previous 0.10.0 results
 
 - **95 automated tests pass, with no skips.** Growth, storage, archive schema, plant layout, bird timing and sprite assets are unchanged. This release changes album presentation and the existing native SVG distance layer; no new presentation-mirroring tests were added.
 - **16 connected Chrome result records** use the real extracted host bridges, CSP, sandbox and temporary synthetic SQLite. Four weeks appear in ascending date order (2026-09-28, 10-05, 10-12, 10-19), with the selected week's live album panel immediately below its date. The 30-flower week retains 25+5 gardens. Only one panel exists; switching to all-time moves it back to its home, and reload still defaults to weekly mode while retaining the selected week.
@@ -104,7 +116,7 @@ Use the isolated preview with the actual Hindsight bridge, restrictive CSP and s
 
 ## Native checks
 
-**A native installation of the final 0.9.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.9.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
+**A native installation of the final 0.11.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.11.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
 
 macOS/Linux, long-duration use, sleep/resume, multiple monitors, clock changes under a real host and every notification configuration require separate verification. Market installation is subject to a published release and maintainer review. No public-market listing is implied by a local package.
 

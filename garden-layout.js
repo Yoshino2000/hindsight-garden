@@ -143,6 +143,37 @@
     return localWeek(date.getTime());
   }
 
+  function emptyReview() {
+    return { count: 0, targetMs: 0, species: new Map() };
+  }
+
+  function addToReview(review, plant) {
+    // A completed goal is not a daily time log. Do not reconstruct missing or malformed
+    // durations from progress, planting dates, task notes or other foreign metadata.
+    const targetMs = Number.isSafeInteger(plant.targetMs) &&
+      plant.targetMs >= 60000 && plant.targetMs <= 86400000 && plant.targetMs % 60000 === 0
+      ? plant.targetMs : 0;
+    review.count++;
+    review.targetMs += targetMs;
+    const id = typeof plant.species === "string" ? plant.species.trim() : "";
+    if (!id || id.length > 128) return;
+    if (!review.species.has(id)) review.species.set(id, { id, count: 0, targetMs: 0 });
+    const species = review.species.get(id);
+    species.count++;
+    species.targetMs += targetMs;
+  }
+
+  function finishReview(review) {
+    return {
+      count: review.count,
+      speciesCount: review.species.size,
+      targetMs: review.targetMs,
+      species: [...review.species.values()].sort((first, second) =>
+        first.id < second.id ? -1 : first.id > second.id ? 1 : 0,
+      ),
+    };
+  }
+
   function createView(plants, options = {}) {
     const settings = options && typeof options === "object" ? options : {};
     const now = calendarTime(settings.now) ?? Date.now();
@@ -159,6 +190,8 @@
     if (requested && !weeksByKey.has(requested.key)) {
       weeksByKey.set(requested.key, { ...requested, count: 0, current: false });
     }
+    const reviewsByKey = new Map();
+    const selectedReview = emptyReview();
     const selected = [];
     for (const plant of unique) {
       const group = localWeek(bloomTime(plant));
@@ -166,9 +199,17 @@
         weeksByKey.set(group.key, { ...group, count: 0, current: group.key === current.key });
       }
       weeksByKey.get(group.key).count++;
-      if (mode === "all" || group.key === week) selected.push(plant);
+      if (!reviewsByKey.has(group.key)) reviewsByKey.set(group.key, emptyReview());
+      addToReview(reviewsByKey.get(group.key), plant);
+      if (mode === "all" || group.key === week) {
+        selected.push(plant);
+        addToReview(selectedReview, plant);
+      }
     }
-    const weeks = [...weeksByKey.values()].sort((first, second) =>
+    const weeks = [...weeksByKey.values()].map((item) => {
+      const review = reviewsByKey.get(item.key);
+      return { ...item, targetMs: review?.targetMs || 0, speciesCount: review?.species.size || 0 };
+    }).sort((first, second) =>
       first.key < second.key ? 1 : first.key > second.key ? -1 : 0,
     );
     const layout = layoutFromOrdered(selected, settings.page);
@@ -179,7 +220,7 @@
       const garden = layoutFromOrdered(selected, albumStart + index);
       return { ...garden, count: garden.plots.length };
     });
-    return { mode, week, weeks, gardens, layout, total: unique.length,
+    return { mode, week, weeks, gardens, layout, total: unique.length, review: finishReview(selectedReview),
       albumPage, albumPageCount: Math.ceil(layout.pageCount / ALBUM_SIZE), albumStart };
   }
 

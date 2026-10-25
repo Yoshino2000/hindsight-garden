@@ -21,3 +21,7 @@ The upstream index at `3bac380` uses `format_version: 2`, matching the contribut
 ## Package contents
 
 The package script allowlists runtime files, the original plant PNGs, icon, license and documentation. It rejects a missing image or injected host bridge. Tests, local preview controls, databases, generated checksums, build scripts and development contracts do not ship. ZIP timestamps are fixed and text is normalized to LF, so identical source produces identical bytes.
+
+## 0.11.0 compatibility
+
+Seven permissions, 64 MB and schema 2 remain. New state fields store plans, last planting settings, task notes, collection counters and earned achievements. Initialization verifies existing archives once using the host-supported grouped query, and CAS protects the result. The persistent feature guard rejects older runtimes that would discard the new fields. Close old plugin pages/workers during update; do not recommend direct downgrade to 0.5–0.10. Restore a consistent pre-upgrade backup to revert. Mature notes are individual archive updates; plans never copy personal tasks into the next plant or notification. Include the two new original collection/theme atlases and their provenance, preserve old package hashes, and disclose the lack of native final-ZIP installation.

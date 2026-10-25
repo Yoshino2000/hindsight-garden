@@ -13,13 +13,14 @@ SPECIES = ("sunflower", "hydrangea", "tulip", "daisy", "rose", "lavender", "cosm
 AMBIENCE = ("swing", "bird", "butterfly", "bird-blue", "bird-robin", "bird-finch", "butterfly-amber", "butterfly-blue")
 FILES = [
     "manifest.json", "icon.png", "background.js", "core.js", "store.js", "garden-layout.js",
-    "ui/index.html", "ui/style.css", "ui/album.css", "ui/drawer.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js",
+    "ui/index.html", "ui/style.css", "ui/album.css", "ui/drawer.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js", "ui/collection.js", "ui/features.css",
+    "assets/collection/milestones.png", "assets/collection/themes.png",
     *(f"assets/{name}.png" for name in SPECIES),
     *(f"assets/garden/{name}.png" for name in SPECIES),
     *(f"assets/ambience/{name}.png" for name in AMBIENCE),
     "README.md", "intro/zh/README.md", "docs/development.md",
-    "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md", "docs/artwork-ambience-070.md", "docs/plant-guide-sources.md", "docs/design-notes-forest.md",
-    "docs/screenshots/garden.png", "docs/screenshots/album.png", "docs/screenshots/drawer.png", "docs/screenshots/current.png", "docs/screenshots/guide.png", "LICENSE",
+    "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md", "docs/artwork-ambience-070.md", "docs/plant-guide-sources.md", "docs/design-notes-forest.md", "docs/features-0110.md", "docs/artwork-collection-0110.md",
+    "docs/screenshots/garden.png", "docs/screenshots/album.png", "docs/screenshots/drawer.png", "docs/screenshots/current.png", "docs/screenshots/guide.png", "docs/screenshots/collection.png", "LICENSE",
 ]
 
 
@@ -52,6 +53,9 @@ def main():
         small_width, small_height = png_size((ROOT / "assets" / "garden" / f"{name}.png").read_bytes())
         assert min(small_width, small_height) >= 64, f"{name}: missing dedicated garden illustration"
     html = (ROOT / "ui/index.html").read_text(encoding="utf-8-sig")
+    for name in ("milestones", "themes"):
+        data = (ROOT / f"assets/collection/{name}.png").read_bytes()
+        assert png_size(data) == (2172, 724) and data[25] == 6, f"{name}: expected original RGBA atlas"
     for name in AMBIENCE:
         width, height = png_size((ROOT / "assets/ambience" / f"{name}.png").read_bytes())
         assert min(width, height) >= 64, f"{name}: missing ambience illustration"
@@ -86,8 +90,8 @@ def main():
     entry = {
         "id": manifest["id"], "name": manifest["name"], "author": "Yoshino2000",
         "description": {
-            "zh-CN": "使用 Hindsight 分类或程序网站规则累计种花，支持可选中断惩罚、花园相册和按周回看",
-            "en": "Grow flowers with Hindsight categories, apps or websites, with optional interruption penalties and weekly garden albums",
+            "zh-CN": "使用 Hindsight 活动累计种花，保存方案与任务记忆，查看周回顾、收藏成就和花园主题",
+            "en": "Grow flowers from Hindsight activity, save planting plans and task notes, and explore weekly reviews, achievements and garden themes",
         },
         "repo": "Yoshino2000/hindsight-garden",
         "versions": [{
