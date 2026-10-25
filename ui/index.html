@@ -329,11 +329,38 @@
         tabindex="0"
         hidden
       >
+        <section class="card garden-browser" aria-label="选择花园">
+          <div class="garden-browser-heading">
+            <h2>花园相册</h2>
+            <span id="garden-collection-total" class="subtle"></span>
+          </div>
+          <label class="field" for="garden-view-mode">
+            <span>展示范围</span>
+            <select id="garden-view-mode">
+              <option value="all">全部花园</option>
+              <option value="week">按周查看</option>
+            </select>
+          </label>
+          <div id="garden-week-controls" hidden>
+            <label class="field" for="garden-week">
+              <span>选择一周</span>
+              <select id="garden-week"></select>
+            </label>
+            <div class="garden-week-navigation">
+              <button id="garden-week-prev" class="button quiet small" type="button">更早的周</button>
+              <button id="garden-this-week" class="button quiet small" type="button">回到本周</button>
+              <button id="garden-week-next" class="button quiet small" type="button">更近的周</button>
+            </div>
+          </div>
+          <p id="garden-period-summary" class="subtle" aria-live="polite"></p>
+          <div id="garden-album" class="garden-album" role="group" aria-label="不同花园，选择后查看全景" hidden></div>
+          <p class="garden-capacity-hint">每座花园最多 25 株，种满后自动分园。按开花日期归入每周，本地时间周一至周日。</p>
+        </section>
         <section class="garden-island-card" aria-label="时光花园全景">
           <div class="garden-heading">
             <div>
               <p class="eyebrow">你的时间，在这里留下花朵</p>
-              <h2>慢慢长成一座花园</h2>
+              <h2 id="garden-scene-title">慢慢长成一座花园</h2>
             </div>
             <span id="garden-total" class="badge">0 株已开花</span>
           </div>
@@ -519,14 +546,14 @@
           <nav
             id="garden-pagination"
             class="garden-pagination"
-            aria-label="花圃分页"
+            aria-label="切换花园"
             hidden
           >
             <button id="garden-prev" class="button quiet small" type="button">
-              上一片</button
+              上一座</button
             ><span id="garden-page-label" class="subtle"></span
             ><button id="garden-next" class="button quiet small" type="button">
-              下一片
+              下一座
             </button>
           </nav>
         </section>

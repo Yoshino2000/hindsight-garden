@@ -76,8 +76,8 @@ def main():
     entry = {
         "id": manifest["id"], "name": manifest["name"], "author": "Yoshino2000",
         "description": {
-            "zh-CN": "直接使用 Hindsight 分类、大类或程序网站规则累计种花，支持可选中断惩罚和花园收藏",
-            "en": "Grow flowers with Hindsight categories, groups, apps or websites, with optional interruption penalties and a lasting garden",
+            "zh-CN": "使用 Hindsight 分类或程序网站规则累计种花，支持可选中断惩罚、花园相册和按周回看",
+            "en": "Grow flowers with Hindsight categories, apps or websites, with optional interruption penalties and weekly garden albums",
         },
         "repo": "Yoshino2000/hindsight-garden",
         "versions": [{

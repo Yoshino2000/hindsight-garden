@@ -539,6 +539,68 @@ legend {
   border-top: 1px solid #edf0e6;
   font-size: 11px;
 }
+.garden-browser-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.garden-browser-heading h2 {
+  margin: 0;
+}
+.garden-week-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.garden-capacity-hint {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+  margin: 12px 0 0;
+}
+.garden-album {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 15px;
+}
+.garden-album-card {
+  min-width: 0;
+  border: 1px solid #e0e8d3;
+  border-radius: 15px;
+  padding: 6px 7px 10px;
+  background: #f7f9ee;
+  color: #34473b;
+  text-align: left;
+  cursor: pointer;
+}
+.garden-album-card[aria-pressed="true"] {
+  border-color: #8eaa70;
+  background: #edf3e1;
+  box-shadow: 0 0 0 1px #8eaa70;
+}
+.garden-album-card:focus-visible {
+  outline: 2px solid #638150;
+  outline-offset: 3px;
+}
+.garden-album-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 5px;
+  font-size: 12px;
+}
+.garden-miniature {
+  pointer-events: none;
+}
+.garden-browser .button:disabled {
+  cursor: default;
+}
 .garden-island-card {
   background: linear-gradient(150deg, #fafbef, #f0f5e5 75%);
   border: 1px solid #e3e9d5;
@@ -756,6 +818,9 @@ body.compact .hero h2 {
   }
 }
 @media (min-width: 680px) {
+  .garden-album {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
   .hero .plant-scene {
     width: 290px;
   }

@@ -10,6 +10,7 @@ import tempfile
 import threading
 import time
 from contextlib import closing
+from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -121,7 +122,7 @@ def database_call(server, method, params):
 def seed_garden(server, params):
     """Explicit synthetic scene fixtures, available only in the development host."""
     count = params.get("count") if isinstance(params, dict) else None
-    if type(count) is not int or count not in (0, 1, 8, 26, 200):
+    if type(count) is not int or count not in (0, 1, 8, 26, 56, 200):
         raise ValueError("Choose a supported synthetic garden size")
     names = [("sunflower", "向日葵"), ("hydrangea", "绣球"), ("tulip", "郁金香"), ("daisy", "雏菊"),
              ("rose", "玫瑰"), ("lavender", "薰衣草"), ("cosmos", "波斯菊"), ("lily", "百合")]
@@ -130,6 +131,12 @@ def seed_garden(server, params):
     for index in range(count):
         species, name = names[index % len(names)]
         at = base + index * 3600000
+        if count == 56:
+            # Two calendar weeks with 28 blooms each, to exercise weekly overflow.
+            current = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            monday = current - timedelta(days=current.weekday())
+            at = int((monday - timedelta(days=7 if index < 28 else 0)
+                      + timedelta(minutes=(index % 28) * 30)).timestamp() * 1000)
         garden.append({"id": f"demo-{index:03d}", "name": f"演示{name}{index + 1}", "species": species,
                        "createdAt": at, "bloomAt": at + 1800000, "targetMs": 1800000, "progressMs": 1800000})
     state = {"schema": 1, "paused": False, "notify": False, "active": None, "garden": garden,

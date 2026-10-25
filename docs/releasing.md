@@ -10,9 +10,11 @@ Follow the author's [CONTRIBUTING.md](https://github.com/Tomotsugu-dev/hindsight
 6. Fork `Tomotsugu-dev/hindsight-plugins`, branch from the current upstream and add the generated `dist/market-entry.json` entry. Match the manifest's id, name, version, seven permissions and `storage_mb: 4` exactly. Copy `icon.png` byte-for-byte to `icons/hindsight-garden.png`.
 7. Validate the JSON and open a PR titled `feat: list 时光花园`. State that this is an experimental third-party plugin, describe validation limits and disclose AI-generated original plant art. The maintainer reviews before listing.
 
+Version 0.4.0 adds the garden album and weekly views. Its seven permissions, 4 MB allowance and schema remain unchanged from 0.3.0; old plants are grouped for display without a migration. Preserve the recorded results for earlier versions and add only checks actually run against 0.4.0. The final 0.4.0 ZIP has not yet been installed into a native Hindsight instance in this round; disclose that limit until it has been checked. Keep README screenshot paths stable and refresh the image files from the final UI.
+
 ## Market format
 
-The contribution guide currently specifies `format_version: 2`, localized descriptions including `en`, and Hindsight 0.10.2+. Its live index was still format 1 when development began on 2026-10-25. Recheck before submitting. Do not silently migrate the whole market or rewrite existing plugins to add this one. If the mismatch remains, explain it in the PR and coordinate the index format with the maintainer. The generated entry has a bilingual format-2 description; it is not a complete market index.
+The current upstream index at `0b58d6c` uses `format_version: 2`, matching the contribution guide. Descriptions are localized objects and must include `en`; include `zh-CN` for the Chinese description. Hindsight 0.10.2 and later read format 2, while 0.10.0 and 0.10.1 read only format 1. This market compatibility requirement is separate from installing the plugin ZIP locally. The generated `dist/market-entry.json` contains a bilingual format-2 entry, not a complete index. Add it without rewriting other plugins, and recheck the upstream contribution requirements before submitting.
 
 ## Package contents
 

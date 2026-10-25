@@ -1,10 +1,16 @@
 # Verification
 
-Version: **0.3.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.4.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified on 2026-10-25 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.3.0 results
+## Current 0.4.0 results
+
+- **73 automated tests passed**: 33 pure-rule tests, 20 garden-layout/view tests, 10 actual SQLite store tests and 10 worker integration tests. The new weekly checks cover bloom-date grouping, Monday boundaries, year changes, empty weeks, invalid date keys, deduplication, paging and nonmutation. Child processes using `America/New_York` verify real 167/169-hour DST weeks with local calendar boundaries.
+- **19 connected Chrome checks passed**, using the real host bridges, restrictive CSP, sandbox and an isolated synthetic database. They cover all-garden and weekly albums, 56 flowers split across two weeks (28 each, each week split into 25 + 3), explicit garden selection, all 200 flowers across eight gardens, refusing another planting at capacity, page clamping after a fixture change, selected empty-week retention, current-week navigation and saved display choices after reload. They also cover initially hidden details, explicit flower selection, closing details across polling/tab changes, closing stale rename/remove panels on scope changes, keyboard focus retention and unique SVG gradient IDs. Normal and narrow layouts have no horizontal overflow; the narrow plugin body measured 354 CSS pixels. The final browser warning/error log was empty.
+- The eight existing HD strips and eight garden sprites are unchanged. No new art, permissions, storage allowance or database schema is needed. Old records are grouped for display without rewriting their timestamps; only mode/week/page preferences are saved in local browser storage. No personal Hindsight data was modified.
+
+## Previous 0.3.0 results
 
 - **61 automated tests passed**: 33 pure-rule tests, 8 garden-layout tests, 10 actual SQLite store tests and 10 worker integration tests. New checks cover all eight species, old-garden compatibility, stable center-out positions, pagination, malformed inputs and collection limits.
 - Eight high-definition five-stage strips and eight dedicated ground-planted garden PNGs were checked read-only for dimensions, alpha transparency and frame bounds. All PNG source pixels are retained. The source plant artwork totals 15,104,288 bytes.
@@ -40,11 +46,11 @@ Evidence is retained locally under `output/verification/` and the sibling task Q
 
 ## Browser checks
 
-Use the isolated preview with the actual Hindsight bridge, restrictive CSP and sandboxed iframe. Check empty install, all four species, five stage images, multi-rule creation, invalid domains, pause/resume, penalty options, notification settings, compact layout, rename/delete confirmation and reload persistence. Check keyboard operation and a narrow layout. Captured preview notifications are simulated.
+Use the isolated preview with the actual Hindsight bridge, restrictive CSP and sandboxed iframe. Check empty install, all eight species, five stage images, multi-rule creation, invalid domains, pause/resume, penalty options, notification settings, compact layout, rename/delete confirmation and reload persistence. Check all-garden and weekly albums, week boundaries, same-week overflow, empty weeks, scope changes, keyboard operation and a narrow layout. Captured preview notifications are simulated.
 
 ## Native checks
 
-**A native installation of the final 0.3.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.3.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
+**A native installation of the final 0.4.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.4.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
 
 macOS/Linux, long-duration use, sleep/resume, multiple monitors, clock changes under a real host and every notification configuration require separate verification. Market installation is subject to a published release and maintainer review. No public-market listing is implied by a local package.
 
