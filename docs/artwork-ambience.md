@@ -1,8 +1,16 @@
-# Ambience artwork (0.6.0)
+# Ambience artwork (0.6.0 sources)
 
 Three original transparent PNGs were generated with the built-in image generation tool on 2026-10-25. No external image service or CLI was used. The source pixels and alpha channels are unchanged; the swing atlas is displayed as two registered CSS cells. Bird and butterfly source images are each 1254 × 1254; the two-cell swing atlas is 1774 × 887. Decorations do not create plant records.
 
-The support is static, with only the rope-and-seat layer gently pivoting. Album miniatures stay static. Bird visits occur on a 58-second cycle and butterfly visits on a 40-second cycle, with initial delays and long invisible intervals. Animation is optional, pauses outside the visible garden and honors reduced motion.
+The support is static, with only the rope-and-seat layer gently pivoting. The original 0.6.0 runtime used a 58-second bird cycle and a 40-second butterfly cycle. Those historical timings are replaced by the 0.7.0 behavior below. Album miniatures stay static. Animation is optional, pauses outside the visible garden and honors reduced motion.
+
+## Version 0.7.0 additions and display
+
+The original two-layer swing and lilac butterfly are retained. Three newly generated atlases add blue tit, robin and greenfinch flight, each with up/middle/down wing poses. Two new butterflies add honey-orange and sky-blue to the lilac variant. The built-in image generation tool produced these original images; source pixels and alpha transparency are retained without external image editing. Full prompts and new asset records are in [0.7.0 ambience artwork](artwork-ambience-070.md).
+
+The swing moves ±4 degrees in 8.5 seconds. Birds first appear after 2.5 seconds, then start visits at randomized 15–30-second intervals, choosing species, direction and height; each flight lasts 6 seconds. CSS plays the three wing cells up → middle → down → middle in 0.72 seconds. Butterflies first appear after 6 seconds, then start randomized-color visits every 24–40 seconds, with 12-second flights. Pond ripples and reflections run on 7-second and 9-second cycles respectively.
+
+These effects are confined to the large garden. Static scene objects have fixed SVG shadows, while the swing seat and flying animals have lightweight CSS ellipse shadows; no JavaScript frame loop or shadow filter is used. Album thumbnails do not animate. Turning motion off or requesting reduced motion stops the effects; leaving the garden tab or hiding the page pauses them. These decorations do not create or change plant records.
 
 ## assets/ambience/swing.png
 

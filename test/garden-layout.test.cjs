@@ -1,7 +1,7 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createLayout, createView } = require("../garden-layout.js");
+const { createLayout, createView, GEOMETRY } = require("../garden-layout.js");
 const { spawnSync } = require("node:child_process");
 
 function flowers(count) {
@@ -23,6 +23,399 @@ function positions(layout) {
   }));
 }
 
+function landscapeSource() {
+  const { readFileSync } = require("node:fs");
+  const { join } = require("node:path");
+  const html = readFileSync(join(__dirname, "..", "ui", "index.html"), "utf8");
+  const svg = html.match(/<svg\s+class="garden-landscape"[\s\S]*?<\/svg>/);
+  assert.ok(svg, "The actual scene SVG must exist");
+  return svg[0];
+}
+
+// Read the checked-in RGBA atlas with Node's standard library, without a new image dependency.
+function atlasPixels() {
+  const { readFileSync } = require("node:fs");
+  const { join } = require("node:path");
+  const { inflateSync } = require("node:zlib");
+  const png = readFileSync(
+    join(__dirname, "..", "assets", "ambience", "swing.png"),
+  );
+  assert.equal(png.subarray(1, 4).toString(), "PNG");
+  const width = png.readUInt32BE(16);
+  const height = png.readUInt32BE(20);
+  assert.equal(width, height * 2);
+  assert.equal(png[24], 8);
+  assert.equal(png[25], 6);
+  assert.equal(png[28], 0);
+  const chunks = [];
+  for (let offset = 8; offset < png.length; ) {
+    const length = png.readUInt32BE(offset);
+    if (png.toString("ascii", offset + 4, offset + 8) === "IDAT")
+      chunks.push(png.subarray(offset + 8, offset + 8 + length));
+    offset += length + 12;
+  }
+  const raw = inflateSync(Buffer.concat(chunks));
+  const stride = width * 4;
+  const pixels = Buffer.alloc(stride * height);
+  assert.equal(raw.length, (stride + 1) * height);
+  const paeth = (left, up, corner) => {
+    const prediction = left + up - corner;
+    const a = Math.abs(prediction - left),
+      b = Math.abs(prediction - up),
+      c = Math.abs(prediction - corner);
+    return a <= b && a <= c ? left : b <= c ? up : corner;
+  };
+  for (let y = 0; y < height; y++) {
+    const source = y * (stride + 1);
+    const target = y * stride;
+    const filter = raw[source];
+    assert.ok(filter <= 4);
+    for (let x = 0; x < stride; x++) {
+      const left = x >= 4 ? pixels[target + x - 4] : 0;
+      const up = y ? pixels[target + x - stride] : 0;
+      const corner = y && x >= 4 ? pixels[target + x - stride - 4] : 0;
+      const prediction =
+        filter === 0
+          ? 0
+          : filter === 1
+            ? left
+            : filter === 2
+              ? up
+              : filter === 3
+                ? Math.floor((left + up) / 2)
+                : paeth(left, up, corner);
+      pixels[target + x] = (raw[source + x + 1] + prediction) & 255;
+    }
+  }
+  return { width, height, alpha: (x, y) => pixels[(y * width + x) * 4 + 3] };
+}
+
+function roundedGround(svg) {
+  const tokens = pathTokens(scenePath(svg, "grass-surface"));
+  const polygon = [];
+  let previous;
+  for (let index = 0; index < tokens.length; ) {
+    const command = tokens[index++];
+    if (command === "M" || command === "L") {
+      previous = { x: tokens[index++], y: tokens[index++] };
+      polygon.push(previous);
+    } else if (command === "Q") {
+      const control = { x: tokens[index++], y: tokens[index++] };
+      const end = { x: tokens[index++], y: tokens[index++] };
+      for (let step = 1; step <= 32; step++) {
+        const t = step / 32,
+          other = 1 - t;
+        polygon.push({
+          x:
+            other * other * previous.x +
+            2 * other * t * control.x +
+            t * t * end.x,
+          y:
+            other * other * previous.y +
+            2 * other * t * control.y +
+            t * t * end.y,
+        });
+      }
+      previous = end;
+    } else assert.equal(command, "Z");
+  }
+  return (point) => {
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const a = polygon[i],
+        b = polygon[j];
+      if (
+        a.y > point.y !== b.y > point.y &&
+        point.x < ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y) + a.x
+      )
+        inside = !inside;
+    }
+    return inside;
+  };
+}
+
+function scenePath(svg, part) {
+  const tag = svg.match(
+    new RegExp(`<path\\b(?=[^>]*data-scene-part="${part}")[^>]*>`),
+  );
+  assert.ok(tag, `Missing scene part: ${part}`);
+  return tag[0].match(/\bd="([^"]+)"/)[1];
+}
+
+function pathTokens(path) {
+  return path
+    .match(/[MLQZ]|-?\d+(?:\.\d+)?/g)
+    .map((value) => (/^[MLQZ]$/.test(value) ? value : Number(value)));
+}
+
+function diamond(x, y, radius) {
+  const rise = (radius * GEOMETRY.stepY) / GEOMETRY.stepX;
+  return `M${x} ${y - rise} ${x + radius} ${y} ${x} ${y + rise} ${x - radius} ${y}Z`;
+}
+
+test("the actual SVG island and flowerbed share the plot geometry, including rounded 25-unit faces", () => {
+  const svg = landscapeSource();
+  assert.match(svg, new RegExp(`data-projection-x="${GEOMETRY.stepX}"`));
+  assert.match(svg, new RegExp(`data-projection-y="${GEOMETRY.stepY}"`));
+  const { x, y, radius, cornerCut: cut, depth } = GEOMETRY.island;
+  const rise = (radius * GEOMETRY.stepY) / GEOMETRY.stepX;
+  const trim = (cut * GEOMETRY.stepY) / GEOMETRY.stepX;
+  const top = y - rise;
+  const bottom = y + rise;
+  const left = x - radius;
+  const right = x + radius;
+  const front = bottom - trim / 2;
+  const grass =
+    `M${x - cut} ${top + trim}Q${x} ${top} ${x + cut} ${top + trim}` +
+    `L${right - cut} ${y - trim}Q${right} ${y} ${right - cut} ${y + trim}` +
+    `L${x + cut} ${bottom - trim}Q${x} ${bottom} ${x - cut} ${bottom - trim}` +
+    `L${left + cut} ${y + trim}Q${left} ${y} ${left + cut} ${y - trim}Z`;
+  const leftFace =
+    `M${left + cut / 2} ${y}Q${left + cut / 2} ${y + trim / 2} ${left + cut} ${y + trim}` +
+    `L${x - cut} ${bottom - trim}Q${x - cut / 2} ${front} ${x} ${front}` +
+    `L${x} ${front + depth}Q${x - cut / 2} ${front + depth} ${x - cut} ${bottom - trim + depth}` +
+    `L${left + cut} ${y + trim + depth}Q${left + cut / 2} ${y + trim / 2 + depth} ${left + cut / 2} ${y + depth}Z`;
+  const rightFace =
+    `M${x} ${front}Q${x + cut / 2} ${front} ${x + cut} ${bottom - trim}` +
+    `L${right - cut} ${y + trim}Q${right - cut / 2} ${y + trim / 2} ${right - cut / 2} ${y}` +
+    `L${right - cut / 2} ${y + depth}Q${right - cut / 2} ${y + trim / 2 + depth} ${right - cut} ${y + trim + depth}` +
+    `L${x + cut} ${bottom - trim + depth}Q${x + cut / 2} ${front + depth} ${x} ${front + depth}Z`;
+  for (const [part, expected] of [
+    ["grass-surface", grass],
+    ["island-left-face", leftFace],
+    ["island-right-face", rightFace],
+    [
+      "flowerbed-border",
+      diamond(GEOMETRY.bed.x, GEOMETRY.bed.y, GEOMETRY.bed.radius),
+    ],
+    [
+      "flowerbed-soil",
+      diamond(GEOMETRY.bed.x, GEOMETRY.bed.y, GEOMETRY.bed.innerRadius),
+    ],
+  ]) {
+    assert.deepEqual(
+      pathTokens(scenePath(svg, part)),
+      pathTokens(expected),
+      part,
+    );
+  }
+});
+
+test("all real plot anchors and actual SVG grid endpoints stay inside parallel flowerbed edges", () => {
+  const svg = landscapeSource();
+  const { x, y, radius, innerRadius } = GEOMETRY.bed;
+  const inside = (point, cx, cy, extent) =>
+    Math.abs(point.x - cx) / extent +
+      Math.abs(point.y - cy) / ((extent * GEOMETRY.stepY) / GEOMETRY.stepX) <=
+    1 + 1e-10;
+  const roots = createLayout(flowers(25)).plots;
+  for (const root of roots)
+    assert.ok(inside(root, x, y, innerRadius), `Plot ${root.x},${root.y}`);
+  const numbers = scenePath(svg, "flowerbed-grid")
+    .match(/-?\d+(?:\.\d+)?/g)
+    .map(Number);
+  assert.equal(numbers.length, 32);
+  for (let index = 0; index < numbers.length; index += 4) {
+    const first = { x: numbers[index], y: numbers[index + 1] };
+    const second = { x: numbers[index + 2], y: numbers[index + 3] };
+    assert.ok(inside(first, x, y, innerRadius));
+    assert.ok(inside(second, x, y, innerRadius));
+    assert.ok(
+      Math.abs(
+        Math.abs((second.y - first.y) / (second.x - first.x)) -
+          GEOMETRY.stepY / GEOMETRY.stepX,
+      ) < 1e-10,
+    );
+  }
+  const vertices = [
+    { x, y: y - (radius * GEOMETRY.stepY) / GEOMETRY.stepX },
+    { x: x + radius, y },
+    { x, y: y + (radius * GEOMETRY.stepY) / GEOMETRY.stepX },
+    { x: x - radius, y },
+  ];
+  for (const point of vertices)
+    assert.ok(
+      inside(
+        point,
+        GEOMETRY.island.x,
+        GEOMETRY.island.y,
+        GEOMETRY.island.radius,
+      ),
+    );
+  assert.match(svg, /clip-path="url\(#flowerbed-grid-clip\)"/);
+  const clip = svg.match(
+    /<clipPath id="flowerbed-grid-clip">([\s\S]*?)<\/clipPath>/,
+  );
+  assert.ok(clip);
+  assert.deepEqual(
+    pathTokens(clip[1].match(/\bd="([^"]+)"/)[1]),
+    pathTokens(scenePath(svg, "flowerbed-soil")),
+  );
+});
+
+test("the scene exposes two water rings, one reflection and fixed prop shadows for gentle CSS motion", () => {
+  const svg = landscapeSource();
+  assert.equal((svg.match(/class="pond-ripple"/g) || []).length, 2);
+  assert.equal((svg.match(/class="pond-reflection"/g) || []).length, 1);
+  for (const part of [
+    "swing-frame-shadow",
+    "watering-can-shadow",
+    "little-sign-shadow",
+  ]) {
+    assert.match(svg, new RegExp(`data-scene-part="${part}"`));
+  }
+});
+
+test("the whole pond fits on the island without crossing into the flowerbed", () => {
+  const svg = landscapeSource();
+  const translation = svg.match(
+    /data-scene-part="pond"[^>]*transform="translate\(0 ([-\d.]+)\)"/,
+  );
+  assert.ok(translation);
+  const dy = Number(translation[1]);
+  const { stepX, stepY, island, bed } = GEOMETRY;
+  const distance = (x, y, area) =>
+    Math.abs(x - area.x) / area.radius +
+    Math.abs(y - area.y) / ((area.radius * stepY) / stepX);
+  for (const part of ["pond-shadow", "pond-rim", "pond-water"]) {
+    const ellipse = svg.match(
+      new RegExp(`<ellipse\\b(?=[^>]*data-scene-part="${part}")[^>]*>`),
+    );
+    assert.ok(ellipse, part);
+    const values = Object.fromEntries(
+      ["cx", "cy", "rx", "ry"].map((name) => [
+        name,
+        Number(ellipse[0].match(new RegExp(`\\b${name}="([-\\d.]+)"`))[1]),
+      ]),
+    );
+    for (let index = 0; index < 360; index++) {
+      const angle = (index * Math.PI) / 180;
+      const x = values.cx + values.rx * Math.cos(angle);
+      const y = values.cy + dy + values.ry * Math.sin(angle);
+      assert.ok(distance(x, y, island) <= 1, `${part} leaves the island`);
+      assert.ok(distance(x, y, bed) >= 1, `${part} crosses the flowerbed`);
+    }
+  }
+});
+
+test("all four actual atlas feet, moving seat bottom and their contact shadows remain on the rounded grass", () => {
+  const { readFileSync } = require("node:fs");
+  const { join } = require("node:path");
+  const svg = landscapeSource();
+  const inside = roundedGround(svg);
+  const clip = svg.match(
+    /<clipPath id="ground-shadow-clip">([\s\S]*?)<\/clipPath>/,
+  );
+  assert.ok(clip);
+  assert.deepEqual(
+    pathTokens(clip[1].match(/\bd="([^"]+)"/)[1]),
+    pathTokens(scenePath(svg, "grass-surface")),
+  );
+  const css = readFileSync(join(__dirname, "..", "ui", "style.css"), "utf8");
+  const box = css.match(/\.ambience-swing\s*\{([^}]+)\}/)[1];
+  const percent = (property) =>
+    Number(box.match(new RegExp(`\\b${property}:\\s*([\\d.]+)%`))[1]) / 100;
+  const left = percent("left") * GEOMETRY.width;
+  const top = percent("top") * GEOMETRY.height;
+  const size = percent("width") * GEOMETRY.width;
+  const atlas = atlasPixels();
+  const cell = atlas.height;
+  const contact = (first, last, offset = 0) => {
+    let bottom = -1;
+    for (let y = cell - 1; y >= Math.round(cell * 0.45) && bottom < 0; y--) {
+      for (let x = first; x < last; x++)
+        if (atlas.alpha(x + offset, y) > 16) {
+          bottom = y;
+          break;
+        }
+    }
+    assert.ok(bottom >= 0);
+    const points = [];
+    for (let y = bottom - 3; y <= bottom; y++) {
+      for (let x = first; x < last; x++)
+        if (atlas.alpha(x + offset, y) > 16) points.push({ x, y });
+    }
+    return points;
+  };
+  const world = (point) => ({
+    x: left + (point.x * size) / cell,
+    y: top + (point.y * size) / cell,
+  });
+  const regions = [
+    ["left-front", 0, 0.23],
+    ["left-back", 0.23, 0.43],
+    ["right-front", 0.58, 0.82],
+    ["right-back", 0.82, 1],
+  ];
+  for (const [name, start, end] of regions) {
+    const points = contact(Math.round(start * cell), Math.round(end * cell));
+    for (const point of points)
+      assert.ok(inside(world(point)), `${name} contact pixel leaves the grass`);
+    const centre = world({
+      x:
+        (Math.min(...points.map(({ x }) => x)) +
+          Math.max(...points.map(({ x }) => x))) /
+        2,
+      y: Math.max(...points.map(({ y }) => y)),
+    });
+    const shadow = svg.match(
+      new RegExp(`<ellipse\\b(?=[^>]*data-foot="${name}")[^>]*>`),
+    );
+    assert.ok(shadow);
+    const values = Object.fromEntries(
+      ["cx", "cy", "rx", "ry"].map((attribute) => [
+        attribute,
+        Number(shadow[0].match(new RegExp(`\\b${attribute}="([-\\d.]+)"`))[1]),
+      ]),
+    );
+    assert.ok(
+      Math.abs(values.cx - centre.x) < 0.002 &&
+        Math.abs(values.cy - centre.y) < 0.002,
+      `${name} shadow misses its actual atlas foot`,
+    );
+    for (let step = 0; step < 36; step++)
+      assert.ok(
+        inside({
+          x: values.cx + values.rx * Math.cos((step * Math.PI) / 18),
+          y: values.cy + values.ry * Math.sin((step * Math.PI) / 18),
+        }),
+        `${name} shadow leaves the grass`,
+      );
+  }
+  const motion = css.match(/@keyframes garden-swing\s*\{([\s\S]*?)\n\}/);
+  assert.ok(motion);
+  const angles = [
+    0,
+    ...Array.from(motion[1].matchAll(/rotate\(([-\d.]+)deg\)/g), (match) =>
+      Number(match[1]),
+    ),
+  ];
+  const origin = css.match(
+    /\.ambience-swing-seat\s*\{[^}]*transform-origin:\s*([\d.]+)%\s+([\d.]+)%/,
+  );
+  assert.ok(origin);
+  const pivot = {
+    x: (cell * Number(origin[1])) / 100,
+    y: (cell * Number(origin[2])) / 100,
+  };
+  const seat = contact(0, cell, cell);
+  for (const degrees of angles) {
+    const angle = (degrees * Math.PI) / 180;
+    for (const point of seat) {
+      const x = point.x - pivot.x,
+        y = point.y - pivot.y;
+      const moved = {
+        x: pivot.x + x * Math.cos(angle) - y * Math.sin(angle),
+        y: pivot.y + x * Math.sin(angle) + y * Math.cos(angle),
+      };
+      assert.ok(
+        inside(world(moved)),
+        "The actual moving seat bottom leaves the grass",
+      );
+    }
+  }
+});
+
 test("empty and non-array gardens are safe and retain one empty page", () => {
   for (const value of [[], null, undefined, {}, "flowers", 25]) {
     assert.deepEqual(createLayout(value, 100), {
@@ -42,7 +435,7 @@ test("a full page has 25 distinct plot coordinates inside the agreed scene", () 
   assert.equal(new Set(layout.plots.map(({ x, y }) => `${x},${y}`)).size, 25);
   for (const plot of layout.plots) {
     assert.ok(plot.x >= 220 && plot.x <= 780);
-    assert.ok(plot.y >= 340 && plot.y <= 596);
+    assert.ok(plot.y >= 308 && plot.y <= 628);
     assert.equal(plot.rotation, 0);
   }
   for (const first of layout.plots) {
@@ -68,13 +461,13 @@ test("a small garden grows out from the center without inventing any extra flowe
     small.plots.map(({ x, y }) => [x, y]),
     [
       [500, 468],
-      [570, 436],
-      [430, 436],
-      [570, 500],
-      [430, 500],
-      [640, 404],
-      [500, 404],
-      [360, 404],
+      [570, 428],
+      [430, 428],
+      [570, 508],
+      [430, 508],
+      [640, 388],
+      [500, 388],
+      [360, 388],
     ],
   );
   assert.deepEqual(positions(small).slice(0, 1), positions(single));

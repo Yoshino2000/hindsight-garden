@@ -10,16 +10,16 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SPECIES = ("sunflower", "hydrangea", "tulip", "daisy", "rose", "lavender", "cosmos", "lily")
-AMBIENCE = ("swing", "bird", "butterfly")
+AMBIENCE = ("swing", "bird", "butterfly", "bird-blue", "bird-robin", "bird-finch", "butterfly-amber", "butterfly-blue")
 FILES = [
     "manifest.json", "icon.png", "background.js", "core.js", "store.js", "garden-layout.js",
-    "ui/index.html", "ui/style.css", "ui/main.js",
+    "ui/index.html", "ui/style.css", "ui/main.js", "ui/ambience.js",
     *(f"assets/{name}.png" for name in SPECIES),
     *(f"assets/garden/{name}.png" for name in SPECIES),
     *(f"assets/ambience/{name}.png" for name in AMBIENCE),
     "README.md", "intro/zh/README.md", "docs/development.md",
-    "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md",
-    "docs/screenshots/garden.png", "docs/screenshots/album.png", "LICENSE",
+    "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md", "docs/artwork-ambience-070.md",
+    "docs/screenshots/garden.png", "docs/screenshots/album.png", "docs/screenshots/current.png", "LICENSE",
 ]
 
 
@@ -57,6 +57,8 @@ def main():
         assert min(width, height) >= 64, f"{name}: missing ambience illustration"
         if name == "swing":
             assert width == height * 2, "Swing illustration needs two equal square layers"
+        elif name.startswith("bird-"):
+            assert width == height * 3, "Bird illustration needs three equal square poses"
     assert "../_page.js" in html, "Missing injected page bridge reference"
     assert "_page.js" not in FILES and "_worker.js" not in FILES
     destination = ROOT / "dist" / f'{manifest["id"]}-{manifest["version"]}.zip'

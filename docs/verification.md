@@ -1,10 +1,20 @@
 # Verification
 
-Version: **0.6.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.7.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified on 2026-10-25 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.6.0 results
+## Current 0.7.0 results
+
+- **93 automated tests pass, with no skips.** The growth and SQLite archive implementation is unchanged. New checks cover visitor intervals/species/pause cancellation and the actual SVG projection. A dependency-free PNG alpha decoder checks all four real swing foot contacts, the swinging seat's lower contour and fixed foot shadows against the actual rounded grass surface.
+- Connected Chrome ran the original page/worker with the real host bridges, restrictive CSP and isolated temporary SQLite. The default empty-pot view directly exposes eight compact species choices and the plan; wide windows use two columns. Typed name/target/category survived polling and a garden-tab visit. Direct planting showed target/mode/rules, including compact mode. A one-minute category-matched plant matured from the 122-plant synthetic collection into plant 123; the next planting form appeared automatically. Reset kept the form available.
+- Natural, unaccelerated observations recorded all three bird types, all three wing poses, two new butterfly palettes, changing seat rotation and changing water opacity. The existing lilac butterfly also remains selectable by the visitor scheduler. A later observation of the final route/ground-layer structure confirmed identical air/ground transforms and active wing poses. Four swing shadows are fixed into the background; moving shadows use simple CSS geometry clipped to the exact grass surface. There is no JavaScript frame loop.
+- Final full 25-flower and partial gardens were visually inspected. The enlarged island, flowerbed, grid and plant anchors share the 40/70 projection. Actual island faces have equal depth; the pond stays on grass, the sign is clear of all 25 flower boxes, and swing contacts stay on the enlarged rear lawn. Actual PNG pixels are unchanged.
+- Motion off stops the seat, hides visitors and pauses water. Reduced-motion makes the switch disabled/unchecked and removes the animations; clearing the temporary override restores the saved on preference. Switching away ends the current visitor and preserves the next wait; the deterministic tests cover pausing mid-flight. A truly hidden browser document remains code-reviewed rather than independently observed, because inspection reactivates that tab.
+- The narrow plugin body measured 354 CSS pixels with no horizontal overflow. It has a single-column planting plan, four compact species columns and 80-pixel album cards. Ordinary album cards remain 96 pixels, count-only and static. Full-garden selection, manual flower details, closing details on garden change and SVG ID uniqueness passed. Temporary viewport/media overrides were reset. Final browser warning/error log is empty.
+- Five original transparent PNGs were generated with the built-in image generator. Three bird strips are 2172 × 724, with three equal square poses each; the two new butterfly images are 1254 × 1254. Full prompts are in `artwork-ambience-070.md`. No API permissions, storage allowance or archive schema changes: seven permissions, 64 MB, schema 2. No personal Hindsight database was opened or modified in this development run.
+
+## Previous 0.6.0 results
 
 - The existing **84 automated tests pass, with no skips**. Growth, storage, archive schema and layout-position modules are unchanged in this version. No new tests mirroring decorative CSS were added.
 - **20 connected Chrome checks passed** using actual host bridges, CSP, sandbox and synthetic data. They cover the scene above the album, default 96-pixel thumbnails (80 pixels in the 354 CSS-pixel narrow body), count-only captions, collapsed native filter/jump tools, keyboard selection and details. A 5,001-plant collection still renders at most twelve miniature scenes and can switch groups or jump to garden 201. A single garden retains a compact thumbnail. No horizontal overflow was observed in the narrow check.
@@ -66,7 +76,7 @@ Use the isolated preview with the actual Hindsight bridge, restrictive CSP and s
 
 ## Native checks
 
-**A native installation of the final 0.6.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.6.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
+**A native installation of the final 0.7.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.7.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
 
 macOS/Linux, long-duration use, sleep/resume, multiple monitors, clock changes under a real host and every notification configuration require separate verification. Market installation is subject to a published release and maintainer review. No public-market listing is implied by a local package.
 

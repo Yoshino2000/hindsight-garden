@@ -14,10 +14,12 @@ The reference plugin is [Focus](https://github.com/Tomotsugu-dev/hindsight-focus
 | `core.js` | Pure matching, growth, interruption and plant lifecycle rules |
 | `store.js` | Parameter-bound SQLite archives, version-checked hot-state writes and atomic schema migration |
 | `ui/main.js` | DOM UI, validated commands and polling |
+| `ui/ambience.js` | Randomized visitor timers; CSS performs flights, wing poses and shadows |
 | `ui/style.css` | Responsive garden, compact view and stage-sprite display |
 | `garden-layout.js` | Pure local-week grouping, garden album pages and stable center-out positions, 25 flowers per garden |
 | `assets/*.png` | Eight high-definition five-stage potted plant strips for growth and selection |
 | `assets/garden/*.png` | Eight independently generated, simpler ground-planted garden sprites |
+| `assets/ambience/*.png` | Original layered swing, three bird pose atlases and butterfly variants |
 | `test/*.test.cjs` | Isolated deterministic rules/store/worker tests |
 | `scripts/preview.py` | Local simulated host, actual extracted bridges and temporary SQLite |
 | `scripts/package.py` | Allowlisted, deterministic installable ZIP and release metadata |
@@ -26,7 +28,7 @@ The worker and page share versioned state. Compare-and-swap writes retry from a 
 
 ## Storage and upgrade
 
-Version 0.5.0 separates the hot runtime state from completed flowers. Mature plants are archived as individual SQLite rows instead of rewriting the entire garden every two seconds. Loads check an archive revision and reuse the cached collection while it is unchanged. The fixed 200-plant cap is removed, with no automatic deletion of old plants. This is not unlimited storage: `storage_mb` increases from 4 to 64, while Hindsight's per-value/per-row 256,000-byte limit and other database limits remain in force. A full database must report insufficient space and retain existing records. Version 0.6.0 retains schema 2, the 64 MB allowance, seven API permissions and the same growth/archive logic; upgrading from 0.5.0 only updates the ZIP and needs no additional migration.
+Version 0.5.0 separates the hot runtime state from completed flowers. Mature plants are archived as individual SQLite rows instead of rewriting the entire garden every two seconds. Loads check an archive revision and reuse the cached collection while it is unchanged. The fixed 200-plant cap is removed, with no automatic deletion of old plants. This is not unlimited storage: `storage_mb` increases from 4 to 64, while Hindsight's per-value/per-row 256,000-byte limit and other database limits remain in force. A full database must report insufficient space and retain existing records. Version 0.7.0 retains schema 2, the 64 MB allowance, seven API permissions and the same growth/archive logic; upgrading from 0.5.0 or 0.6.0 only updates the ZIP, preserves data and needs no additional migration.
 
 Schema-1 to schema-2 migration uses a compare-and-swap state update and SQLite triggers so archive insertion and state conversion are atomic within the database write. It must not depend on a transaction held across separate host calls: the host opens a new database connection for each call. If an archive operation fails, the entire migration transaction rolls back, preserving the old state. Keep the active plant, progress, preferences and existing completed-plant metadata. Test failures and contention explicitly; do not count layout stress tests as evidence of migration integrity.
 
@@ -40,11 +42,23 @@ Category rules use the `category.id` or `category.superCategory.id` in `focus.ch
 
 The garden view is a decorative SVG/CSS scene plus real interactive plant images, not a metadata card grid. `GardenLayout` places completed plants by planting date (`createdAt`) and ID, using fixed center-out slots with depth order. Each garden holds 25 plants. In 0.6.0 the selected panorama sits above the album; its compact thumbnails show flower counts, with at most 12 gardens per group. Native HTML `details` holds the scope/week filters and navigation controls, including the direct garden-number jump. The main scene renders only its selected garden, avoiding thousands of simultaneous flower elements. The garden sprites are different compositions from the high-definition pot artwork, not just CSS-scaled versions of it.
 
-The island top and side faces share their boundary coordinates, with a consistent 25-unit side depth. Pond water plants and lily pads, pebbles, a watering can, a wooden sign, birds, butterflies, bees and mossy grass are decorative scenery. They never add archive records, completed flowers or earned growth time.
+The island top and side faces share their boundary coordinates, with a consistent 25-unit side depth. Pond water plants and lily pads, pebbles, a watering can, a wooden sign, birds, butterflies and mossy grass are decorative scenery. They never add archive records, completed flowers or earned growth time.
 
-The 0.6.0 geometry change concerns the flowerbed's front point against the path and pebbles, separate from the earlier island-side-face repair. The flowerbed's inner edge, outer edge and soil grid use one perspective; its front edge no longer crosses the walkway.
+The 0.6.0 geometry change concerned the flowerbed's front point against the path and pebbles, separate from the earlier island-side-face repair. Version 0.7.0 extends the shared projection to the whole island, flowerbed edges/grid and planting positions, with a 4/7 projected-axis slope and matching left-right geometry. The front edge remains clear of the walkway.
 
-Ambient scene artwork is generated originally with the built-in image-generation tool and bundled locally: a two-layer swing atlas, a bird and a butterfly. Only the large scene animates, with a small swing angle, infrequent background bird passes and slow butterfly movement among the flowers. Album thumbnails remain static. A local preference can disable ambient motion; `prefers-reduced-motion` takes precedence. Leaving the garden tab or hiding the page pauses decorative animation without changing the background growth worker. Keep this plain DOM/CSS behavior within the existing classic-script structure, without a UI framework or external resources.
+Ambient scene artwork is generated originally with the built-in image-generation tool and bundled locally, preserving the original PNG pixels. Version 0.7.0 keeps the two-layer swing and lilac butterfly and adds three three-pose bird atlases (blue tit, robin and greenfinch) plus honey-orange and sky-blue butterflies. Complete new prompts are in [0.7.0 ambience artwork](artwork-ambience-070.md); [the original ambience notes](artwork-ambience.md) retain the earlier sources.
+
+| Large-scene motion | Timing |
+|---|---|
+| Swing | ±4 degrees over 8.5 seconds |
+| Birds | First visit after 2.5 seconds; subsequent starts 15–30 seconds apart, randomly choosing species, direction and height; each flight lasts 6 seconds |
+| Bird wings | Three source poses play up → middle → down → middle over a 0.72-second cycle |
+| Butterflies | First visit after 6 seconds; subsequent starts 24–40 seconds apart with a random color variant; each flight lasts 12 seconds |
+| Pond | Ripple cycle 7 seconds; reflection cycle 9 seconds |
+
+Static objects use fixed SVG shadows; the swing seat and flying animals use simple CSS ellipse shadows. The expanded rear lawn accommodates all four swing feet. Frame placement, the moving seat edge and fixed foot shadows are calibrated against the atlas's actual alpha bounds. A clip matching the grass outline contains bird shadows. JavaScript schedules visitors, without a per-frame update loop or shadow filters. Only the large scene animates; album thumbnails remain static. Disabling motion, reduced-motion settings, leaving the garden tab or hiding the page cancels the currently visible bird and butterfly flights while retaining the remaining wait for their next visits; it pauses continuous swing and water animations. A cancelled flight does not resume midway. These display changes do not pause the background growth worker. Keep this plain DOM/CSS behavior within the existing classic-script structure, without a UI framework or external resources.
+
+The current-pot view exposes the complete planting form whenever no plant is active. Wide windows split it into 35% species and 65% plan columns; narrow windows show a compact four-column species selector above the plan. The high-definition gallery is a collapsed native `details` section. An active plant instead shows target, growth/penalty mode and rule summaries. These presentation changes do not alter stored plants or require a data migration.
 
 Whole-collection and weekly views include the complete archive without a fixed plant-count cutoff. Weekly grouping uses `bloomAt` and calendar weeks in the user's local time zone: Monday 00:00 inclusive to the next Monday 00:00 exclusive. Calendar arithmetic handles daylight-saving changes rather than assuming that every week is exactly 168 hours. Historical records without a usable bloom timestamp fall back to their planting timestamp for display only. The week list contains the current week, weeks with completed flowers and an explicitly selected empty week. Earlier/later controls navigate that list instead of stepping through every empty calendar week. More than 25 flowers in a week produce additional gardens within that week.
 

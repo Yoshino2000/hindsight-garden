@@ -97,6 +97,9 @@
   let albumSignature = "";
   let ambienceEnabled = true;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const visitors = GardenAmbience.createVisitors(
+    document.querySelector(".ambience-bird"), document.querySelector(".ambience-butterfly"),
+  );
   let errorSource = "";
   let editPlantId = null;
   let catalogRequest = null;
@@ -204,11 +207,13 @@
       !$("view-garden").hidden && !document.body.classList.contains("compact");
     $("garden-ambience").dataset.enabled = String(enabled);
     $("garden-ambience").dataset.running = String(running);
+    document.querySelector(".garden-scene:not(.garden-miniature)").dataset.motion = String(enabled && running);
+    visitors.setRunning(enabled && running);
     $("garden-motion").checked = enabled;
     $("garden-motion").disabled = reducedMotion.matches;
     $("garden-motion-hint").textContent = reducedMotion.matches
       ? "已跟随系统减少动态效果"
-      : "秋千微摆，偶尔有小鸟和蝴蝶来访";
+      : "秋千轻摆，小鸟约每 15–30 秒来访，水面泛起微波";
   }
 
   function compact(enabled) {
@@ -385,15 +390,22 @@
     );
     $("growth-status").classList.toggle("growing", growing);
     document.querySelector(".hero").classList.toggle("growing", growing);
+    $("current-hero").hidden = !plant;
+    $("current-plan").hidden = !plant;
+    $("plant-form-panel").hidden = Boolean(plant);
+    document.body.classList.toggle("has-active-plant", Boolean(plant));
     $("active-details").hidden = !plant;
     $("progress-area").hidden = !plant;
-    $("start-plant").hidden = Boolean(plant) || !$("plant-form-panel").hidden;
+    $("start-plant").hidden = true;
     $("pause").hidden = !plant;
     $("notify").checked = state.notify;
     $("connection").textContent = fresh
       ? "后台运行中 · 只累计符合规则的前台时间"
       : "等待后台连接或新的活动信息";
     if (!plant) {
+      $("plant-form-hint").textContent = state.paused
+        ? "选品种、设置规则和累计时长，然后直接播种。当前处于暂停状态，播种后可点击「继续生长」。"
+        : "选品种、设置生长规则和累计时长，然后直接播种。默认切换活动只暂停，不扣进度。";
       sprite($("hero-sprite"), "sunflower", 0);
       $("growth-status").textContent = state.paused ? "已暂停" : "等待播种";
       $("stage-name").textContent = "从一颗种子开始";
@@ -418,6 +430,14 @@
     $("plant-name").textContent = plant.name;
     $("plant-caption").textContent =
       `${species(plant.species).name} · 一点点长大，也很好`;
+    $("current-plan-summary").textContent =
+      `累计 ${minutes(plant.targetMs)} 开花 · ${plant.penalty.enabled ? "已开启中断惩罚" : "累计模式，中断不扣进度"}`;
+    const rules = plant.rules.map(ruleText);
+    $("current-rule-summary").textContent =
+      `生长规则：${rules.slice(0, 2).join("；")}${rules.length > 2 ? ` 等 ${rules.length} 条` : ""}`;
+    $("current-rule-summary").title = rules.join("；");
+    $("active-target-summary").textContent =
+      `${species(plant.species).name} · 累计目标 ${minutes(plant.targetMs)}`;
     $("progress-fill").style.width = `${ratio}%`;
     $("progress").setAttribute("aria-valuenow", String(Math.round(ratio)));
     $("progress-time").textContent =
@@ -897,8 +917,8 @@
   }
 
   function closePlant() {
-    $("plant-form-panel").hidden = true;
     resetPlantForm();
+    $("plant-form-panel").hidden = Boolean(state?.active);
     if (state) renderCurrent();
   }
 

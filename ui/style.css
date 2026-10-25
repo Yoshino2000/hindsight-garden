@@ -675,8 +675,8 @@ legend {
 }
 .ambience-swing {
   position: absolute;
-  left: 20%;
-  top: 22%;
+  left: 16.5%;
+  top: 25%;
   width: 18%;
   aspect-ratio: 1;
   pointer-events: none;
@@ -697,37 +697,86 @@ legend {
   transform-origin: 50% 18%;
   animation: garden-swing 8.5s ease-in-out infinite;
 }
+.ambience-swing-shadow {
+  position: absolute;
+  left: 39%;
+  top: 88%;
+  width: 41%;
+  height: 8%;
+  border-radius: 50%;
+  background: #657946;
+  opacity: .18;
+  animation: garden-swing-shadow 8.5s ease-in-out infinite;
+}
 .ambience-bird,
 .ambience-butterfly {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+.visitor-flight {
+  position: absolute;
+  inset: 0;
   opacity: 0;
   visibility: hidden;
 }
-.ambience-bird {
-  animation: garden-bird 58s linear 8s infinite;
+.ambience-bird[data-visiting="true"] .visitor-flight {
+  animation: garden-bird 6s linear both;
 }
-.ambience-bird img {
+.ambience-bird[data-direction="left"][data-visiting="true"] .visitor-flight {
+  animation-name: garden-bird-left;
+}
+.visitor-art {
   display: block;
+  background-repeat: no-repeat;
+  aspect-ratio: 1;
+}
+.bird-art {
   width: 5.8%;
-  height: auto;
+  background-image: url("../assets/ambience/bird-blue.png");
+  background-size: 300% 100%;
+  animation: bird-wings .72s step-end infinite;
 }
-.ambience-butterfly {
-  animation: garden-butterfly 40s ease-in-out 5s infinite;
+.ambience-bird[data-direction="left"] .bird-art {
+  transform: scaleX(-1);
 }
-.ambience-butterfly img {
-  display: block;
+.ambience-butterfly[data-visiting="true"] .visitor-flight {
+  animation: garden-butterfly 12s ease-in-out both;
+}
+.butterfly-art {
   width: 3.8%;
-  height: auto;
-  animation: garden-wings 1.4s ease-in-out infinite;
+  background-image: url("../assets/ambience/butterfly.png");
+  background-size: contain;
+  animation: garden-wings 1.1s ease-in-out infinite;
+}
+.flight-shadow {
+  position: absolute;
+  left: 1%;
+  top: 28%;
+  width: 3.7%;
+  height: 1%;
+  border-radius: 50%;
+  background: #657946;
+  opacity: .1;
+}
+.flight-shadow-plane {
+  position: absolute;
+  inset: 0;
+  clip-path: url(#ground-shadow-clip);
+}
+.ambience-butterfly .flight-shadow {
+  top: 6%;
+  width: 2.4%;
+  opacity: .12;
 }
 .garden-ambience[data-running="false"] *,
 .garden-ambience[data-enabled="false"] * {
   animation-play-state: paused !important;
 }
 .garden-ambience[data-enabled="false"] .ambience-swing-seat,
-.garden-miniature .ambience-swing-seat {
+.garden-miniature .ambience-swing-seat,
+.garden-ambience[data-enabled="false"] .ambience-swing-shadow,
+.garden-miniature .ambience-swing-shadow {
   animation: none;
   transform: none;
 }
@@ -755,26 +804,88 @@ legend {
   font-size: 10px;
 }
 @keyframes garden-swing {
-  0%, 100% { transform: rotate(-1.6deg); }
-  50% { transform: rotate(1.6deg); }
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+@keyframes garden-swing-shadow {
+  0%, 100% { transform: translateX(-6%) scaleX(.95); opacity: .16; }
+  50% { transform: translateX(6%) scaleX(1.05); opacity: .2; }
+}
+@keyframes bird-wings {
+  0%, 100% { background-position: 0 0; }
+  25%, 75% { background-position: 50% 0; }
+  50% { background-position: 100% 0; }
 }
 @keyframes garden-bird {
-  0%, 20% { opacity: 0; visibility: hidden; transform: translate(-9%, 23%); }
-  21% { opacity: .8; visibility: visible; }
-  28% { opacity: .8; visibility: visible; transform: translate(104%, 17%); }
-  29%, 100% { opacity: 0; visibility: hidden; transform: translate(104%, 17%); }
+  0% { opacity: 0; visibility: visible; transform: translate(-9%, var(--flight-y, 23%)); }
+  8%, 90% { opacity: .9; }
+  100% { opacity: 0; visibility: hidden; transform: translate(104%, calc(var(--flight-y, 23%) - 6%)); }
+}
+@keyframes garden-bird-left {
+  0% { opacity: 0; visibility: visible; transform: translate(104%, var(--flight-y, 23%)); }
+  8%, 90% { opacity: .9; }
+  100% { opacity: 0; visibility: hidden; transform: translate(-9%, calc(var(--flight-y, 23%) - 6%)); }
 }
 @keyframes garden-butterfly {
-  0%, 45% { opacity: 0; visibility: hidden; transform: translate(36%, 52%); }
-  47% { opacity: .85; visibility: visible; }
-  58% { transform: translate(53%, 46%); }
-  69% { opacity: .85; visibility: visible; transform: translate(67%, 57%); }
-  78%, 100% { opacity: 0; visibility: hidden; transform: translate(62%, 64%); }
+  0% { opacity: 0; visibility: visible; transform: translate(36%, 52%); }
+  10% { opacity: .85; }
+  40% { transform: translate(53%, 46%); }
+  72% { opacity: .85; transform: translate(67%, 57%); }
+  100% { opacity: 0; visibility: hidden; transform: translate(62%, 64%); }
 }
 @keyframes garden-wings {
   0%, 100% { transform: scaleX(1) rotate(-4deg); }
   50% { transform: scaleX(.7) rotate(4deg); }
 }
+.pond-ripple,
+.pond-reflection {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pond-ripple 7s ease-out infinite;
+  animation-play-state: paused;
+}
+.pond-ripple + .pond-ripple { animation-delay: -3.5s; }
+.pond-reflection { animation: pond-reflection 9s ease-in-out infinite paused; }
+.garden-scene[data-motion="true"] .pond-ripple,
+.garden-scene[data-motion="true"] .pond-reflection { animation-play-state: running; }
+.garden-miniature .pond-ripple,
+.garden-miniature .pond-reflection { animation: none; }
+@keyframes pond-ripple {
+  0% { opacity: .05; transform: scale(.65); }
+  30% { opacity: .28; }
+  100% { opacity: .02; transform: scale(1.18); }
+}
+@keyframes pond-reflection {
+  0%, 100% { opacity: .18; transform: translateX(-1px) scaleX(.98); }
+  50% { opacity: .32; transform: translateX(1px) scaleX(1.02); }
+}
+.current-plan {
+  margin: 8px 0 12px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: #e5eed38c;
+  text-align: left;
+}
+.current-plan .hint { margin: 3px 0; font-size: 11px; }
+.plant-artwork-details { margin-top: 10px; }
+.plant-artwork-details > summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+.plant-artwork-details .species-preview { margin-top: 12px; }
+.form-card .species-option .plant-sprite {
+  height: 76px;
+  width: calc(76px * var(--sprite-ratio, .5));
+}
+.form-card .species-option { padding: 5px 4px 8px; gap: 3px; }
+.form-card .species-options { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.plant-form-grid { display: grid; gap: 20px; }
+.plant-form-grid > * { min-width: 0; }
+@media (min-width: 680px) {
+  .plant-form-grid { grid-template-columns: minmax(0, 35fr) minmax(0, 65fr); align-items: start; }
+  .form-card .species-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plant-catalog { position: sticky; top: 12px; }
+  .plant-artwork-details .species-preview { display: block; }
+}
+.ambience-bird:not([data-visiting="true"]) .visitor-art,
+.ambience-butterfly:not([data-visiting="true"]) .visitor-art { animation-play-state: paused; }
 .garden-flower {
   position: absolute;
   width: 6.4%;

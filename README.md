@@ -7,10 +7,11 @@ Grow a small garden while you use your computer. A third-party plugin for [Hinds
 ## Features
 
 - **Eight plants**: sunflower, hydrangea, tulip, daisy, rose, lavender, cosmos and lily, each with five growth stages.
-- **A complete garden scene**: finished flowers grow on an isometric garden island with paths, pond, fence and bench. The flowerbed edges and grid share one perspective, keeping its front point clear of the walkway and pebbles. Water plants, lily pads, pebbles, a watering can, a wooden sign, birds, butterflies, bees and mossy grass add scenery. Names and records stay hidden until you choose a flower; close its details to return to the whole garden.
+- **A complete garden scene**: finished flowers grow on an isometric garden island with paths, pond and fence. The island, flowerbed and planting positions share one left-right-symmetric perspective. An expanded rear lawn grounds the swing; water plants, lily pads, pebbles, a watering can, a wooden sign, birds, butterflies and mossy grass add scenery. Names and records stay hidden until you choose a flower; close its details to return to the whole garden.
 - **A garden album**: the current garden panorama sits above a compact album of small thumbnails and flower counts. Each group holds at most 12 gardens. Expand the filters to change the whole-collection/weekly scope, choose a week or jump to a garden number.
-- **Gentle ambient motion**: a lightly swaying swing, occasional distant bird and slow butterfly among the flowers appear only in the large scene; thumbnails stay still. Turn motion off with a remembered local preference. Motion follows reduced-motion settings and pauses when the garden tab is left or the page is hidden.
-- **Two illustration roles**: the planting picker uses high-definition potted plant artwork and a large selected-plant preview. The garden uses separately generated, simplified ground-planted flower sprites, without pots or permanent labels.
+- **Gentle ambient motion**: a lightly swaying swing, randomly visiting blue tits, robins or greenfinches, and lilac, honey-orange or sky-blue butterflies appear only in the large scene, alongside soft pond ripples, reflections and simple shadows. Thumbnails stay still. Motion can be disabled and follows reduced-motion settings. Disabling it, leaving the garden tab or hiding the page cancels current flights while retaining the next-visit wait, and pauses the swing and water effects.
+- **Start planting immediately**: when no pot is active, the current-pot page shows the full planting form with eight compact plant choices first. Wide windows place species and plan side by side; narrow windows put a four-column species selector above the plan. The high-definition plant gallery is expandable. An active pot shows its target, growth/penalty mode and rule summary.
+- **Two illustration roles**: the planting form offers high-definition potted plant art in its optional gallery. The garden uses separately generated, simplified ground-planted flower sprites, without pots or permanent labels.
 - **Use your Hindsight categories**: pick an existing category or super-category from a dropdown. No need to re-enter the apps and websites assigned to it. App/domain rules remain available, and any matching rule grows the current plant without multiplying time.
 - **Change rules while growing**: edit the active pot's rules without resetting its progress, target or penalty settings.
 - **Cumulative growth**: collect time across visits and days. Switching away pauses growth by default.
@@ -24,18 +25,20 @@ Manual pause, an away event, background restart and an unobserved clock gap do n
 
 ![Compact garden album](docs/screenshots/album.png)
 
+[Current-pot planting layout](docs/screenshots/current.png)
+
 Preview with synthetic test data. Scenery is original; plant art was created for this plugin with the built-in image generation tool.
 
 ## Install
 
-Requires Hindsight **0.10.0 or later**. Version 0.6.0 is a prerelease of an experimental personal plugin, not an official Hindsight plugin. Basic functionality is usable, and development and iteration are ongoing. It has not been exhaustively tested and may contain problems or risks.
+Requires Hindsight **0.10.0 or later**. Version 0.7.0 is a prerelease of an experimental personal plugin, not an official Hindsight plugin. Basic functionality is usable, and development and iteration are ongoing. It has not been exhaustively tested and may contain problems or risks.
 
-1. Download the prerelease `hindsight-garden-0.6.0.zip` from [Releases](https://github.com/Yoshino2000/hindsight-garden/releases), or build it below.
+1. Download the prerelease `hindsight-garden-0.7.0.zip` from [Releases](https://github.com/Yoshino2000/hindsight-garden/releases), or build it below.
 2. In Hindsight, open **Settings → Plugins** and choose the local ZIP installation option.
 3. Review the seven permissions and the 64 MB database allowance, then install.
 4. Open **时光花园**, pick a plant, give it a name and select a Hindsight category or group. App/domain rules are optional.
 
-**Back up the plugin database before upgrading.** Make the backup while Hindsight is stopped, or use SQLite's online backup facility for a consistent backup while it runs. Install this ZIP as an update to the same plugin rather than deleting its data. Version 0.6.0 keeps 0.5.0's seven API permissions, 64 MB allowance and schema 2; updating the ZIP needs no additional migration and does not change growth or archive rules. The increase from 4 MB to 64 MB was introduced in 0.5.0 and is shown in Hindsight's normal update authorization when upgrading from an earlier version. An upgrade from 0.1.0 also includes the three category permissions introduced in 0.2.0.
+**Back up the plugin database before upgrading.** Make the backup while Hindsight is stopped, or use SQLite's online backup facility for a consistent backup while it runs. Install this ZIP as an update to the same plugin rather than deleting its data. Version 0.7.0 keeps the seven API permissions, 64 MB allowance and schema 2 used by 0.5.0 and 0.6.0. Those versions can update directly with their data retained, without another migration or changes to growth/archive rules. The increase from 4 MB to 64 MB was introduced in 0.5.0 and is shown in Hindsight's normal update authorization when upgrading from an earlier version. An upgrade from 0.1.0 also includes the three category permissions introduced in 0.2.0.
 
 An upgrade from a schema-1 version atomically migrates its garden to schema 2, keeping completed plants in individual SQLite archive rows and retaining the active plant, progress and settings. If archiving fails, the migration transaction rolls back and the old records remain. Plugin versions before 0.5.0 cannot read schema 2: do not directly downgrade to them; restore the backup made before migration if you need to return. An existing pot's **修改规则** action still lets it use categories without planting again.
 
@@ -45,7 +48,7 @@ Weekly gardens use each plant's **bloom date**, not its planting date. A week ru
 
 Selecting a flower opens its dates and controls. Closing details or changing the view mode, week or garden hides the record; background refresh does not open it automatically. The garden view remembers its display mode, selected week and garden page in local storage, separately from the saved collection, compact-view preference and ambient-motion preference. Pausing decorative motion does not pause plant growth.
 
-The final 0.6.0 ZIP has not yet been installed in a native Hindsight instance in this round. Earlier-version checks do not establish native verification of 0.6.0. See [verification](docs/verification.md) for the actual checks and their limits.
+The final 0.7.0 ZIP has not yet been installed in a native Hindsight instance in this round. Earlier-version checks do not establish native verification of 0.7.0. See [verification](docs/verification.md) for the actual checks and their limits.
 
 The default opens in a separate **ordinary window**. Its title bar, background and overlap with other windows are controlled by Hindsight. Transparent desktop overlays, always-on-top, click-through and autonomous window movement are not supported. Use Hindsight's plugin settings to change where the page opens; compact view only changes this plugin's layout.
 

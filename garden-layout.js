@@ -4,6 +4,22 @@
 
   const PAGE_SIZE = 25;
   const ALBUM_SIZE = 12;
+  // One ground projection for the island, flowerbed and plot lattice. Static SVG paths are
+  // checked against these dimensions so the scene cannot quietly acquire a second slope.
+  const GEOMETRY = Object.freeze({
+    width: 1000,
+    height: 760,
+    stepX: 70,
+    stepY: 40,
+    island: Object.freeze({
+      x: 500,
+      y: 400,
+      radius: 472.5,
+      cornerCut: 17.5,
+      depth: 25,
+    }),
+    bed: Object.freeze({ x: 500, y: 468, radius: 315, innerRadius: 306.25 }),
+  });
   const SLOTS = Array.from({ length: PAGE_SIZE }, (_, index) => ({
     row: Math.floor(index / 5),
     col: index % 5,
@@ -74,8 +90,8 @@
         return {
           plant,
           // The bottom-center of each flower, within a 1000 × 760 scene.
-          x: 500 + (col - row) * 70,
-          y: 340 + (col + row) * 32,
+          x: GEOMETRY.bed.x + (col - row) * GEOMETRY.stepX,
+          y: GEOMETRY.bed.y + (col + row - 4) * GEOMETRY.stepY,
           z: row + col,
           rotation: 0,
         };
@@ -167,7 +183,7 @@
       albumPage, albumPageCount: Math.ceil(layout.pageCount / ALBUM_SIZE), albumStart };
   }
 
-  const api = { PAGE_SIZE, ALBUM_SIZE, createLayout, createView };
+  const api = { PAGE_SIZE, ALBUM_SIZE, GEOMETRY, createLayout, createView };
   root.GardenLayout = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : self);

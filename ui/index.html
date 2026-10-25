@@ -57,7 +57,7 @@
         aria-labelledby="tab-current"
         tabindex="0"
       >
-        <article class="card hero">
+        <article id="current-hero" class="card hero" hidden>
           <div class="hero-top">
             <span id="growth-status" class="badge">等待连接</span>
             <span id="stage-name" class="stage-name">从一颗种子开始</span>
@@ -70,6 +70,10 @@
           <p id="plant-caption" class="hero-caption">
             选一个现有分类，让日常活动慢慢养出一朵花。
           </p>
+          <div id="current-plan" class="current-plan" hidden>
+            <p id="current-plan-summary" class="hint"></p>
+            <p id="current-rule-summary" class="hint"></p>
+          </div>
           <div id="progress-area" hidden>
             <div
               id="progress"
@@ -91,7 +95,7 @@
             符合规则时慢慢生长，离开时安心暂停。
           </p>
           <div class="hero-actions">
-            <button id="start-plant" class="button primary" type="button">
+            <button id="start-plant" class="button primary" type="button" hidden>
               种下第一颗种子
             </button>
             <button id="pause" class="button primary" type="button" hidden>
@@ -116,6 +120,8 @@
               </button>
             </div>
           </div>
+          <p id="active-target-summary" class="hint"></p>
+          <p class="hint field-intro">满足以下任意一条规则时累计时间。修改规则会保留当前进度。</p>
           <ul id="active-rules" class="rule-summary"></ul>
           <p id="penalty-summary" class="hint"></p>
           <div class="detail-footer">
@@ -185,25 +191,34 @@
           <div class="section-heading">
             <h2 id="plant-form-title">种下一点期待</h2>
             <button id="cancel-plant" class="button quiet small" type="button">
-              取消
+              重置选择
             </button>
           </div>
-          <form id="plant-form" novalidate>
+          <p id="plant-form-hint" class="hint field-intro">
+            选品种、设置生长规则和累计时长，然后直接播种。默认切换活动只暂停，不扣进度。
+          </p>
+          <form id="plant-form" class="plant-form-grid" novalidate>
+            <section class="plant-catalog" aria-label="选择花种">
             <fieldset>
               <legend>挑一株喜欢的植物</legend>
-              <section class="species-preview" aria-label="植物高清预览">
-                <div class="species-preview-art" aria-hidden="true">
-                  <div id="species-preview-sprite" class="plant-sprite"></div>
-                </div>
-                <div class="species-preview-copy">
-                  <p class="eyebrow">花园植物图鉴</p>
-                  <h3 id="species-preview-name">向日葵</h3>
-                  <p id="species-preview-description" class="hint"></p>
-                  <span class="preview-tag">高清原画 · 五阶段生长</span>
-                </div>
-              </section>
               <div id="species-options" class="species-options"></div>
+              <details class="plant-artwork-details">
+                <summary>查看植物大图与介绍</summary>
+                <section class="species-preview" aria-label="植物高清预览">
+                  <div class="species-preview-art" aria-hidden="true">
+                    <div id="species-preview-sprite" class="plant-sprite"></div>
+                  </div>
+                  <div class="species-preview-copy">
+                    <p class="eyebrow">花园植物图鉴</p>
+                    <h3 id="species-preview-name">向日葵</h3>
+                    <p id="species-preview-description" class="hint"></p>
+                    <span class="preview-tag">高清原画 · 五阶段生长</span>
+                  </div>
+                </section>
+              </details>
             </fieldset>
+            </section>
+            <section class="plant-plan" aria-label="设置生长计划">
             <label class="field" for="plant-name-input"
               ><span>给它取个名字</span
               ><input
@@ -254,7 +269,7 @@
               </button>
             </fieldset>
             <fieldset class="penalty-fieldset">
-              <legend>中断时怎么办</legend>
+              <legend>生长模式与中断设置</legend>
               <label class="check-row" for="penalty-enabled"
                 ><input id="penalty-enabled" type="checkbox" /><span
                   >开启中断惩罚<span class="subtle block"
@@ -304,6 +319,7 @@
             >
               种下这颗种子
             </button>
+            </section>
           </form>
         </section>
 
@@ -341,6 +357,8 @@
             <svg
               class="garden-landscape"
               viewBox="0 0 1000 760"
+              data-projection-x="70"
+              data-projection-y="40"
               aria-hidden="true"
               focusable="false"
             >
@@ -362,12 +380,15 @@
                   <stop offset="1" stop-color="#8fc8c5" />
                 </linearGradient>
                 <clipPath id="flowerbed-grid-clip">
-                  <path d="M500 328 806.25 468 500 608 193.75 468Z" />
+                  <path d="M500 293 806.25 468 500 643 193.75 468Z" />
+                </clipPath>
+                <clipPath id="ground-shadow-clip">
+                  <path d="M482.5 140Q500 130 517.5 140L955 390Q972.5 400 955 410L517.5 660Q500 670 482.5 660L45 410Q27.5 400 45 390Z" />
                 </clipPath>
               </defs>
               <ellipse
                 cx="500"
-                cy="682"
+                cy="674"
                 rx="350"
                 ry="42"
                 fill="#506d3a"
@@ -377,35 +398,35 @@
                    edges repeat those curves translated down by 25 scene units. -->
               <path
                 data-scene-part="island-left-face"
-                d="M62.5 399.25Q62.5 404.5 71 410L482 676Q491 682.5 500 682.5L500 707.5Q491 707.5 482 701L71 435Q62.5 429.5 62.5 424.25Z"
+                d="M36.25 400Q36.25 405 45 410L482.5 660Q491.25 665 500 665L500 690Q491.25 690 482.5 685L45 435Q36.25 430 36.25 425Z"
                 fill="url(#island-left)"
               />
               <path
                 data-scene-part="island-right-face"
-                d="M500 682.5Q509 682.5 518 676L929 410Q937.5 404.5 937.5 399.25L937.5 424.25Q937.5 429.5 929 435L518 701Q509 707.5 500 707.5Z"
+                d="M500 665Q508.75 665 517.5 660L955 410Q963.75 405 963.75 400L963.75 425Q963.75 430 955 435L517.5 685Q508.75 690 500 690Z"
                 fill="url(#island-right)"
               />
               <path
                 data-scene-part="grass-surface"
-                d="M482 153Q500 141 518 153L929 389Q946 399 929 410L518 676Q500 689 482 676L71 410Q54 399 71 389Z"
+                d="M482.5 140Q500 130 517.5 140L955 390Q972.5 400 955 410L517.5 660Q500 670 482.5 660L45 410Q27.5 400 45 390Z"
                 fill="url(#grass-top)"
                 stroke="#adc58c"
                 stroke-width="3"
               />
               <path
                 data-scene-part="grass-back-rim"
-                d="M83 397 490 165Q500 158 510 165L917 397"
+                d="M62.5 390 482.5 150Q500 140 517.5 150L937.5 390"
                 fill="none"
                 stroke="#e9f0d4"
                 stroke-width="3"
                 stroke-linecap="round"
                 opacity=".55"
               />
-              <!-- All flowerbed edges use the plot lattice's 32 / 70 slope. The
-                   wooden border stands alone: no path passes beneath its front tip. -->
+              <!-- The island, flowerbed and plots share GardenLayout.GEOMETRY (40 / 70).
+                   The wooden border stands alone: no path passes beneath its front tip. -->
               <path
                 data-scene-part="flowerbed-border"
-                d="M500 324 815 468 500 612 185 468Z"
+                d="M500 288 815 468 500 648 185 468Z"
                 fill="#c9b68d"
                 stroke="#b4a17b"
                 stroke-width="2"
@@ -413,7 +434,7 @@
               />
               <path
                 data-scene-part="flowerbed-soil"
-                d="M500 328 806.25 468 500 608 193.75 468Z"
+                d="M500 293 806.25 468 500 643 193.75 468Z"
                 fill="#bfd19d"
                 stroke="#e2dfbb"
                 stroke-width="2"
@@ -421,23 +442,32 @@
               />
               <path
                 data-scene-part="flowerbed-grid"
-                d="M548.125 350 241.875 490M618.125 382 311.875 522M688.125 414 381.875 554M758.125 446 451.875 586M451.875 350 758.125 490M381.875 382 688.125 522M311.875 414 618.125 554M241.875 446 548.125 586"
+                d="M548.125 320.5 241.875 495.5M618.125 360.5 311.875 535.5M688.125 400.5 381.875 575.5M758.125 440.5 451.875 615.5M451.875 320.5 758.125 495.5M381.875 360.5 688.125 535.5M311.875 400.5 618.125 575.5M241.875 440.5 548.125 615.5"
                 fill="none"
                 stroke="#aec58d"
                 stroke-width="1.5"
                 opacity=".55"
                 clip-path="url(#flowerbed-grid-clip)"
               />
-              <ellipse cx="749" cy="330" rx="91" ry="44" fill="#a6bd91" />
-              <ellipse cx="749" cy="325" rx="82" ry="36" fill="#e5e9d4" />
+              <g data-scene-part="swing-frame-shadow" class="scene-shadow" fill="#607956" clip-path="url(#ground-shadow-clip)">
+                <ellipse data-foot="left-front" cx="185.699" cy="336.922" rx="7.5" ry="2.6" opacity=".18" />
+                <ellipse data-foot="left-back" cx="225.575" cy="316.223" rx="7" ry="2.6" opacity=".18" />
+                <ellipse data-foot="right-front" cx="296.804" cy="352.142" rx="7" ry="2.6" opacity=".18" />
+                <ellipse data-foot="right-back" cx="336.680" cy="327.790" rx="7" ry="2.6" opacity=".18" />
+              </g>
+              <g data-scene-part="pond" transform="translate(0 41)">
+              <ellipse data-scene-part="pond-shadow" class="scene-shadow" cx="749" cy="330" rx="78" ry="34" fill="#7f9c80" opacity=".22" />
+              <ellipse data-scene-part="pond-rim" cx="749" cy="325" rx="70" ry="29" fill="#e5e9d4" />
               <ellipse
+                data-scene-part="pond-water"
                 cx="749"
                 cy="324"
-                rx="74"
-                ry="29"
+                rx="62"
+                ry="23"
                 fill="url(#pond-water)"
               />
               <path
+                class="pond-reflection"
                 d="M702 320Q724 310 748 315M754 336Q781 340 797 328"
                 fill="none"
                 stroke="#e5f6ee"
@@ -445,6 +475,8 @@
                 stroke-linecap="round"
                 opacity=".8"
               />
+              <ellipse class="pond-ripple" cx="730" cy="329" rx="15" ry="5" fill="none" stroke="#e0f1e7" stroke-width="1.5" opacity=".35" />
+              <ellipse class="pond-ripple" cx="774" cy="319" rx="11" ry="4" fill="none" stroke="#e0f1e7" stroke-width="1.5" opacity=".3" />
               <g data-scene-part="pond-leaves" stroke-linejoin="round">
                 <path d="M720 327C706 317 705 311 716 308C727 305 741 312 740 318L725 317Z" fill="#90b58b" stroke="#7fa680" stroke-width="1.5" />
                 <path d="M771 324C759 316 761 310 773 310C786 309 795 315 788 322L777 317Z" fill="#a1c597" stroke="#88af84" stroke-width="1.5" />
@@ -453,20 +485,23 @@
                 <ellipse cx="819" cy="291" rx="3" ry="8" fill="#b9bd82" transform="rotate(12 819 291)" />
                 <path d="M691 310Q688 299 693 292M691 310Q699 302 701 297" fill="none" stroke="#91b18b" stroke-width="2.5" stroke-linecap="round" />
               </g>
-              <ellipse cx="702" cy="352" rx="15" ry="8" fill="#b7c1a8" />
-              <ellipse cx="799" cy="300" rx="19" ry="10" fill="#b8c3ae" />
+              <ellipse cx="702" cy="349" rx="15" ry="8" fill="#b7c1a8" />
+              <ellipse cx="799" cy="319" rx="19" ry="10" fill="#b8c3ae" />
               <ellipse cx="808" cy="340" rx="12" ry="7" fill="#ced4bf" />
+              </g>
               <g
+                data-scene-part="back-fence"
+                transform="matrix(1 -0.5714285714285714 0 1 389 251)"
                 fill="#f5f0db"
                 stroke="#c3c8a6"
                 stroke-width="2"
                 stroke-linejoin="round"
               >
-                <path d="M380 223 380 183 389 177 398 183 398 213Z" />
-                <path d="M426 197 426 157 435 151 444 157 444 187Z" />
-                <path d="M472 171 472 132 481 126 490 132 490 161Z" />
+                <path d="M-9 0V-40L0-46 9-40V0Z" />
+                <path d="M40 0V-40L49-46 58-40V0Z" />
+                <path d="M89 0V-40L98-46 107-40V0Z" />
                 <path
-                  d="M389 185 481 133 481 142 389 194ZM389 204 481 152 481 161 389 213Z"
+                  d="M0-34H98V-26H0ZM0-15H98V-7H0Z"
                 />
               </g>
               <g fill="#a7b99a">
@@ -487,8 +522,8 @@
                 <ellipse cx="851" cy="416" rx="12" ry="5" fill="#ece3c5" transform="rotate(-25 851 416)" />
                 <ellipse cx="834" cy="430" rx="11" ry="5" fill="#f7edcf" transform="rotate(-25 834 430)" />
               </g>
-              <g data-scene-part="watering-can" stroke="#8ea99c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
-                <ellipse cx="169" cy="376" rx="25" ry="7" fill="#8fab81" opacity=".18" stroke="none" />
+              <g data-scene-part="watering-can" transform="translate(0 8)" stroke="#8ea99c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+                <ellipse data-scene-part="watering-can-shadow" class="scene-shadow" cx="177" cy="374" rx="26" ry="7" fill="#607956" opacity=".15" stroke="none" />
                 <path d="M152 345C139 332 139 356 150 362" fill="none" stroke="#96b9ae" stroke-width="6" />
                 <path d="M173 349 187 337 192 341 177 361Z" fill="#bad5c7" />
                 <ellipse cx="190" cy="338" rx="6" ry="3" fill="#d2e3d1" transform="rotate(-34 190 338)" />
@@ -497,26 +532,33 @@
                 <ellipse cx="163" cy="343" rx="8" ry="2.5" fill="#99b8a7" stroke="none" />
                 <path d="M157 355Q163 350 169 355M159 362Q164 365 169 361" fill="none" stroke="#e3eee0" stroke-width="2" />
               </g>
-              <g data-scene-part="little-sign" stroke-linejoin="round" stroke-linecap="round">
-                <ellipse cx="604" cy="299" rx="24" ry="7" fill="#8fa876" opacity=".15" />
+              <g data-scene-part="little-sign" transform="translate(80 26)" stroke-linejoin="round" stroke-linecap="round">
+                <ellipse data-scene-part="little-sign-shadow" class="scene-shadow" cx="617" cy="306" rx="27" ry="7" fill="#607956" opacity=".15" />
                 <path d="M603 259 603 298" stroke="#b49a72" stroke-width="7" />
                 <path d="M572 230 631 237 631 265 572 258Z" fill="#d7bf91" stroke="#b7a078" stroke-width="2" />
                 <path d="M577 235 626 241M577 253 626 260" fill="none" stroke="#eddbb4" stroke-width="2" />
                 <path d="M600 253Q586 242 592 240Q601 236 604 250M601 253Q610 237 617 245Q620 251 603 253" fill="#a5b481" stroke="#9ca877" stroke-width="1" />
               </g>
               <g data-scene-part="moss-and-grass" stroke-linecap="round">
-                <g fill="#86a274"><ellipse cx="170" cy="385" rx="5" ry="2.5" /><ellipse cx="180" cy="387" rx="4" ry="2" /><ellipse cx="187" cy="377" rx="3.5" ry="2" /><ellipse cx="798" cy="297" rx="6" ry="3" /><ellipse cx="807" cy="338" rx="4" ry="2" /></g>
-                <path d="M120 407q-3-11-8-13m8 13 2-15m-2 15 7-8M606 647q-2-11-6-13m6 13 4-16m-4 16 9-9M849 416q-2-12-8-16m8 16 1-17m-1 17 8-9M643 270q-2-10-7-13m7 13 3-13" fill="none" stroke="#91ac78" stroke-width="3" />
-                <g fill="#dce8bd"><ellipse cx="133" cy="410" rx="2.5" ry="1.5" /><ellipse cx="610" cy="656" rx="3" ry="1.5" /><ellipse cx="835" cy="412" rx="2.5" ry="1.5" /></g>
+                <g fill="#86a274"><ellipse cx="170" cy="393" rx="5" ry="2.5" /><ellipse cx="180" cy="395" rx="4" ry="2" /><ellipse cx="187" cy="385" rx="3.5" ry="2" /><ellipse cx="798" cy="357" rx="6" ry="3" /><ellipse cx="807" cy="379" rx="4" ry="2" /></g>
+                <path d="M120 420q-3-11-8-13m8 13 2-15m-2 15 7-8M566 624q-2-11-6-13m6 13 4-16m-4 16 9-9M849 426q-2-12-8-16m8 16 1-17m-1 17 8-9M643 296q-2-10-7-13m7 13 3-13" fill="none" stroke="#91ac78" stroke-width="3" />
+                <g fill="#dce8bd"><ellipse cx="133" cy="423" rx="2.5" ry="1.5" /><ellipse cx="572" cy="625" rx="3" ry="1.5" /><ellipse cx="835" cy="422" rx="2.5" ry="1.5" /></g>
               </g>
             </svg>
             <div id="garden-ambience" class="garden-ambience" data-enabled="false" data-running="false" aria-hidden="true">
               <div class="ambience-swing">
+                <span class="ambience-swing-shadow"></span>
                 <span class="ambience-swing-frame"></span>
                 <span class="ambience-swing-seat"></span>
               </div>
-              <div class="ambience-bird"><img src="../assets/ambience/bird.png" alt="" draggable="false"></div>
-              <div class="ambience-butterfly"><img src="../assets/ambience/butterfly.png" alt="" draggable="false"></div>
+              <div class="ambience-bird" data-visiting="false">
+                <span class="flight-shadow-plane"><span class="visitor-flight ground-flight"><span class="flight-shadow"></span></span></span>
+                <span class="visitor-flight"><span class="visitor-art bird-art"></span></span>
+              </div>
+              <div class="ambience-butterfly" data-visiting="false">
+                <span class="flight-shadow-plane"><span class="visitor-flight ground-flight"><span class="flight-shadow"></span></span></span>
+                <span class="visitor-flight"><span class="visitor-art butterfly-art"></span></span>
+              </div>
             </div>
             <div
               id="garden-grid"
@@ -642,6 +684,7 @@
     <script src="../core.js"></script>
     <script src="../store.js"></script>
     <script src="../garden-layout.js"></script>
+    <script src="ambience.js"></script>
     <script src="main.js"></script>
   </body>
 </html>
