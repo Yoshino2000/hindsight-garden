@@ -233,16 +233,16 @@
             </fieldset>
             </section>
             <section class="plant-plan" aria-label="设置生长计划">
-            <label class="field" for="plant-name-input"
-              ><span>给它取个名字</span
-              ><input
+            <div class="field">
+              <div class="name-heading"><label for="plant-name-input">给它取个名字</label><button id="recommend-name" class="button quiet small" type="button" title="优先使用已选分类；没有分类时，随机组合任务名称与当前花朵">推荐</button></div>
+              <input
                 id="plant-name-input"
                 name="plantName"
                 maxlength="40"
                 required
                 placeholder="例如：论文阅读的绣球"
                 autocomplete="off"
-            /></label>
+            /><small id="name-recommendation" role="status" aria-live="polite"></small></div>
             <label class="field" for="plant-task-note"><span>给这朵花留一句任务记忆 <small>可选</small></span><textarea id="plant-task-note" maxlength="280" rows="2" placeholder="例如：读完第三章，记下两个新想法"></textarea><small>保存在本机，开花后也能回看和编辑。方案不会复制这句话。</small></label>
             <label class="field" for="target-minutes"
               ><span>累计多少分钟开花</span>
@@ -388,7 +388,7 @@
             </div>
             <span id="garden-total" class="badge">0 株已开花</span>
           </div>
-          <div class="garden-scene">
+          <div class="garden-scene-viewport"><div class="garden-scene">
             <div class="theme-ornament" aria-hidden="true"></div>
             <svg
               class="garden-landscape"
@@ -680,6 +680,7 @@
               aria-label="已开花的植物，点击展开详情"
             ></div>
           </div>
+          </div>
           <p id="garden-empty" class="garden-scene-caption">
             第一朵花会种在这里。完成当前盆栽，它就会留在这座花园里。
           </p>
@@ -689,6 +690,7 @@
           <button id="garden-start" class="button quiet small" type="button">
             去看看当前盆栽
           </button>
+          <div class="garden-toolbar">
           <nav
             id="garden-pagination"
             class="garden-pagination"
@@ -703,9 +705,10 @@
             </button>
           </nav>
           <div class="garden-motion-setting">
-            <label class="garden-motion-control" for="garden-motion"><input id="garden-motion" type="checkbox" checked><span>轻柔动效</span></label>
+            <label class="garden-motion-control" for="garden-motion"><input id="garden-motion" type="checkbox" aria-describedby="garden-motion-hint" checked><span>轻柔动效</span></label>
             <span id="garden-theme-label" class="subtle"></span>
             <span id="garden-motion-hint" class="subtle">秋千微摆，偶尔有小鸟和蝴蝶来访</span>
+          </div>
           </div>
         </section>
         <section class="card garden-browser" aria-label="选择花园">
@@ -764,7 +767,7 @@
           <div id="achievement-filters" class="achievement-filters" role="group" aria-label="筛选成就">
             <button type="button" data-filter="all" aria-pressed="true">全部</button><button type="button" data-filter="blooms" aria-pressed="false">株数里程碑</button><button type="button" data-filter="species" aria-pressed="false">品种收藏</button><button type="button" data-filter="earned" aria-pressed="false">已获得</button>
           </div>
-          <p class="note-privacy">点击任意徽章，查看获得条件、进度与详情。</p>
+          <p class="note-privacy">点击查看各级条件与日期。白、银、金表示逐级收藏，已获得的等级永久保留。</p>
           <div id="achievement-list" class="achievement-list" aria-label="收藏成就"></div>
           <p class="note-privacy">成就永久保留。首次升级从当时仍在收藏的花开始核验，以后新开花继续累计；删除花朵不撤回成就。旧版本已经移除的花无法还原。</p>
           <p id="achievement-empty" class="achievement-empty" hidden>还没有符合筛选的成就，先从一朵花开始吧。</p>

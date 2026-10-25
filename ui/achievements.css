@@ -22,3 +22,14 @@
   .achievement { grid-template-columns: 28px minmax(0, 1fr); padding: 6px; min-height: 60px; gap: 0 5px; }
   .achievement-art { width: 28px; }
 }
+
+.achievement[data-metal="white"], .achievement-tier[data-metal="white"], .achievement-drawer-art[data-metal="white"] { background: #fffef9; border-color: #d9d7ca; }
+.achievement[data-metal="silver"], .achievement-tier[data-metal="silver"], .achievement-drawer-art[data-metal="silver"] { background: #eef1f5; border-color: #9caaba; }
+.achievement[data-metal="gold"], .achievement-tier[data-metal="gold"], .achievement-drawer-art[data-metal="gold"] { background: #fff3d2; border-color: #ccac57; }
+.achievement[aria-expanded="true"] { outline: 2px solid #6e8956; outline-offset: 1px; box-shadow: none; }
+.achievement-tiers { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 9px; }
+.achievement-tier { border: 1px solid; border-radius: 11px; padding: 11px; font-size: 12px; line-height: 1.8; }
+.achievement-tier strong { color: #4a5947; }
+.achievement-tier p { margin: 4px 0; color: #68765e; }
+.achievement-tier small { display: block; color: #778372; font-size: 10px; }
+.achievement-tier[data-earned="false"] { border-style: dashed; }

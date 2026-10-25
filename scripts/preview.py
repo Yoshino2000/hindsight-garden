@@ -128,7 +128,7 @@ def database_call(server, method, params):
 def seed_garden(server, params):
     """Explicit synthetic scene fixtures, available only in the development host."""
     count = params.get("count") if isinstance(params, dict) else None
-    if type(count) is not int or count not in (0, 1, 8, 26, 56, 122, 200, 1000, 5001):
+    if type(count) is not int or count not in (0, 1, 8, 26, 56, 122, 200, 500, 1000, 5001):
         raise ValueError("Choose a supported synthetic garden size")
     names = [("sunflower", "向日葵"), ("hydrangea", "绣球"), ("tulip", "郁金香"), ("daisy", "雏菊"),
              ("rose", "玫瑰"), ("lavender", "薰衣草"), ("cosmos", "波斯菊"), ("lily", "百合")]

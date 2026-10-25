@@ -206,6 +206,41 @@ showScene.addEventListener("click", () => {
   page.defaultView.scrollBy(0, -70);
 });
 document.getElementById("seed-garden").after(showScene);
+
+// Preview-only screenshot view: change the harness, never the plugin's DOM or styles.
+// F8 returns to the controls. The plugin still runs through the same sandbox/bridge.
+function screenshotMode(event) {
+  if (event?.key && event.key !== "F8") return;
+  event?.preventDefault();
+  document.body.classList.toggle("showcase");
+}
+const showPlugin = document.createElement("button");
+showPlugin.id = "show-plugin";
+showPlugin.textContent = "纯插件截图视图（F8 返回）";
+showPlugin.addEventListener("click", screenshotMode);
+showScene.after(showPlugin);
+const sectionChoice = document.createElement("select");
+sectionChoice.id = "preview-section";
+sectionChoice.setAttribute("aria-label", "截图定位区域");
+for (const [value, label] of [["#plant-form-panel", "播种表单"], [".current-pot-layout", "当前盆栽"], [".garden-island-card", "完整花园"], [".garden-browser", "花园相册"], [".collection-settings", "成就与主题"]]) {
+  const option = document.createElement("option");
+  option.value = value;
+  option.textContent = label;
+  sectionChoice.append(option);
+}
+const alignSection = document.createElement("button");
+alignSection.id = "align-section";
+alignSection.textContent = "定位所选区域（仅测试）";
+alignSection.addEventListener("click", () => {
+  const page = frame.contentDocument;
+  const section = page.querySelector(sectionChoice.value);
+  section?.scrollIntoView({ block: "start", behavior: "instant" });
+  page.defaultView.scrollBy(0, -8);
+});
+showPlugin.after(sectionChoice, alignSection);
+document.addEventListener("keydown", screenshotMode);
+frame.addEventListener("load", () => frame.contentDocument.addEventListener("keydown", screenshotMode));
+if (frame.contentDocument) frame.contentDocument.addEventListener("keydown", screenshotMode);
 document
   .getElementById("send-focus")
   .addEventListener("click", () => sendFocus());

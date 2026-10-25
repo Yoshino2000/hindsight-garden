@@ -1,10 +1,23 @@
 # Verification
 
-Version: **0.12.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.13.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
-Verified on 2026-10-25 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
+Verified across 2026-10-25/26 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.12.0 results
+## Current 0.13.0 results
+
+Verified across 2026-10-25/26 with the same local toolchain and connected Chrome. No native computer-control automation or personal database access was used.
+
+- **137 automated tests pass, no skips.** Twelve new pure-presentation cases verify thirteen cards cover all twenty original tiers without rewriting IDs, dates or input objects; white/silver/gold thresholds, timestamp zero, shuffled/missing awards, and category-first task-name suggestions with duplicate avoidance and safe length limits are covered.
+- **23 browser result records** cover random names, selected species/category/group, hand-edited names, explicit planting, a 122-flower grouped catalog, 56-flower white grade, 500-flower silver grade, the three original 250/500/1,000 conditions, Escape, filtering, week/page switching, motion toggles and reload persistence. Twenty-two checks pass. One additional early drawer measurement was taken during its unchanged 180 ms entrance animation and was superseded by a separate settled-position check; the final drawer fits the narrow viewport. Warning/error logs are empty.
+- At the normal 790-pixel scene width, the one top crop removes 43.45 pixels of empty canvas. The 816-pixel garden card is 711.75 pixels tall; page controls are on the left and motion on the right of the same row. The original SVG projection, ground/bed geometry and every sprite coordinate stay unchanged. All four complete themes were visually checked.
+- A 375 CSS-pixel body has equal client/scroll widths. The toolbar wraps naturally and stays horizontally inside the card; the settled drawer spans x=14..361, with all three tier rows. The planting form stacks with a working recommendation button. At a 705-pixel body it retains two columns. Temporary viewport changes were reset.
+- New actual browser screenshots replace current, growing, garden, album, collection, achievement, rain and dusk images, and add meadow. Crops use browser screenshot APIs; the achievement image retains its surrounding page context. All use disposable synthetic records, with a real observed matching-focus stretch in the temporary growing pot. Older drawer/guide screenshots remain explicitly historical illustrations in the detailed guide.
+- The flat icon is 256×256 and 5,800 bytes; repeated script generation is byte-identical, and 24/32-pixel previews were visually checked. No other plant or furniture PNG changed. Root README is Chinese, `README.en.md` is its English visual version; detailed upgrade/privacy rules remain linked.
+- Core/store, achievement revision, growth rules, permissions, quota and archive schema are unchanged. **The final 0.13.0 ZIP has not been installed into native Hindsight in this run.** Browser evidence is not a Windows notification test. Earlier native and long-duration limitations remain.
+
+
+## Previous 0.12.0 results
 
 - **125 automated tests pass, no skips.** Eight new permanent-achievement cases cover all 20 definitions, one-time revision-2 awards from a 0.11 collection with previously removed flowers, original timestamps including zero, contention, rollback and real host authorizer/recursive-trigger settings. Two presentation-policy tests cover category-aware plan labels and locked/unknown theme fallbacks. Growth, archive geometry and visitor scheduling retain their existing regression tests.
 - **22 connected Chrome result records** use actual host bridges, strict CSP, sandbox and isolated synthetic SQLite. The planting form uses two columns with presets/species left; the active pot uses plant/progress left and rules/task/notification right. Both sections share the same top edge, and compact view remains available. Enter in the plan-name field saves a plan without planting. Plan labels show custom text, current category and minutes; a category rename changes the displayed label.

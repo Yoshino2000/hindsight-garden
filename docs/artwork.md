@@ -52,7 +52,7 @@ Edit target: the attached five-cell daisy plant sprite strip. Change ONLY the TH
 
 ## Package icon
 
-`icon.png` is an original compact geometric flowerpot icon drawn by `scripts/make-icon.ps1`, to meet Hindsight's 256 KB icon limit. The four plant strips used in the UI are the generated illustrations above. The full-resolution generated icon study was not included in the runtime package.
+`icon.png` is an original flat flowerpot mark drawn reproducibly by `scripts/make-icon.ps1`, within Hindsight's 256 KB icon limit. Version 0.13.0 replaces the old icon with five flat colours: a pale-green rounded tile, cream flower, golden centre, green leaves and terracotta pot. It is 256×256, 5,800 bytes, and was visually checked at 32 and 24 pixels. The script uses System.Drawing primitives, no fonts, raster source, texture, gradient or shadow. Outside rounded corners are transparent. The plant strips below are separate generated illustrations; the unused full-resolution generated icon study is not part of the package.
 
 ## Version 0.3.0: two artwork roles
 

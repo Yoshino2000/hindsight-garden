@@ -31,3 +31,9 @@ Seven permissions, 64 MB and schema 2 remain. New state fields store plans, last
 The author's contribution guide at `99662a7` adds an automated listing check. After committing the listing update, run `python scripts/check_listing.py origin/main HEAD --author Yoshino2000` from the market checkout, with `origin/main` freshly fetched. The script downloads all newly listed release ZIPs and checks their manifests, hashes, permissions and icons. Fix reported problems before requesting maintainer review. Final native installation remains a separate manual verification.
 
 Version 0.12.0 keeps schema 2, seven permissions and 64 MB. Achievement catalogue revision 2 awards newly eligible badges once from the saved permanent counters and preserves older earn dates. Version 0.11.0 rejects the new achievement identifiers; close old runtimes, keep a consistent backup and do not downgrade directly. Three new transparent furniture atlases replace props only in nondefault themes; source flower/ambience images remain unchanged. Preview positioning controls, synthetic databases and tests are excluded from the ZIP.
+
+## 0.13.0 publication
+
+This is a presentation update with the same seven permissions, 64 MB, schema 2 and achievement revision 2. Related levels are grouped without replacing IDs or dates. Publish the changed flat `icon.png` byte-for-byte to the listing icon as well as the ZIP. The source's Chinese default README and English counterpart use new browser screenshots; detailed rules and compatibility information live in `docs/usage.*.md`.
+
+Before branching, fetch upstream and check the previous PR status: 0.12.0 PR #3 was merged into upstream `b11646f`, so 0.13.0 needs a new branch and update PR. Preserve every previously listed ZIP and checksum. Run the official listing check after the release is reachable. The final native-host installation remains unverified and must stay disclosed.

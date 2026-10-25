@@ -83,3 +83,8 @@ body:not(.compact) #view-current .current-window-hint { margin-bottom: 12px; fon
   body:not(.compact) #plant-form { grid-template-columns: minmax(0, 1fr); }
   body:not(.compact) #plant-form .species-options { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+.name-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+.name-heading label { font-weight: 600; }
+.name-heading .button { padding: 3px 10px; font-size: 11px; min-height: 28px; }
+#name-recommendation:empty { display: none; }

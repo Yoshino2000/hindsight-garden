@@ -120,3 +120,13 @@ Run `npm test` with Node 22.13 or later and Python 3.11 or later. The SQLite hos
 For browser checks, put Hindsight source in the sibling `Hindsight` folder, then run `python scripts/preview.py --port 8766`. The preview extracts the real `PAGE_JS` and `WORKER_JS` bridges from `src-tauri/src/plugins/file_reader.rs`; it gives the plugin the same iframe sandbox and CSP. Focus controls and captured notifications belong to the outer test page, not the packaged plugin. Every server run creates a fresh temporary database. This checks browser integration, not native installation, host capture accuracy, sleep behavior or actual OS notification display.
 
 Verification for 0.12.0 is in progress. Do not carry forward an older test count as this version's result. The final 0.12.0 ZIP has not been installed in a native Hindsight instance in this round; use the recorded checks and limits in [verification](verification.md).
+
+## 0.13.0 presentation changes
+
+`GardenCollection.achievementGroups` maps the existing twenty progress definitions onto thirteen display cards. Every tier retains its persistent ID, condition and date. Only presentation changes: core/store, achievement revision 2, counters, schema, permissions, geometry and visitor timing remain untouched. The right drawer lists all constituent tiers; grade styling is paired with text labels. The next unmet tier is shown even for an unusual incomplete award set.
+
+`GardenCollection.suggestName` combines valid category labels, or ten task presets, with the selected flower. Only an explicit `#recommend-name` button click writes the new-flower input. Current category names are resolved through the existing catalog, unavailable categories are skipped, and no persistence or planting command is issued. UTF-16 length matches the form/core limit; surrogate pairs are not cut in half.
+
+The main scene has one overflow wrapper with a negative 5.5%-of-width top margin; SVG, flowers, props, visitors and shadows move together. Miniature coordinates and geometry do not change. A wrapping toolbar places page navigation left and the motion toggle right. The motion description is visually hidden, exposed through the checkbox's `aria-describedby` and a tooltip.
+
+Preview-only controls can align a section and switch the harness into a pure-plugin screenshot view; F8 restores the controls. This changes only the surrounding test host, not the plugin's DOM/styles. It continues to use the same sandbox, strict CSP, actual bridges and disposable SQLite. These controls and fixtures do not ship. Screenshots are browser captures with simple browser-native clipping, without painted or reconstructed UI.

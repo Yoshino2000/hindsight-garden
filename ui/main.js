@@ -244,6 +244,7 @@
       : $("view-garden").dataset.theme && $("view-garden").dataset.theme !== "meadow"
         ? "小鸟约每 15–30 秒来访，蝴蝶偶尔飞舞，水面泛起微波"
         : "秋千轻摆，小鸟约每 15–30 秒来访，水面泛起微波";
+    $("garden-motion").closest(".garden-motion-setting").title = $("garden-motion-hint").textContent;
   }
 
   function compact(enabled) {
@@ -525,39 +526,40 @@
     $("view-garden").dataset.theme = chosen.id;
     if (previousTheme !== chosen.id) updateAmbience();
     $("garden-theme-label").textContent = chosen.name;
-    $("collection-summary").textContent = `${progress.filter((item) => item.earnedAt !== null).length} / ${progress.length} 枚徽章 · ${chosen.name}`;
+    const groups = GardenCollection.achievementGroups(progress);
+    $("collection-summary").textContent = `${progress.filter((item) => item.earnedAt !== null).length} / ${progress.length} 级 · ${groups.length} 组成就 · ${chosen.name}`;
     const signature = JSON.stringify([progress, chosen.id, achievementFilter]);
     if (signature === collectionSignature) return;
     collectionSignature = signature;
-    const visible = progress.filter((item) => achievementFilter === "all" ||
-      (achievementFilter === "earned" ? item.earnedAt !== null :
-        achievementFilter === "blooms" ? item.metric === "blooms" : item.metric !== "blooms"))
-      .sort((a, b) => (a.metric === "blooms" ? 0 : a.metric === "species" ? 1 : 2) -
-        (b.metric === "blooms" ? 0 : b.metric === "species" ? 1 : 2) || a.target - b.target);
+    const matches = (item, filter) => filter === "all" ||
+      (filter === "earned" ? item.earnedCount > 0 : filter === "blooms" ? item.metric === "blooms" : item.metric !== "blooms");
+    const visible = groups.filter((item) => matches(item, achievementFilter));
     for (const button of $("achievement-filters").children) {
-      button.setAttribute("aria-pressed", String(button.dataset.filter === achievementFilter));
       const filter = button.dataset.filter;
-      const count = progress.filter((item) => filter === "all" ||
-        (filter === "earned" ? item.earnedAt !== null : filter === "blooms" ? item.metric === "blooms" : item.metric !== "blooms")).length;
+      button.setAttribute("aria-pressed", String(filter === achievementFilter));
       const name = { all: "全部", blooms: "株数里程碑", species: "品种收藏", earned: "已获得" }[filter];
-      button.textContent = `${name} ${count}`;
+      button.textContent = `${name} ${groups.filter((item) => matches(item, filter)).length}`;
     }
     $("achievement-empty").hidden = visible.length !== 0;
     $("achievement-list").replaceChildren(...visible.map((item) => {
       const card = el("button", "achievement");
       card.type = "button";
       card.dataset.achievement = item.id;
-      card.dataset.earned = String(item.earnedAt !== null);
+      card.dataset.earned = String(item.earnedCount > 0);
+      card.dataset.metal = item.metal;
       card.setAttribute("aria-expanded", String(selectedAchievement === item.id));
       card.setAttribute("aria-controls", "achievement-drawer");
-      card.setAttribute("aria-label", `${item.name}，${item.earnedAt !== null ? "已获得" : `${item.current}/${item.target}`}，查看条件与详情`);
-      card.title = item.condition;
+      const level = item.currentTier?.levelName;
+      const status = item.complete ? (item.tiers.length > 1 ? `${level} · 全部达成` : "已获得 · 查看") :
+        `${level ? `${level} · ` : ""}${item.current} / ${item.target}${item.metric === "blooms" ? " 朵" : item.metric === "species" ? " 种" : ""}`;
+      card.setAttribute("aria-label", `${item.name}，${status}，查看各级条件与日期`);
+      card.title = item.nextTier?.condition || item.currentTier?.condition;
       const bar = el("progress");
       bar.max = item.target;
       bar.value = item.current;
       bar.setAttribute("aria-label", `${item.name} ${item.current}/${item.target}`);
-      card.append(achievementArtwork(item), el("span", "achievement-name", item.name),
-        el("span", "achievement-status", item.earnedAt !== null ? "已获得 · 查看" : `${item.current} / ${item.target}`), bar);
+      card.append(achievementArtwork(item.displayTier), el("span", "achievement-name", item.name),
+        el("span", "achievement-status", status), bar);
       card.addEventListener("click", () => {
         closeFlowerDrawer(false);
         selectedAchievement = item.id;
@@ -609,24 +611,35 @@
   }
 
   function renderAchievement() {
-    const item = C.achievementProgress(state).find((entry) => entry.id === selectedAchievement);
+    const item = GardenCollection.achievementGroups(C.achievementProgress(state)).find((entry) => entry.id === selectedAchievement);
     if (!item || $("view-garden").hidden) { closeAchievementDrawer(false); return; }
     const opening = $("achievement-drawer").hidden;
     const title = el("h2", "flower-detail-title", item.name);
     title.id = "achievement-detail-title";
     const art = el("div", "achievement-drawer-art");
-    art.append(achievementArtwork(item));
-    const stats = el("dl", "achievement-detail-stats");
+    art.dataset.metal = item.metal;
+    art.append(achievementArtwork(item.displayTier));
     const actual = item.metric === "blooms" ? `${state.collection.totalBlooms} 朵花` :
       item.metric === "species" ? `${state.collection.species.length} 种` : `${item.current} / 1 次首次开花`;
-    const rewards = GardenCollection.THEMES.filter((theme) => theme.achievement === item.id).map((theme) => theme.name);
-    for (const [label, value] of [["获得条件", item.condition], ["当前累计", actual],
-      ["获得状态", item.earnedAt !== null ? "已获得，永久保留" : "还在积累中"],
-      ["获得/核验日", item.earnedAt !== null ? date(item.earnedAt) : "尚未获得"],
-      ["获得内容", rewards.length ? `收藏徽章，并解锁「${rewards.join("、")}」主题` : "永久收藏徽章"]])
+    const stats = el("dl", "achievement-detail-stats");
+    for (const [label, value] of [["当前累计", actual], ["已获等级", `${item.earnedCount} / ${item.tiers.length}`],
+      ["当前等级", item.currentTier ? item.tiers.length > 1 ? item.currentTier.levelName : "已获得" : "尚未获得"],
+      ["下一目标", item.nextTier?.condition || "本组成就已全部达成"]])
       stats.append(el("dt", "", label), el("dd", "", value));
-    $("achievement-details").replaceChildren(title, art, el("p", "achievement-description", item.description), stats,
-      el("p", "note-privacy", "累计从首次核验时仍保留的收藏开始，此后新开花继续计入，删除不扣回。新成就可能根据已有永久计数补授；获得日期可能为核验日，旧版本已删除的花不能还原。"));
+    const tiers = el("ol", "achievement-tiers");
+    for (const tier of item.tiers) {
+      const row = el("li", "achievement-tier");
+      row.dataset.metal = tier.metal;
+      row.dataset.earned = String(tier.earnedAt !== null);
+      const rewards = GardenCollection.THEMES.filter((theme) => theme.achievement === tier.id).map((theme) => theme.name);
+      row.append(el("strong", "", `${item.tiers.length > 1 ? `${tier.levelName} · ` : ""}${tier.name}`),
+        el("p", "", tier.condition),
+        el("small", "", tier.earnedAt !== null ? `已获得 · ${date(tier.earnedAt)}（获得/核验日）` : `尚未获得 · ${tier.current} / ${tier.target}`));
+      if (rewards.length) row.append(el("small", "", `解锁「${rewards.join("、")}」主题`));
+      tiers.append(row);
+    }
+    $("achievement-details").replaceChildren(title, art, el("p", "achievement-description", item.displayTier.description), stats, tiers,
+      el("p", "note-privacy", "等级只是合并展示，原有条件与获得日期都保留。累计从首次核验时仍保留的收藏开始，此后新开花继续计入，删除不扣回。新成就可能按永久计数补授；获得日期可能为核验日，旧版本已删除的花不能还原。"));
     for (const button of $("achievement-list").children)
       button.setAttribute("aria-expanded", String(button.dataset.achievement === item.id));
     $("achievement-drawer").hidden = false;
@@ -1269,6 +1282,21 @@
     });
   }
 
+  function recommendName() {
+    if (!state || state.active || busy) return;
+    const input = $("plant-name-input");
+    const plantSpecies = species(document.querySelector('input[name="species"]:checked')?.value);
+    const labels = readRules("rules").filter((rule) => {
+      const catalog = catalogs[rule.type];
+      return ["category", "superCategory"].includes(rule.type) && rule.value &&
+        catalog?.loaded && !catalog.error && catalog.items.some((item) => item.id === rule.value);
+    }).map((rule) => categoryName(rule));
+    input.value = GardenCollection.suggestName(plantSpecies.name, labels, input.value);
+    input.setCustomValidity("");
+    $("name-recommendation").textContent = labels.length
+      ? "已用所选分类和当前花朵组合，可继续编辑。" : "已随机组合任务名称和当前花朵，可继续编辑。";
+  }
+
   function rawPlant() {
     return {
       name: $("plant-name-input").value,
@@ -1289,6 +1317,7 @@
 
   function resetPlantForm() {
     $("plant-form").reset();
+    $("name-recommendation").textContent = "";
     previewSpecies(C.SPECIES[0].id);
     $("rules").replaceChildren();
     ruleCounter = 0;
@@ -1465,6 +1494,7 @@
     compact(!document.body.classList.contains("compact")),
   );
   $("start-plant").addEventListener("click", openPlant);
+  $("recommend-name").addEventListener("click", recommendName);
   $("garden-start").addEventListener("click", () => tab("current", true));
   $("garden-prev").addEventListener("click", () => changeGardenPage(-1));
   $("garden-next").addEventListener("click", () => changeGardenPage(1));
