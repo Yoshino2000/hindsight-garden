@@ -330,7 +330,7 @@ test("0.14 upgrade starts at zero, keeps old achievements and progress, and requ
   assert.equal(state.active.progressMs, 5 * HOUR);
   assert.equal(state.focus, null);
   assert.deepEqual(state.earnedAchievements, JSON.parse(JSON.stringify(previous.earnedAchievements)));
-  assert.equal(state.achievementRevision, 3);
+  assert.equal(state.achievementRevision, core.ACHIEVEMENT_REVISION);
   assert.equal(achievement(state, "focus-1h").earnedAt, null);
   assert.throws(() => old.GardenCore.normalizeState(JSON.parse(host.db.prepare("SELECT value FROM garden_store WHERE key = 'state'").get().value)), /版本不支持/);
   await store.apply({ type: "boot", sessionId: SID }, 20000);
@@ -353,11 +353,11 @@ test("a persistent SQL guard also rejects a 0.14 writer that otherwise accepts t
   host.db.prepare("UPDATE garden_store SET value = ? WHERE key = 'state'").run(JSON.stringify(value));
   const before = host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get();
   const older = oldRuntime().GardenStore.createStore(host.call);
-  await assert.rejects(older.apply({ type: "notifications", enabled: false }, 5000), /保留有效生长统计/);
+  await assert.rejects(older.apply({ type: "notifications", enabled: false }, 5000), /此版本的时光花园已过期/);
   assert.deepEqual(host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get(), before);
   await current.apply({ type: "note", id: "plant", note: "新版可继续保存" }, 5000);
   const state = await current.load();
-  assert.equal(state.achievementRevision, 3);
+  assert.equal(state.achievementRevision, core.ACHIEVEMENT_REVISION);
   assert.equal(state.focusStats.totalMs, 5000);
   assert.equal(state.active.taskNote, "新版可继续保存");
 });

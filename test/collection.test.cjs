@@ -29,12 +29,12 @@ test("unknown or locked theme preferences fall back while timestamp zero remains
   assert.equal(C.theme("dusk", { "ten-blooms": 0 }).id, "dusk");
 });
 
-test("thirty-six persistent achievements become sixteen display cards without granting any locked tiers", () => {
+test("fifty-two persistent achievements become twenty-six display cards without granting any locked tiers", () => {
   assert.deepEqual(C.achievementGroups([]), []);
   const result = groups();
-  assert.equal(result.length, 16);
-  assert.equal(result.flatMap((item) => item.tiers).length, 36);
-  assert.equal(new Set(result.flatMap((item) => item.tiers.map((tier) => tier.id))).size, 36);
+  assert.equal(result.length, 26);
+  assert.equal(result.flatMap((item) => item.tiers).length, 52);
+  assert.equal(new Set(result.flatMap((item) => item.tiers.map((tier) => tier.id))).size, 52);
   assert.deepEqual(result.slice(0, 2).map((item) => item.id), ["bloom-collection", "species-collection"]);
   for (const item of result) {
     assert.equal(item.currentLevel, 0);
@@ -172,7 +172,7 @@ test("tier ordering does not depend on source order and unknown future achieveme
   assert.deepEqual(result.find((item) => item.id === "bloom-collection").tiers.map((item) => item.target), [1, 5, 10, 25, 50, 100, 250, 500, 1000]);
   const future = { id: "future-award", name: "未来徽章", metric: "blooms", target: 2000, current: 1000, earnedAt: null };
   const withFuture = C.achievementGroups([...reversed, future]);
-  assert.equal(withFuture.length, 17);
+  assert.equal(withFuture.length, 27);
   assert.equal(withFuture.find((item) => item.id === "future-award").nextTier.condition, undefined);
   assert.equal(withFuture.find((item) => item.id === "future-award").target, 2000);
 });

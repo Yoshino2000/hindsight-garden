@@ -1,7 +1,7 @@
 // Only the worker observes focus and advances growth. Page commands and worker writes use the
 // same versioned store, following the small classic-script layout used by Hindsight Focus.
 "use strict";
-importScripts("core.js", "store.js");
+importScripts("core.js", "store.js", "i18n.js");
 
 const store = GardenStore.createStore((method, params) =>
   hindsight.call(method, params),
@@ -44,7 +44,7 @@ async function run(input) {
   const result = await store.apply({ ...input, sessionId });
   for (const note of result.notes) {
     try {
-      await notify(note.body);
+      await notify(GardenI18n.message(note.body));
     } catch (error) {
       // The bloom is already saved. Never resend after a timeout: delivery may have succeeded.
       await store.apply({

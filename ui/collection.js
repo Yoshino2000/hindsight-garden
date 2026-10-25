@@ -1,43 +1,48 @@
 // Optional presentation, kept separate from growth and archive rules.
 (function (root) {
   "use strict";
+  const t = root.GardenI18n?.t || ((key, ...values) => key.replace(/\{(\d+)\}/g, (match, index) => index < values.length ? String(values[index]) : match));
 
   const THEMES = [
-    { id: "meadow", name: "草木晴日", description: "原来的清浅绿意", achievement: null, cell: null },
-    { id: "rain", name: "雨后小憩", description: "青绿色雨后花园、叶伞长椅、苔石鸟浴和陶蛙", achievement: "first-bloom", cell: 0 },
-    { id: "dusk", name: "晚灯花园", description: "紫暮花园、暖灯拱椅、木鸟屋和小小丰收角", achievement: "ten-blooms", cell: 1 },
-    { id: "blossom", name: "樱枝来信", description: "春樱和风花园、鸟居、神社石灯笼和竹筒手水钵", achievement: "all-species", cell: 2 },
+    { id: "meadow", name: t("草木晴日"), description: t("原来的清浅绿意"), achievement: null, cell: null },
+    { id: "rain", name: t("雨后小憩"), description: t("青绿色雨后花园、叶伞长椅、苔石鸟浴和陶蛙"), achievement: "first-bloom", cell: 0 },
+    { id: "dusk", name: t("晚灯花园"), description: t("紫暮花园、暖灯拱椅、木鸟屋和小小丰收角"), achievement: "ten-blooms", cell: 1 },
+    { id: "blossom", name: t("樱枝来信"), description: t("春樱和风花园、鸟居、神社石灯笼和竹筒手水钵"), achievement: "all-species", cell: 2 },
   ];
   const ACHIEVEMENT_GROUPS = [
     {
-      id: "bloom-collection", name: "花开成园",
+      id: "bloom-collection", name: t("花开成园"),
       ids: ["first-bloom", "five-blooms", "ten-blooms", "twenty-five-blooms", "fifty-blooms",
         "hundred-blooms", "two-hundred-fifty-blooms", "five-hundred-blooms", "thousand-blooms"],
       metals: ["white", "white", "blue", "blue", "purple", "purple", "gold", "gold", "rainbow"],
     },
     {
-      id: "species-collection", name: "多彩收藏", ids: ["two-species", "four-species", "all-species"],
+      id: "species-collection", name: t("多彩收藏"), ids: ["two-species", "four-species", "all-species"],
       metals: ["white", "purple", "rainbow"],
     },
     {
-      id: "focus-streak", name: "一段心流", ids: ["streak-5m", "streak-15m", "streak-25m", "streak-45m", "streak-60m"],
+      id: "focus-streak", name: t("一段心流"), ids: ["streak-5m", "streak-15m", "streak-25m", "streak-45m", "streak-60m"],
       metals: ["white", "blue", "purple", "gold", "rainbow"],
     },
     {
-      id: "focus-total", name: "时光积累", ids: ["focus-1h", "focus-5h", "focus-10h", "focus-25h", "focus-50h"],
+      id: "focus-total", name: t("时光积累"), ids: ["focus-1h", "focus-5h", "focus-10h", "focus-25h", "focus-50h"],
       metals: ["white", "blue", "purple", "gold", "rainbow"],
     },
     {
-      id: "focus-categories", name: "各有所长", ids: ["categories-2x10m", "categories-3x10m", "categories-5x10m"],
+      id: "focus-categories", name: t("各有所长"), ids: ["categories-2x10m", "categories-3x10m", "categories-5x10m"],
       metals: ["white", "purple", "rainbow"],
     },
   ];
+  ACHIEVEMENT_GROUPS.push(
+    { id: "hidden-blooms", name: t("梦色花笺"), ids: ["hidden-first", "hidden-5", "hidden-10", "hidden-25", "hidden-50"], metals: ["white", "blue", "purple", "gold", "rainbow"] },
+    { id: "hidden-species", name: t("梦色图鉴"), ids: ["hidden-species-2", "hidden-species-4", "hidden-species-8"], metals: ["white", "purple", "rainbow"] },
+  );
   const LEVEL_NAMES = {
-    none: "尚未获得", white: "白阶", blue: "蓝阶", purple: "紫阶", gold: "金阶", rainbow: "彩阶",
+    none: t("尚未获得"), white: t("白阶"), blue: t("蓝阶"), purple: t("紫阶"), gold: t("金阶"), rainbow: t("彩阶"),
   };
   const NAME_TASKS = [
-    "论文阅读", "写作整理", "课程学习", "代码创作", "项目推进",
-    "资料查阅", "娱乐休息", "游戏放松", "灵感速记", "日常充电",
+    t("论文阅读"), t("写作整理"), t("课程学习"), t("代码创作"), t("项目推进"),
+    t("资料查阅"), t("娱乐休息"), t("游戏放松"), t("灵感速记"), t("日常充电"),
   ];
 
   function theme(value, earned = {}) {
@@ -49,19 +54,19 @@
   function totalTime(ms) {
     const minutes = Math.floor(Math.max(0, Number(ms) || 0) / 60000);
     return minutes >= 60
-      ? `${Math.floor(minutes / 60)} 小时${minutes % 60 ? ` ${minutes % 60} 分` : ""}`
-      : `${minutes} 分钟`;
+      ? t("{0} 小时{1}", Math.floor(minutes / 60), minutes % 60 ? t(" {0} 分", minutes % 60) : "")
+      : t("{0} 分钟", minutes);
   }
 
   function planLabel(plan, categoryName = () => "") {
     const labels = (plan.rules || []).map((rule) => {
       if (["category", "superCategory"].includes(rule.type))
-        return categoryName(rule) || rule.label || rule.value || "待选类别";
-      return `${rule.type === "app" ? "程序" : "网站"} ${rule.value || "待填写"}`;
+        return categoryName(rule) || rule.label || rule.value || t("待选类别");
+      return `${rule.type === "app" ? t("程序") : t("网站")} ${rule.value || t("待填写")}`;
     });
     const duration = Number.isSafeInteger(Number(plan.targetMinutes)) && Number(plan.targetMinutes) > 0
-      ? `${plan.targetMinutes} 分钟` : "待定时长";
-    return `${plan.name?.trim() || "未命名方案"} · ${[...new Set(labels)].join("、") || "待选类别"} · ${duration}`;
+      ? t("{0} 分钟", plan.targetMinutes) : t("待定时长");
+    return `${plan.name?.trim() || t("未命名方案")} · ${[...new Set(labels)].join("、") || t("待选类别")} · ${duration}`;
   }
 
   // Grouping is presentation only: every tier retains its own persistent id and earn date.
@@ -132,13 +137,14 @@
   }
 
   function suggestName(speciesName, categoryLabels = [], previousName = "", random = Math.random) {
-    const flower = typeof speciesName === "string" && speciesName.trim() ? speciesName.trim() : "小花";
+    const flower = typeof speciesName === "string" && speciesName.trim() ? speciesName.trim() : t("小花");
     const categories = [...new Set((Array.isArray(categoryLabels) ? categoryLabels : [])
       .filter((value) => typeof value === "string").map((value) => value.trim()).filter(Boolean))];
     const candidates = [...new Set((categories.length ? categories : NAME_TASKS).map((task) => {
       const firstTaskLength = [...task][0].length;
-      const suffix = truncateName(flower, 39 - firstTaskLength);
-      return truncateName(task, 39 - suffix.length) + "的" + suffix;
+      const joiner = t("的");
+      const suffix = truncateName(flower, 40 - joiner.length - firstTaskLength);
+      return truncateName(task, 40 - joiner.length - suffix.length) + joiner + suffix;
     }))];
     const previous = typeof previousName === "string" ? previousName.trim() : "";
     const different = candidates.filter((value) => value !== previous);

@@ -11,12 +11,12 @@
 }
 #view-garden[data-theme="dusk"] {
   --theme-props: url("../assets/collection/props-dusk.png");
-  --ground-a: #ccc2db; --ground-b: #a99fbf; --ground-edge: #a097b4;
-  --face-left-a: #9d95af; --face-left-b: #7e7596; --face-right-a: #8c829f; --face-right-b: #69617f;
-  --soil: #b8b0c1; --grid: #9d93ad; --bed-rim: #cbbda9; --bed-line: #a7998e;
-  --water-a: #b7c1e3; --water-b: #8d99c8; --pond-rim: #d9d6e2;
-  --fence: #ede4dd; --fence-line: #bdb2b9; --stones: #e2d6c6; --stone-line: #b7aab2;
-  --leaf-a: #c8bfd3; --leaf-b: #9d95b0; --ground-shadow: #565071;
+  --ground-a: #b9afca; --ground-b: #948aa9; --ground-edge: #8e83a3;
+  --face-left-a: #8e849f; --face-left-b: #736982; --face-right-a: #7d728f; --face-right-b: #5e546f;
+  --soil: #a89db5; --grid: #8e819f; --bed-rim: #c1ae99; --bed-line: #998879;
+  --water-a: #a5b2d9; --water-b: #7988b7; --pond-rim: #cbc6d6;
+  --fence: #e3d7d5; --fence-line: #ada0ad; --stones: #d6c7b9; --stone-line: #a998a7;
+  --leaf-a: #b8aecd; --leaf-b: #847993; --ground-shadow: #4d455f;
 }
 #view-garden[data-theme="blossom"] {
   --theme-props: url("../assets/collection/props-blossom.png");
@@ -28,10 +28,14 @@
   --leaf-a: #e5ccd0; --leaf-b: #cfaab4; --ground-shadow: #72775a;
 }
 body:has(#view-garden[data-theme="rain"]:not([hidden])) { background: radial-gradient(ellipse at 85% 0%, #cfdfdd, transparent 65%), #edf4ef; }
-body:has(#view-garden[data-theme="dusk"]:not([hidden])) { background: radial-gradient(ellipse at 85% 0%, #d9d3e6, transparent 65%), #f2eef5; }
+body:has(#view-garden[data-theme="dusk"]:not([hidden])) { background: radial-gradient(ellipse at 85% 0%, #c3b8d4, transparent 65%), #e4deea; }
 body:has(#view-garden[data-theme="blossom"]:not([hidden])) { background: radial-gradient(ellipse at 85% 0%, #f2dce0, transparent 65%), #fbf4ef; }
 #view-garden[data-theme="rain"] .garden-island-card { background: linear-gradient(150deg, #e8f1ed, #dbe9e5); border-color: #c5d9cc; }
-#view-garden[data-theme="dusk"] .garden-island-card { background: linear-gradient(150deg, #f1e9ef, #deddee); border-color: #d4c9df; }
+#view-garden[data-theme="dusk"] .garden-island-card { background: linear-gradient(150deg, #d8cede, #bfb8d2); border-color: #b4a7c4; }
+#view-garden[data-theme="dusk"] .garden-heading .eyebrow,
+#view-garden[data-theme="dusk"] .garden-scene-caption,
+#view-garden[data-theme="dusk"] .garden-toolbar .subtle,
+#view-garden[data-theme="dusk"] .garden-motion-control { color: #51445e; }
 #view-garden[data-theme="blossom"] .garden-island-card { background: linear-gradient(150deg, #fff1ed, #f1e6df); border-color: #e4ccca; }
 #view-garden:not([data-theme="meadow"]) [id$="grass-top"] stop:first-child { stop-color: var(--ground-a); }
 #view-garden:not([data-theme="meadow"]) [id$="grass-top"] stop:last-child { stop-color: var(--ground-b); }

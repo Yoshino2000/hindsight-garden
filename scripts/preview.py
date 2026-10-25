@@ -19,10 +19,10 @@ from urllib.parse import urlsplit
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 HINDSIGHT_SOURCE = PLUGIN_ROOT.parent / "Hindsight" / "src-tauri" / "src" / "plugins" / "file_reader.rs"
 FILES = {
-    "manifest.json", "background.js", "core.js", "store.js", "garden-layout.js",
+    "manifest.json", "background.js", "core.js", "store.js", "garden-layout.js", "i18n.js",
     "ui/index.html", "ui/style.css", "ui/album.css", "ui/drawer.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js", "ui/collection.js", "ui/features.css",
     "assets/collection/milestones.png", "assets/collection/themes.png",
-    "ui/compact.css", "ui/achievements.css", "ui/themes.css", "ui/theme-effects.css", "ui/pond.css", "ui/focus.css", "ui/focus-status.js",
+    "ui/compact.css", "ui/achievements.css", "ui/themes.css", "ui/theme-effects.css", "ui/pond.css", "ui/focus.css", "ui/focus-status.js", "ui/variants.js", "ui/variants.css",
     *(f"assets/collection/props-{theme}.png" for theme in ("rain", "dusk", "blossom")),
     "icon.png", "assets/sunflower.png", "assets/hydrangea.png",
     "assets/tulip.png", "assets/daisy.png",
@@ -128,7 +128,7 @@ def database_call(server, method, params):
 def seed_garden(server, params):
     """Explicit synthetic scene fixtures, available only in the development host."""
     count = params.get("count") if isinstance(params, dict) else None
-    if type(count) is not int or count not in (0, 1, 8, 26, 56, 122, 200, 500, 1000, 5001, 18, 36):
+    if type(count) is not int or count not in (0, 1, 8, 26, 56, 122, 200, 500, 1000, 5001, 18, 36, 16):
         raise ValueError("Choose a supported synthetic garden size")
     names = [("sunflower", "向日葵"), ("hydrangea", "绣球"), ("tulip", "郁金香"), ("daisy", "雏菊"),
              ("rose", "玫瑰"), ("lavender", "薰衣草"), ("cosmos", "波斯菊"), ("lily", "百合")]
@@ -137,7 +137,10 @@ def seed_garden(server, params):
     for index in range(count):
         species, name = names[index % len(names)]
         at = base + index * 3600000
-        if count == 18:
+        if count == 16:
+            # Explicit normal/hidden pairs, not a simulated random distribution.
+            at = int(time.time() * 1000) - 3600000 + index * 1000
+        elif count == 18:
             # One bloom per week for 18 weeks: four bounded week-index pages.
             current = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
             monday = current - timedelta(days=current.weekday())
@@ -155,10 +158,15 @@ def seed_garden(server, params):
             slot = index if index < 32 else (index - 32) % 30
             at = int((monday - timedelta(days=group * 7) + timedelta(minutes=slot * 30)).timestamp() * 1000)
         garden.append({"id": f"demo-{index:03d}", "name": f"演示{name}{index + 1}", "species": species,
-                       "createdAt": at, "bloomAt": at + 1800000, "targetMs": 1800000, "progressMs": 1800000})
+                       "createdAt": at, "bloomAt": at + 1800000, "targetMs": 1800000, "progressMs": 1800000,
+                       **({"variant": "hidden" if index >= 8 else "normal"} if count == 16 else {})})
     state = {"schema": 1, "paused": False, "notify": False, "active": None, "garden": garden,
              "focus": None, "lastAt": None, "sessionId": None, "interruption": None,
              "heartbeatAt": None, "lastPenalty": None, "lastBloom": None, "lastError": None}
+    if count == 16:
+        # This fixture deliberately contains every hidden color; it is not a probability sample.
+        state["hiddenCollection"] = {"totalBlooms": 8, "species": [item[0] for item in names],
+                                     "verifiedAt": int(time.time() * 1000)}
     if count == 36:
         # Explicit display fixture, never inferred from the flowers or the user's activity.
         state["focusStats"] = {

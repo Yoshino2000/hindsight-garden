@@ -1,0 +1,23 @@
+.garden-flower[data-variant="hidden"]::after { content: "✧"; position: absolute; right: 6%; top: 6%; color: #b399d4; font-size: clamp(7px, 1.5vw, 13px); text-shadow: 0 0 2px #fff; pointer-events: none; }
+.garden-miniature .garden-flower[data-variant="hidden"]::after { display: none; }
+.variant-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border: 1px solid #d3c3e3; border-radius: 99px; background: #f5edff; color: #71508a; font-size: 11px; margin: 0 0 8px; }
+.flower-detail-art > .garden-flower-art { width: 135px; height: 135px; display: block; margin: auto; }
+.achievement-art[data-variant="hidden"] { background-image: none; aspect-ratio: 1; }
+.achievement-art[data-variant="hidden"] > svg { width: 100%; height: 100%; }
+.hidden-collection-status { font-size: 11px; line-height: 1.8; color: #80638e; }
+.variant-explainer { font-size: 11px; line-height: 1.8; color: var(--muted); margin: 9px 0 0; }
+html:lang(en) .garden-heading h2 { font-size: clamp(15px, 2vw, 22px); }
+html:lang(en) .garden-page-label { white-space: normal; }
+html:lang(en) .garden-jump { flex-wrap: wrap; }
+html:lang(en) .theme-card strong { font-size: 12px; }
+html:lang(en) .collection-settings > summary::after { content: "Expand"; }
+html:lang(en) .collection-settings[open] > summary::after { content: "Collapse"; }
+html:lang(ja) .collection-settings > summary::after { content: "開く"; }
+html:lang(ja) .collection-settings[open] > summary::after { content: "閉じる"; }
+@media (max-width: 520px) {
+  html:lang(en) .garden-heading { flex-wrap: wrap; }
+  html:lang(en) .garden-heading-settings { margin-left: auto; }
+  html:lang(en) .garden-pagination { gap: 4px; font-size: 10px; }
+  html:lang(en) .garden-pagination button { padding-inline: 6px; font-size: 10px; }
+  html:lang(en) .garden-interaction-hint { font-size: 10px; }
+}

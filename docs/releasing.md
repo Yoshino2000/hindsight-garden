@@ -2,7 +2,7 @@
 
 Follow the author's [CONTRIBUTING.md](https://github.com/Tomotsugu-dev/hindsight-plugins/blob/main/CONTRIBUTING.md). Building locally does not publish anything.
 
-1. Finish the checks in `verification.md`. Record actual results and outstanding limits. Install the final ZIP into a real, isolated Hindsight instance.
+1. Finish the applicable checks in `verification.md` and record actual results and outstanding limits. Native coverage requires installing the final ZIP in a real, isolated Hindsight instance; when that check is not performed, state it explicitly in the prerelease and PR rather than treating browser or earlier-version checks as a substitute.
 2. Keep source public in a repository owned by the submitter. For the planned repository name, generated metadata uses `Yoshino2000/hindsight-garden`; change it before publishing if the owner/name differs.
 3. Set a new three-number version in `manifest.json` and `package.json`, then run tests and `python scripts/package.py`.
 4. Publish a GitHub Release in the source repository, with the ZIP and SHA-256 file as release assets. Mark development releases as prereleases while iteration continues. An issue attachment is not a valid market download URL.
@@ -49,3 +49,17 @@ The week index uses `GardenLayout.weekPage` with five chronological entries per 
 ## 0.15.0 observed statistics
 
 `focusStats` is a bounded CAS-protected hot-state object, initialized at upgrade without historical backfill. Achievement revision 3 adds sixteen conditions to the original twenty. A persistent SQL guard rejects older writers that drop these records; close older runtimes and use a consistent pre-upgrade backup for rollback. Seven permissions, 64 MB and archive schema 2 remain. `ui/focus-status.js` explains the worker decision without observing activity itself; `ui/focus.css` styles its UI and statistics. `ui/pond.css` supplies shared clipped water motion; the existing theme layer has eleven fixed decorative nodes. Package these modules and [0.15 notes](features-0150.md). See [verification](verification.md) for current evidence and native limitations.
+
+## 0.16.0 publication
+
+Publish as a development prerelease: basic functionality is usable, iteration continues, and testing is not exhaustive. Record 52 achievement levels in 26 cards, sixteen new permanent hidden-color conditions and automatic Simplified Chinese/English/Japanese interfaces. Language fallback is `zh*` → Simplified Chinese, `ja*` → Japanese, otherwise English. User-authored names/notes and Hindsight category labels are not rewritten.
+
+Achievement revision 4 and hidden state are new; archive schema 2, seven permissions and 64 MB remain. Explain the persisted per-plant lottery ticket and bloom-time reveal, independent 5% chance without a guaranteed drop, unchanged probability across species/durations, no reroll for old mature flowers, and permanent hidden counters after deletion. Retain the original 36 conditions and their earned dates. Versions through 0.15.0 are incompatible writers/readers: close old pages/workers and require a consistent pre-upgrade backup for rollback.
+
+The allowlist must include `i18n.js`, `ui/variants.js`, `ui/variants.css`, the existing shared pond/theme modules and `docs/features-0160.md`. Hidden palettes are code-defined SVG recoloring, not newly generated AI images; preserve all original 29 plant/scenery PNGs and previously released ZIP hashes. Copy the new 256-pixel transparent green-line `icon.png` (5,448 bytes) byte-for-byte into the listing icon. Keep the manifest identity, permissions and quota exactly matched to the market entry.
+
+Include the current `hidden-colors.jpg`, `hidden-detail.jpg`, `interface-en.jpg`, `interface-ja.jpg` and refreshed theme/collection screenshots. Label the eight-normal/eight-hidden image as a manually arranged visual comparison, not a probability sample. The English/Japanese images show actual localized plugin pages in the isolated simulated host; some older planting, growing and guide examples remain Chinese. Do not describe a screenshot as native-host proof or paint a translated replacement UI.
+
+The recorded evidence is 194 passing automated tests, connected-Chrome English/Japanese/French-fallback and narrow-layout checks, and natural rain/lighting observation. No personal Hindsight database was read or written. The final ZIP has not been installed in native Hindsight, and OS bloom notification delivery is unverified. Page-language simulation affects the page, while the worker remained in the local Chinese environment; only independent VM tests verified English/Japanese/fallback notification templates. Keep that distinction in the release and PR, without claiming a successful English notification in Chrome or the OS.
+
+Before submission, fetch upstream and inspect the current PR state. Update the applicable open listing PR, or create a fresh update branch when the prior one has merged; avoid duplicate submissions. Verify the public ZIP/hash, run the author's current listing check, preserve every prior version, and retain the development/testing limitations in the final description.

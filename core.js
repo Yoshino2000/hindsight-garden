@@ -3,7 +3,8 @@
   "use strict";
 
   const MAX_GAP_MS = 10000;
-  const ACHIEVEMENT_REVISION = 3;
+  const ACHIEVEMENT_REVISION = 4;
+  const HIDDEN_CHANCE = 0.05;
   const FOCUS_CATEGORY_LIMIT = 24;
   const CATEGORY_GOAL_MS = 10 * 60000;
   const SPECIES = [
@@ -128,6 +129,25 @@
       ...item, metric: "focusRatio", target: 100, badge: 3, sinceStats: true,
       condition: `从有效生长统计开始后，总计至少 ${item.minTotalMs / 3600000} 小时；至少 ${item.requiredCategories} 个单列分类各占总有效生长时间的 ${item.sharePercent}%。总量包含未分类和「其他」，它们不作为合格分类。`,
       description: "进度条表示时长门槛与比例条件的共同完成度，不是实际分类百分比。达成后永久保留，之后比例变化不会撤回。",
+    })),
+    ...[1, 5, 10, 25, 50].map((count) => ({
+      id: count === 1 ? "hidden-first" : `hidden-${count}`,
+      name: count === 1 ? "初见梦色" : `${count} 朵梦色花`, metric: "hiddenBlooms",
+      target: count, badge: 3, variant: "hidden", sinceHidden: true,
+      condition: `累计成功开出 ${count} 朵隐藏配色花朵。每朵完成时独立有 5% 概率获得隐藏配色。`,
+      description: "偶然遇到不同的颜色，也留住了同样认真积累的一段时间。删除花朵不撤回已获得的成就。",
+    })),
+    ...[2, 4, 8].map((count) => ({
+      id: `hidden-species-${count}`, name: `${count} 种梦色收藏`, metric: "hiddenSpecies",
+      target: count, badge: 2, variant: "hidden", sinceHidden: true,
+      condition: `收集到 ${count} 种曾经开花的隐藏配色植物。普通配色不计入隐藏品种数。`,
+      description: "慢慢遇见不同品种的隐藏配色，不需要改变原本的种植节奏。",
+    })),
+    ...SPECIES.map((item) => ({
+      id: `hidden-${item.id}-first`, name: `梦色${item.name}初绽`, metric: "hiddenSpeciesBloom",
+      species: item.id, target: 1, badge: null, variant: "hidden", sinceHidden: true,
+      condition: `至少让一株${item.name}开花，并获得它的隐藏配色。`,
+      description: `这株${item.name}留住了一次特别的相遇。旧版已开花的普通配色不会重新抽取。`,
     })),
   ];
 
@@ -328,6 +348,7 @@
       plans: [],
       lastPlanting: null,
       collection: null,
+      hiddenCollection: null,
       earnedAchievements: {},
       achievementRevision: ACHIEVEMENT_REVISION,
       focusStats: null,
@@ -380,6 +401,16 @@
         Object.keys(value).some((id) => !ACHIEVEMENTS.some((item) => item.id === id)))
       throw new Error("已保存的收藏成就格式不正确。");
     return Object.fromEntries(Object.entries(value).map(([id, at]) => [id, timestamp(at)]));
+  }
+
+  function variantOf(plant) {
+    return plant?.variant === "hidden" ? "hidden" : "normal";
+  }
+
+  function variantFromRoll(value) {
+    if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value >= 1)
+      throw new Error("隐藏配色随机签不正确，已停止操作以保留原数据。");
+    return value < HIDDEN_CHANCE ? "hidden" : "normal";
   }
 
   function counter(value) {
@@ -481,6 +512,7 @@
 
   function achievementProgress(state) {
     const collection = state.collection;
+    const hidden = state.hiddenCollection;
     const stats = state.focusStats;
     return ACHIEVEMENTS.map((item) => {
       let current = 0;
@@ -488,6 +520,9 @@
       if (item.metric === "blooms") current = collection?.totalBlooms || 0;
       else if (item.metric === "species") current = collection?.species.length || 0;
       else if (item.metric === "speciesBloom") current = Number(collection?.species.includes(item.species) || false);
+      else if (item.metric === "hiddenBlooms") current = hidden?.totalBlooms || 0;
+      else if (item.metric === "hiddenSpecies") current = hidden?.species.length || 0;
+      else if (item.metric === "hiddenSpeciesBloom") current = Number(hidden?.species.includes(item.species) || false);
       else if (item.metric === "focusStreak") current = stats?.longestMs || 0;
       else if (item.metric === "focusTotal") current = stats?.totalMs || 0;
       else if (item.metric === "focusCategories") current =
@@ -530,6 +565,8 @@
     } : state;
     const next = {
       ...base,
+      hiddenCollection: state.hiddenCollection == null
+        ? savedCollection({ totalBlooms: 0, species: [], verifiedAt: now }) : state.hiddenCollection,
       achievementRevision: ACHIEVEMENT_REVISION,
       earnedAchievements: savedAchievements(state.earnedAchievements),
     };
@@ -578,6 +615,11 @@
     if (value.taskNote !== undefined) base.taskNote = taskNoteOf(value.taskNote);
     if (!SPECIES.some((item) => item.id === base.species))
       throw new Error("已保存的植物品种不正确。");
+    if (value.variant !== undefined) {
+      if (!["normal", "hidden"].includes(value.variant))
+        throw new Error("已保存的植物配色不支持，请保留数据并使用最新版。");
+      base.variant = value.variant;
+    }
     if (mature) {
       if (base.progressMs !== targetMs)
         throw new Error("收藏植物尚未完成生长。");
@@ -588,6 +630,10 @@
       ...value,
       targetMinutes: targetMs / 60000,
     });
+    if (value.variantRoll !== undefined) {
+      variantFromRoll(value.variantRoll);
+      base.variantRoll = value.variantRoll;
+    }
     return { ...base, taskNote: settings.taskNote, rules: settings.rules, penalty: settings.penalty };
   }
 
@@ -656,6 +702,7 @@
     }
     state.lastPlanting = value.lastPlanting == null ? null : plantingSettings(value.lastPlanting);
     state.collection = savedCollection(value.collection);
+    state.hiddenCollection = savedCollection(value.hiddenCollection);
     state.earnedAchievements = savedAchievements(value.earnedAchievements);
     state.achievementRevision = value.achievementRevision === undefined ? 0 : integer(
       value.achievementRevision, 0, ACHIEVEMENT_REVISION,
@@ -727,12 +774,18 @@
       targetMs: plant.targetMs,
       progressMs: plant.targetMs,
       taskNote: plant.taskNote || "",
+      variant: plant.variantRoll === undefined ? "normal" : variantFromRoll(plant.variantRoll),
     };
     state.garden.unshift(mature);
     state.collection.totalBlooms = integer(state.collection.totalBlooms + 1, 1,
       Number.MAX_SAFE_INTEGER, "收藏成就数量超出可保存范围。");
     if (!state.collection.species.includes(mature.species))
       state.collection.species.push(mature.species);
+    if (mature.variant === "hidden") {
+      state.hiddenCollection.totalBlooms = counter(state.hiddenCollection.totalBlooms + 1);
+      if (!state.hiddenCollection.species.includes(mature.species))
+        state.hiddenCollection.species.push(mature.species);
+    }
     state.active = null;
     state.interruption = null;
     endFocusStreak(state);
@@ -799,7 +852,7 @@
     timestamp(now);
     if (state.collection === null) state = initializeCollection(state, state.garden.length,
       state.garden.map((plant) => plant.species), now);
-    else if (state.achievementRevision < ACHIEVEMENT_REVISION || state.focusStats === null)
+    else if (state.achievementRevision < ACHIEVEMENT_REVISION || state.focusStats === null || state.hiddenCollection === null)
       state = refreshAchievements(state, now);
     if (!input || typeof input !== "object")
       throw new Error("花园操作不正确。");
@@ -865,6 +918,10 @@
           createdAt: now,
           progressMs: 0,
         };
+        if (input.variantRoll !== undefined) {
+          variantFromRoll(input.variantRoll);
+          state.active.variantRoll = input.variantRoll;
+        }
         state.lastPlanting = plantingSettings(input.plant);
         state.interruption = null;
         state.lastPenalty = null;
@@ -957,6 +1014,7 @@
     SPECIES,
     ACHIEVEMENTS,
     ACHIEVEMENT_REVISION,
+    HIDDEN_CHANCE,
     FOCUS_CATEGORY_LIMIT,
     MAX_GAP_MS,
     initialState,
@@ -972,6 +1030,8 @@
     refreshAchievements,
     initialFocusStats,
     focusSummary,
+    variantOf,
+    variantFromRoll,
     matches,
     stage,
     reduce,

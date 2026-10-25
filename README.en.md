@@ -6,9 +6,19 @@
 
 Let a little everyday time become a garden. A third-party [Hindsight](https://github.com/Tomotsugu-dev/Hindsight) plugin that grows flowers from matching foreground activity, using your existing categories.
 
-**[Download 0.15.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.15.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
+**[Download 0.16.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.16.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
 
 ![A complete garden with its own furniture, compact navigation and motion controls](docs/screenshots/garden.jpg)
+
+## A little surprise at bloom
+
+Each of the eight flowers has one hidden palette, with an independent **5%** chance per bloom. Keep it in the garden and album permanently. Older blooms keep their original colors; there is no guaranteed drop.
+
+![Eight original and eight hidden palettes, arranged for comparison](docs/screenshots/hidden-colors.jpg)
+
+This is a manually arranged palette demonstration, not a probability sample.
+
+![A hidden flower's details and task memory](docs/screenshots/hidden-detail.jpg)
 
 ## Choose a flower, plant a little hope
 
@@ -20,7 +30,7 @@ Eight plants. Pick an existing Hindsight category; the recommendation button com
 
 Cumulative mode is the default: switching away pauses growth. Progress sits beside the rules, task note and optional bloom notification. Interruption deductions are available if you choose them.
 
-![The current pot with its progress and settings side by side](docs/screenshots/growing.png)
+![Live English interface: a one-minute plant growing beside its rules and task memory](docs/screenshots/interface-en.jpg)
 
 ## Understand why growth pauses
 
@@ -36,7 +46,7 @@ Completed flowers stay in weekly albums, splitting into another garden after 25 
 
 ## Collect five colours of memories
 
-Thirty-six achievement levels fit into sixteen cards. All nine bloom milestones share one card with white, blue, purple, gold and rainbow badge colours. Cards stay white until every level is earned, then turn pale yellow. New levels cover uninterrupted stretches, total effective growth, category variety and category shares. Statistics begin at upgrade, without reconstructing old activity. Open one for its conditions, progress and dates.
+Fifty-two permanent achievement levels fit into twenty-six cards, including sixteen new hidden-collection conditions. White, blue, purple, gold and rainbow badges keep each level's record. Open a card for conditions, progress and dates. Removing flowers does not revoke earned achievements.
 
 ![Compact achievement cards and four complete garden themes](docs/screenshots/collection.jpg)
 
@@ -44,7 +54,7 @@ Thirty-six achievement levels fit into sixteen cards. All nine bloom milestones 
 
 ## Change the garden's mood
 
-Meadow keeps its gently swaying swing. Rain adds leaf-tip drops, dusk adds ground light and occasional fireflies, and blossom adds petals falling from the scene top and fading on the lawn, plus lantern light. Each has its own palette and furniture. All four themes have expanding pond ripples and subtly drifting lily pads. Small birds and butterflies visit quietly; motion is optional.
+Meadow keeps its gentle swing. Light rain falls continuously in the rain theme and makes small splashes on the lawn. Dusk is a little darker, with three warm lamps and occasional fireflies. Blossom petals settle and fade on the grass. All four themes have expanding pond ripples and drifting lily pads; motion is optional.
 
 | Meadow | After the rain |
 | :--: | :--: |
@@ -52,10 +62,16 @@ Meadow keeps its gently swaying swing. Rain adds leaf-tip drops, dusk adds groun
 | **Lantern dusk** | **Blossom letter** |
 | ![Dusk garden with warm lanterns and a birdhouse](docs/screenshots/dusk.jpg) | ![Blossom garden with a torii, stone lanterns and washbasin](docs/screenshots/garden.jpg) |
 
+## Your interface language, your own words
+
+The interface follows the environment language: Simplified Chinese, English or Japanese, with English as the fallback. Flower names, task memories and Hindsight category names keep their original text.
+
+![Live Japanese interface showing hidden-collection achievements](docs/screenshots/interface-ja.jpg)
+
 ## Get started
 
 Download the ZIP and install it in Hindsight **Settings → Plugins**, then open **时光花园**. Requires Hindsight 0.10.0+; market installation requires 0.10.2+. Back up your data before updating. See the [detailed guide](docs/usage.en.md) for compatibility and rollback information.
 
-**Development is ongoing. Basic functionality is usable, but testing is not exhaustive and problems or risks may remain.** Screenshots show the actual plugin UI in connected Chrome with an isolated simulated host and demonstration data; they do not prove native Hindsight installation or Windows notification behavior. The runtime makes no network requests and stores data locally. Removing plugin data during uninstall removes the garden too. The UI shown in these screenshots is Chinese.
+**Development is ongoing. Basic functionality is usable, but testing is not exhaustive and problems or risks may remain.** All 194 automated tests pass. Screenshots show the actual plugin UI in connected Chrome with an isolated simulated host and demonstration data. The new English and Japanese captures show the localized UI; some earlier planting, growth and guide examples remain Chinese. The final ZIP has not been installed in native Hindsight, and OS notification delivery is unverified. The runtime makes no network requests and stores data locally. Removing plugin data during uninstall removes the garden too.
 
 [Permissions and data](docs/usage.en.md#data-and-permissions) · [Development](docs/development.md) · [Artwork](docs/artwork.md) · [Verification](docs/verification.md) · [MIT](LICENSE)

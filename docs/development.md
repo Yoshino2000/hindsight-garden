@@ -13,6 +13,7 @@ The reference plugin is [Focus](https://github.com/Tomotsugu-dev/hindsight-focus
 | `background.js` | Serialize fresh focus events and timer ticks; deliver bloom notifications after persistence |
 | `core.js` | Pure matching, growth, interruption, planting plans, task notes and persistent milestones |
 | `store.js` | Parameter-bound SQLite archives, version-checked hot-state writes and atomic schema migration |
+| `i18n.js` | Offline Chinese/English/Japanese UI, metadata and notification-template translations shared with the worker |
 | `ui/main.js` | DOM UI, validated commands and polling |
 | `ui/plant-guide.js` | Offline origin, story, cultural meaning and source data for eight plants |
 | `ui/collection.js` | Theme definitions, unlock lookup and completed-goal time formatting |
@@ -23,6 +24,10 @@ The reference plugin is [Focus](https://github.com/Tomotsugu-dev/hindsight-focus
 | `ui/compact.css` | Denser two-column current-pot and planting layouts, excluding compact-pot mode |
 | `ui/achievements.css` | Filterable compact achievement list and its nonmodal detail drawer |
 | `ui/themes.css` | Complete scene palettes, replacement props and static miniature equivalents |
+| `ui/theme-effects.css` | Bounded CSS-only rain, splashes, lamplight, fireflies and falling petals |
+| `ui/pond.css` | Clipped ripples, reflections and independently drifting lily pads for all themes |
+| `ui/focus-status.js`, `ui/focus.css` | Explain matching and display bounded observed-growth statistics |
+| `ui/variants.js`, `ui/variants.css` | Selective SVG petal palettes, hidden markers and detail presentation |
 | `ui/drawer.css` | Nonmodal right-side flower-detail overlay |
 | `garden-layout.js` | Pure local-week grouping/review, album pages and stable center-out positions, 25 flowers per garden |
 | `assets/*.png` | Eight high-definition five-stage potted plant strips for growth and selection |
@@ -119,7 +124,7 @@ Run `npm test` with Node 22.13 or later and Python 3.11 or later. The SQLite hos
 
 For browser checks, put Hindsight source in the sibling `Hindsight` folder, then run `python scripts/preview.py --port 8766`. The preview extracts the real `PAGE_JS` and `WORKER_JS` bridges from `src-tauri/src/plugins/file_reader.rs`; it gives the plugin the same iframe sandbox and CSP. Focus controls and captured notifications belong to the outer test page, not the packaged plugin. Every server run creates a fresh temporary database. This checks browser integration, not native installation, host capture accuracy, sleep behavior or actual OS notification display.
 
-Current results and version-specific limits are recorded in [verification](verification.md). The final 0.14.0 ZIP has not been installed in a native Hindsight instance in this round; older test counts and browser previews do not establish native verification of this build.
+Current results and version-specific limits are recorded in [verification](verification.md). All 194 automated tests pass for 0.16.0. The final 0.16.0 ZIP has not been installed in native Hindsight in this round; browser previews and VM notification-template checks do not establish native installation or OS notification delivery.
 
 ## 0.13.0 presentation changes
 
@@ -142,3 +147,21 @@ The week index uses `GardenLayout.weekPage` with five chronological entries per 
 ## 0.15.0 observed statistics
 
 `focusStats` is a bounded CAS-protected hot-state object, initialized at upgrade without historical backfill. Achievement revision 3 adds sixteen conditions to the original twenty. A persistent SQL guard rejects older writers that drop these records; close older runtimes and use a consistent pre-upgrade backup for rollback. Seven permissions, 64 MB and archive schema 2 remain. `ui/focus-status.js` explains the worker decision without observing activity itself; `ui/focus.css` styles its UI and statistics. `ui/pond.css` supplies shared clipped water motion; the existing theme layer has eleven fixed decorative nodes. Package these modules and [0.15 notes](features-0150.md). See [verification](verification.md) for current evidence and native limitations.
+
+## 0.16.0 hidden palettes and localization
+
+Achievement revision 4 adds sixteen permanent hidden-color conditions to the original 36, for 52 levels in 26 presentation cards. New counters use `hiddenCollection`; existing earned timestamps are preserved, and deleting an archived flower does not decrement hidden totals or discovered species. Ordinary historical blooms are not reinterpreted as hidden discoveries. The archive schema, seven permissions and 64 MB allowance are unchanged. Versions through 0.15.0 cannot safely read or write the new state; update with older pages/workers closed and keep a consistent pre-upgrade backup for rollback.
+
+The store supplies one `variantRoll` in `[0, 1)` when a new plant is committed, or when upgrading an older active plant without a ticket. A request keeps the same candidate through CAS retries, and a migration rereads a winning persisted candidate rather than rerolling it. UI-supplied ticket fields are not accepted as the random source. At bloom, the core saves `variant: "hidden"` for tickets below `0.05`, otherwise `"normal"`. Species and target duration do not alter that threshold. `variantOf` treats old mature records without a palette field as normal. Reveal happens at bloom; the actual draw is earlier and durable, not performed anew on each render or completion retry.
+
+The persistent `garden_require_variants_v1` trigger rejects a writer that removes an existing `hiddenCollection` object or changes the saved ticket while retaining the same active-plant ID. It permits the normal bloom/removal lifecycle and the store's internal archive-delta cleanup. Keep this protection alongside the earlier feature/statistics guards, rather than trying to make an older runtime write revision-4 state. Backup/restore is the supported rollback boundary.
+
+`ui/variants.js` builds a small SVG filter per hidden flower from the original garden sprite. A chroma mask selects petal colors, and a color matrix supplies the alternate tone; complementary composites retain the original foliage and source alpha. Sunflower uses an `R - G` mask plus a brightness gate to avoid recoloring green leaves and its dark center. These are code-defined palettes, not new AI-generated raster assets. All original 29 plant/scenery PNGs remain byte-for-byte unchanged. The icon is separately updated to a transparent green-line mark, 256 × 256 pixels and 5,448 bytes.
+
+`i18n.js` selects the primary environment language at startup: `zh*` becomes Simplified Chinese, `ja*` Japanese, and English or any unsupported language becomes English. `t` formats explicit interface keys; `message` is reserved for built-in core metadata, errors and notification templates. Initial document localization runs before personal state is rendered, and no observer translates later arbitrary text. Flower/plan names, task notes and Hindsight category labels remain verbatim. Stable IDs and stored metadata are not migrated into a different language. The worker imports the same offline module and resolves its own environment language.
+
+The rain theme adds six fixed, phase-offset carriers. Each 6.6-second cycle lands on safe lawn before its small splash appears; only a few rain lines are visible simultaneously. Dusk uses a slightly darker palette plus three local glows aligned with the existing illustrated lamps and the two existing ground-light patches. No scene-wide filter changes flower colors. The theme layer has twenty fixed nodes, with no added timer, animation-frame loop or external request. Pseudo-elements inherit the carrier's paused/running state; the existing motion flag, hidden-page behavior, reduced-motion settings and static miniature rules apply. Shared pond motion is retained in all four themes.
+
+Connected Chrome checks cover actual English/Japanese pages, French-to-English fallback, narrow layouts without horizontal overflow, and naturally running rain/lighting using isolated synthetic data. No personal Hindsight database was accessed. Browser page-language overrides do not override the background worker: it stayed in the local Chinese environment for this run. English/Japanese/fallback notification templates passed independent VM checks; neither those checks nor the English screenshot prove English notification delivery in Chrome or an OS banner. The final ZIP and OS bloom notification remain unverified in native Hindsight.
+
+`hidden-colors.jpg` is an explicitly arranged eight-normal/eight-hidden comparison, not a random-trial probability sample. `interface-en.jpg` records an actual one-minute growing-pot page in the simulated host; `interface-ja.jpg` records Japanese hidden achievements. Older planting, growing and guide images remain labeled examples of the earlier Chinese UI. Package the language/variant modules, current screenshots and [0.16.0 feature notes](features-0160.md) without including test harnesses or data.

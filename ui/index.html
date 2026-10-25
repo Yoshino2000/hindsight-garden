@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="theme-effects.css" />
     <link rel="stylesheet" href="pond.css" />
     <link rel="stylesheet" href="focus.css" />
+    <link rel="stylesheet" href="variants.css" />
   </head>
   <body>
     <main class="app">
@@ -243,6 +244,7 @@
             </section>
             <section class="plant-plan" aria-label="设置生长计划">
             <div class="field">
+              <p class="variant-explainer">每次开花有 5% 概率遇见隐藏配色，花园与相册都会保留。旧花保持原色；隐藏结果不会因刷新或重启改变。</p>
               <div class="name-heading"><label for="plant-name-input">给它取个名字</label><button id="recommend-name" class="button quiet small" type="button" title="优先使用已选分类；没有分类时，随机组合任务名称与当前花朵">推荐</button></div>
               <input
                 id="plant-name-input"
@@ -795,8 +797,10 @@
             <ul id="focus-distribution-preview" class="focus-distribution-list"></ul>
             <details id="focus-distribution-more" hidden><summary>查看其余分类</summary><ul id="focus-distribution-rest" class="focus-distribution-list"></ul></details>
           </section>
+          <p id="hidden-collection-status" class="hidden-collection-status"></p>
+          <p class="variant-explainer">每次开花有 5% 概率遇见隐藏配色，花园与相册都会保留。旧花保持原色；隐藏结果不会因刷新或重启改变。</p>
           <div id="achievement-filters" class="achievement-filters" role="group" aria-label="筛选成就">
-            <button type="button" data-filter="all" aria-pressed="true">全部</button><button type="button" data-filter="blooms" aria-pressed="false">株数里程碑</button><button type="button" data-filter="species" aria-pressed="false">品种收藏</button><button type="button" data-filter="focus" aria-pressed="false">生长记录</button><button type="button" data-filter="earned" aria-pressed="false">已获得</button>
+            <button type="button" data-filter="all" aria-pressed="true">全部</button><button type="button" data-filter="blooms" aria-pressed="false">株数里程碑</button><button type="button" data-filter="species" aria-pressed="false">品种收藏</button><button type="button" data-filter="hidden" aria-pressed="false">隐藏收藏</button><button type="button" data-filter="focus" aria-pressed="false">生长记录</button><button type="button" data-filter="earned" aria-pressed="false">已获得</button>
           </div>
           <p class="note-privacy">点击查看各级条件与日期。徽章有白、蓝、紫、金、彩五档颜色；整组全部达成后，卡片才会填上淡黄色。</p>
           <div id="achievement-list" class="achievement-list" aria-label="收藏成就"></div>
@@ -875,12 +879,14 @@
     </main>
     <script src="../_page.js"></script>
     <script src="../core.js"></script>
+    <script src="../i18n.js"></script>
     <script src="../store.js"></script>
     <script src="../garden-layout.js"></script>
     <script src="ambience.js"></script>
     <script src="plant-guide.js"></script>
     <script src="collection.js"></script>
     <script src="focus-status.js"></script>
+    <script src="variants.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

@@ -55,7 +55,7 @@ async function seeded(host, notifications = true) {
   return store;
 }
 
-function worker(host, initialNow = 0, random = 0.5) {
+function worker(host, initialNow = 0, random = 0.5, language = "zh-CN") {
   const clock = { now: initialNow };
   const intervals = [];
   const listeners = new Map();
@@ -72,6 +72,7 @@ function worker(host, initialNow = 0, random = 0.5) {
   const math = Object.create(Math);
   math.random = () => random;
   const context = vm.createContext({
+    navigator: { language },
     Date: ClockDate,
     Math: math,
     URL,
@@ -405,4 +406,20 @@ test("a late wake-up tick drops the unobserved sleep interval rather than growin
   assert.equal(state.active.progressMs, 10000);
   assert.equal(state.focus, null);
   assert.equal(state.garden.length, 0);
+});
+
+test("background bloom notifications follow English, Japanese and fallback system languages", async (t) => {
+  for (const language of ["en-US", "ja-JP", "fr-FR"]) {
+    const host = hostFor(t);
+    await seeded(host);
+    const live = worker(host, 0, 0.5, language);
+    t.after(() => live.close());
+    await live.focus({ app: "reader" });
+    await live.grow(60000);
+    assert.equal(host.notifications.length, 1);
+    assert.equal(host.notifications[0].body, language === "ja-JP"
+      ? "「阅读绣球」が咲きました！庭を見に来てください。"
+      : "“阅读绣球” has bloomed! Come see your garden.");
+    assert.equal((await live.store.load()).garden[0].name, "阅读绣球");
+  }
 });

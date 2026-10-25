@@ -15,6 +15,7 @@
     // these fields and remains valid with either recursive_triggers setting.
     "CREATE TRIGGER IF NOT EXISTS garden_require_features_v1 BEFORE UPDATE OF value ON garden_store WHEN OLD.key = 'state' AND NEW.key = 'state' AND json_type(OLD.value, '$.collection') = 'object' AND json_type(OLD.value, '$.plans') = 'array' AND json_type(OLD.value, '$.earnedAchievements') = 'object' AND (json_type(NEW.value, '$.collection') IS NOT 'object' OR json_type(NEW.value, '$.plans') IS NOT 'array' OR json_type(NEW.value, '$.earnedAchievements') IS NOT 'object') BEGIN SELECT RAISE(ABORT, '此版本的时光花园已过期，已阻止写入以保留种植方案、任务记忆和收藏成就。请关闭旧版本窗口并重新打开最新版。'); END",
     "CREATE TRIGGER IF NOT EXISTS garden_require_focus_stats_v1 BEFORE UPDATE OF value ON garden_store WHEN OLD.key = 'state' AND NEW.key = 'state' AND json_type(OLD.value, '$.focusStats') = 'object' AND json_type(NEW.value, '$.focusStats') IS NOT 'object' BEGIN SELECT RAISE(ABORT, '此版本的时光花园已过期，已阻止写入以保留有效生长统计。请关闭旧版本窗口并重新打开最新版。'); END",
+    "CREATE TRIGGER IF NOT EXISTS garden_require_variants_v1 BEFORE UPDATE OF value ON garden_store WHEN OLD.key = 'state' AND NEW.key = 'state' AND ((json_type(OLD.value, '$.hiddenCollection') = 'object' AND json_type(NEW.value, '$.hiddenCollection') IS NOT 'object') OR (json_type(OLD.value, '$.active.variantRoll') IN ('integer', 'real') AND json_extract(OLD.value, '$.active.id') = json_extract(NEW.value, '$.active.id') AND json_extract(NEW.value, '$.active.variantRoll') IS NOT json_extract(OLD.value, '$.active.variantRoll'))) BEGIN SELECT RAISE(ABORT, '此版本的时光花园已过期或尝试修改已保存的隐藏配色随机签，已阻止写入以保留数据。请关闭旧版本窗口并重新打开最新版。'); END",
     "CREATE TABLE IF NOT EXISTS garden_plants (id TEXT PRIMARY KEY, value TEXT NOT NULL)",
     "CREATE TABLE IF NOT EXISTS garden_archive_meta (key TEXT PRIMARY KEY, version INTEGER NOT NULL)",
     "INSERT OR IGNORE INTO garden_archive_meta (key, version) VALUES ('archive', 0)",
@@ -32,8 +33,29 @@
   function createStore(hostCall, options = {}) {
     if (typeof hostCall !== "function") throw new Error("请在 Hindsight 中打开时光花园。");
     const timeoutMs = options.timeoutMs || 8000;
+    const random = options.random === undefined ? Math.random : options.random;
+    if (typeof random !== "function") throw new Error("隐藏配色随机来源不正确。");
     let readyPromise;
     let archiveCache = null;
+    let activeRollCandidate = null;
+
+    function drawRoll() {
+      const roll = random();
+      root.GardenCore.variantFromRoll(roll);
+      return roll;
+    }
+
+    function withActiveRoll(state) {
+      if (!state.active || state.active.variantRoll !== undefined) {
+        activeRollCandidate = null;
+        return state;
+      }
+      // An old growing pot receives one candidate during migration. A lost CAS always
+      // rereads the winner's persisted ticket instead of drawing again on the next tick.
+      if (activeRollCandidate?.id !== state.active.id)
+        activeRollCandidate = { id: state.active.id, roll: drawRoll() };
+      return { ...state, active: { ...state.active, variantRoll: activeRollCandidate.roll } };
+    }
 
     function call(method, params) {
       return new Promise((resolve, reject) => {
@@ -114,26 +136,30 @@
         const saved = await readStored();
         if (saved.version === null) {
           // Establish the hot row before any delta: archive changes always use the UPDATE trigger.
-          await commit(await withArchiveCollection(saved.state), saved);
+          await commit(withActiveRoll(await withArchiveCollection(saved.state)), saved);
           continue;
         }
         if (saved.legacy) {
           // CAS + trigger is an atomic migration. The lifetime baseline is committed with it.
           const state = root.GardenCore.initializeCollection(saved.state, saved.state.garden.length,
             saved.state.garden.map((plant) => plant.species), Date.now());
-          await commit({ ...state, garden: [] }, saved);
+          await commit(withActiveRoll({ ...state, garden: [] }), saved);
           continue;
         }
         if (saved.state.collection !== null) {
-          if (saved.state.achievementRevision >= root.GardenCore.ACHIEVEMENT_REVISION && saved.state.focusStats !== null) return saved;
+          let state = saved.state;
           // Catalog-only upgrades reuse lifetime counters. No archive scan and no rewriting
           // earlier award dates; the CAS also preserves concurrent page and worker changes.
-          await commit(root.GardenCore.refreshAchievements(saved.state, Date.now()), saved);
+          if (state.achievementRevision < root.GardenCore.ACHIEVEMENT_REVISION || state.focusStats === null || state.hiddenCollection === null)
+            state = root.GardenCore.refreshAchievements(state, Date.now());
+          state = withActiveRoll(state);
+          if (state === saved.state) return saved;
+          await commit(state, saved);
           continue;
         }
         // Pre-0.11 schema-2 data already has a separate archive. Count it once, guarded by the
         // SAME archive revision as the hot-row CAS, rather than scanning it on every worker tick.
-        await commit(await withArchiveCollection(saved.state), saved);
+        await commit(withActiveRoll(await withArchiveCollection(saved.state)), saved);
       }
       throw new Error("花园升级正遇到并发更新，请稍后重试。");
     }
@@ -208,6 +234,7 @@
     async function apply(input, now = Date.now()) {
       // Retry the same instant. Background ticks only read the small hot state; page edits read
       // at most the one flower they change. Successful results are intentionally partial.
+      let plantRoll;
       for (let attempt = 0; attempt < 8; attempt++) {
         const saved = await readHot();
         const state = saved.state;
@@ -216,8 +243,15 @@
           existing = await findFlower(input.id);
           if (existing) state.garden = [existing];
         }
-        const result = root.GardenCore.reduce(state, input, now);
+        // Only the store supplies new lottery tickets; UI-supplied roll fields are ignored.
+        // One request keeps the same candidate through every failed CAS attempt.
+        const action = input?.type === "plant" ? { ...input, variantRoll: plantRoll } : input;
+        const result = root.GardenCore.reduce(state, action, now);
         if (input.type === "plant" && await findFlower(result.state.active.id)) throw new Error("植物标识重复。");
+        if (input.type === "plant" && plantRoll === undefined) {
+          plantRoll = drawRoll();
+          result.state.active.variantRoll = plantRoll;
+        }
         const upserts = result.state.garden.map((plant) => existing?.id === plant.id ? { ...existing, ...plant } : plant)
           .filter((plant) => !existing || JSON.stringify(plant) !== JSON.stringify(existing));
         const deleted = existing && !result.state.garden.some((plant) => plant.id === existing.id) ? [existing.id] : [];

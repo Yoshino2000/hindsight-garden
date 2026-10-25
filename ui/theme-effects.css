@@ -49,6 +49,73 @@
   28% { opacity: 0; transform: translate(-55%, 520%); }
 }
 
+/* A few continuous drops, not a full-scene rain texture. Both pseudo-elements share
+   the carrier's phase: the tip reaches grass first, then the stationary splash fades. */
+#view-garden[data-theme="rain"] .theme-effects > .theme-rainfall { display: block; }
+.theme-rainfall {
+  --rain-cycle: 6.6s;
+  z-index: 16;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: sparse-rain-route var(--rain-cycle) linear infinite;
+  animation-delay: var(--rain-delay);
+}
+.theme-rainfall::before,
+.theme-rainfall::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  animation-delay: var(--rain-delay);
+  animation-play-state: inherit;
+}
+.theme-rainfall::before {
+  width: clamp(1.5px, .22vw, 2.2px);
+  height: clamp(9px, 1.5vw, 14px);
+  border-radius: 60%;
+  background: linear-gradient(#dbf5f400, #a4d6dbe6 45%, #effffd);
+  transform: translate(-50%, -100%) rotate(9deg);
+  transform-origin: 50% 100%;
+  animation: sparse-rain-drop var(--rain-cycle) linear infinite;
+  animation-delay: var(--rain-delay);
+  animation-play-state: inherit;
+}
+.theme-rainfall::after {
+  width: clamp(9px, 1.25vw, 13px);
+  height: clamp(3px, .5vw, 5px);
+  border: 1px solid #d7f1ef;
+  border-top-color: #91bec3;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #e4faf74d, #e4faf700 65%);
+  animation: sparse-rain-splash var(--rain-cycle) linear infinite;
+  animation-delay: var(--rain-delay);
+  animation-play-state: inherit;
+}
+.theme-rainfall-first { --rain-x0: 30%; --rain-y0: 13%; --rain-x1: 32.5%; --rain-y1: 40.7895%; --rain-delay: 0s; }
+.theme-rainfall-second { --rain-x0: 66%; --rain-y0: 17%; --rain-x1: 69%; --rain-y1: 41.4474%; --rain-delay: -1.1s; }
+.theme-rainfall-third { --rain-x0: 15%; --rain-y0: 20%; --rain-x1: 18%; --rain-y1: 53.6842%; --rain-delay: -2.2s; }
+.theme-rainfall-fourth { --rain-x0: 81%; --rain-y0: 15%; --rain-x1: 84%; --rain-y1: 53.2895%; --rain-delay: -3.3s; }
+.theme-rainfall-fifth { --rain-x0: 73%; --rain-y0: 14%; --rain-x1: 75.5%; --rain-y1: 48.0263%; --rain-delay: -4.4s; }
+.theme-rainfall-sixth { --rain-x0: 39%; --rain-y0: 13%; --rain-x1: 42%; --rain-y1: 30.9211%; --rain-delay: -5.5s; }
+@keyframes sparse-rain-route {
+  0%, 3% { transform: translate(var(--rain-x0), var(--rain-y0)); }
+  36%, 52% { transform: translate(var(--rain-x1), var(--rain-y1)); }
+  53%, 100% { transform: translate(var(--rain-x0), var(--rain-y0)); }
+}
+@keyframes sparse-rain-drop {
+  0%, 37%, 100% { opacity: 0; }
+  3%, 30% { opacity: .8; }
+  36% { opacity: .55; }
+}
+@keyframes sparse-rain-splash {
+  0%, 36%, 52%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(.25); }
+  38% { opacity: .75; transform: translate(-50%, -50%) scale(.65); }
+  44% { opacity: .4; transform: translate(-50%, -50%) scale(1); }
+  51% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
+}
+
 #view-garden[data-theme="dusk"] .theme-effects > .theme-ground-light,
 #view-garden[data-theme="blossom"] .theme-effects > .theme-light-lantern { display: block; }
 .theme-ground-light {
@@ -64,6 +131,18 @@
   0%, 100% { opacity: .74; }
   50% { opacity: .98; }
 }
+
+/* Highlight the three lamps already painted in the bench/birdhouse atlases. */
+#view-garden[data-theme="dusk"] .theme-effects > .theme-lamp-glow { display: block; }
+.theme-lamp-glow {
+  z-index: 2;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff7cb80 0 12%, #ffd98a44 35%, #ffd98a00 73%);
+  animation: theme-lamplight 9.5s ease-in-out infinite;
+}
+.theme-lamp-glow-left { left: 17.95%; top: 31.1184%; width: 3.5%; height: 4.6053%; }
+.theme-lamp-glow-right { left: 25.25%; top: 32.8289%; width: 3.5%; height: 4.6053%; animation-delay: -2.5s; }
+.theme-lamp-glow-birdhouse { left: 63.6%; top: 28.4211%; width: 3%; height: 3.9474%; animation-delay: -5.2s; }
 
 #view-garden[data-theme="dusk"] .theme-effects > .theme-firefly { display: block; }
 .theme-firefly {

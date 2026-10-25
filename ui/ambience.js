@@ -68,7 +68,11 @@
     effects.setAttribute("aria-hidden", "true");
     for (const name of [
       "rain-drip rain-drip-left", "rain-drip rain-drip-right",
+      "theme-rainfall theme-rainfall-first", "theme-rainfall theme-rainfall-second",
+      "theme-rainfall theme-rainfall-third", "theme-rainfall theme-rainfall-fourth",
+      "theme-rainfall theme-rainfall-fifth", "theme-rainfall theme-rainfall-sixth",
       "theme-ground-light theme-light-bench", "theme-ground-light theme-light-lantern",
+      "theme-lamp-glow theme-lamp-glow-left", "theme-lamp-glow theme-lamp-glow-right", "theme-lamp-glow theme-lamp-glow-birdhouse",
       "theme-firefly theme-firefly-left", "theme-firefly theme-firefly-right",
       "theme-petal theme-petal-first", "theme-petal theme-petal-second", "theme-petal theme-petal-third",
       "theme-petal theme-petal-fourth", "theme-petal theme-petal-fifth",

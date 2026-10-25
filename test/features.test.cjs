@@ -111,6 +111,7 @@ async function seedOldArchive(host, count) {
   delete old.earnedAchievements;
   delete old.achievementRevision;
   delete old.focusStats;
+  delete old.hiddenCollection;
   await host.call("db.execute", {
     sql: "CREATE TABLE garden_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, version INTEGER NOT NULL)", params: [],
   });
@@ -136,6 +137,7 @@ async function seed011Collection(host, count = 1) {
   };
   delete state.achievementRevision;
   delete state.focusStats;
+  delete state.hiddenCollection;
   await host.call("db.execute", {
     sql: "UPDATE garden_store SET value = ?, version = version + 1 WHERE key = 'state'", params: [JSON.stringify(state)],
   });
@@ -481,9 +483,9 @@ test("the guard rejects dropping any protected field but permits other keys and 
   assert.deepEqual(host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get(), before);
 });
 
-test("the expanded catalog keeps four original identities and supplies thirty-six distinct, explainable achievements", () => {
-  assert.equal(core.ACHIEVEMENTS.length, 36);
-  assert.equal(new Set(core.ACHIEVEMENTS.map((item) => item.id)).size, 36);
+test("the expanded catalog keeps four original identities and supplies fifty-two distinct, explainable achievements", () => {
+  assert.equal(core.ACHIEVEMENTS.length, 52);
+  assert.equal(new Set(core.ACHIEVEMENTS.map((item) => item.id)).size, 52);
   assert.deepEqual(core.ACHIEVEMENTS.slice(0, 4).map(({ id, name, badge }) => ({ id, name, badge })), [
     { id: "first-bloom", name: "第一朵花", badge: 0 },
     { id: "ten-blooms", name: "小小花匠", badge: 1 },
@@ -495,8 +497,8 @@ test("the expanded catalog keeps four original identities and supplies thirty-si
   assert.deepEqual(core.ACHIEVEMENTS.filter((item) => item.metric === "species").map((item) => item.target).sort((a, b) => a - b), [2, 4, 8]);
   for (const item of core.ACHIEVEMENTS) {
     assert.ok(item.condition.length > 0 && item.description.length > 0);
-    if (item.metric === "speciesBloom") {
-      assert.equal(item.id, "first-" + item.species);
+    if (["speciesBloom", "hiddenSpeciesBloom"].includes(item.metric)) {
+      assert.equal(item.id, item.metric === "speciesBloom" ? "first-" + item.species : "hidden-" + item.species + "-first");
       assert.equal(item.badge, null);
       assert.equal(item.target, 1);
       assert.ok(core.SPECIES.some((entry) => entry.id === item.species));
@@ -548,9 +550,9 @@ test("an 0.11 collection upgrades on page load using lifetime counters, preservi
   assert.deepEqual(state.collection, old.collection);
   assert.equal(state.garden.length, 1, "Deleted historical flowers are not recreated");
   for (const [id, at] of Object.entries(old.earnedAchievements)) assert.equal(state.earnedAchievements[id], at);
-  for (const item of core.ACHIEVEMENTS.filter((entry) => !entry.sinceStats && !Object.hasOwn(old.earnedAchievements, entry.id)))
+  for (const item of core.ACHIEVEMENTS.filter((entry) => !entry.sinceStats && !entry.sinceHidden && !Object.hasOwn(old.earnedAchievements, entry.id)))
     assert.ok(state.earnedAchievements[item.id] >= startedAt && state.earnedAchievements[item.id] <= finishedAt);
-  for (const item of core.ACHIEVEMENTS.filter((entry) => entry.sinceStats))
+  for (const item of core.ACHIEVEMENTS.filter((entry) => entry.sinceStats || entry.sinceHidden))
     assert.equal(state.earnedAchievements[item.id], undefined);
   assert.equal(host.calls.filter(({ params }) => params.sql.includes("COUNT(*) AS count FROM garden_plants GROUP BY")).length, 0);
   assert.equal(host.db.prepare("SELECT version FROM garden_store WHERE key = 'state'").get().version, before.version + 1);
@@ -612,7 +614,7 @@ test("catalog upgrades work under the host authorizer without changing the saved
   await seed011Collection(host, 0);
   await createStore(host.call).load();
   replayRestricted(host.calls, [
-    "assert hot['achievementRevision']==3",
+    "assert hot['achievementRevision']==" + core.ACHIEVEMENT_REVISION,
     "assert hot['focusStats']['totalMs']==0",
     "assert hot['focusStats']['categories']==[]",
     "assert hot['collection']['verifiedAt']==100",

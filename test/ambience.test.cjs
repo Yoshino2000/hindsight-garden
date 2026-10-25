@@ -126,7 +126,7 @@ test("theme details mount once as a bounded decorative layer without controls or
   assert.equal(createThemeEffects(scene), layer);
   assert.equal(scene.children.length, 1);
   assert.equal(layer.attributes["aria-hidden"], "true");
-  assert.ok(layer.children.length > 0 && layer.children.length <= 12);
+  assert.ok(layer.children.length > 0 && layer.children.length <= 24);
   for (const node of layer.children) {
     assert.equal(node.tagName, "span");
     assert.deepEqual(node.attributes, {});
@@ -219,4 +219,80 @@ test("the configured petal phases remain visible regularly with at most three at
   const faded = points.find((point) => point.phase === 46);
   assert.equal(landing.transform, faded.transform, "The final fade must remain at the landing point");
   assert.ok((faded.phase - landing.phase) / 100 * duration >= 2, "Leave time to see the petal settle");
+});
+
+function rainfallStyles() {
+  const { readFileSync } = require("node:fs");
+  const { join } = require("node:path");
+  const css = readFileSync(join(__dirname, "..", "ui", "theme-effects.css"), "utf8");
+  const routes = [...css.matchAll(/^\.theme-rainfall-[a-z]+\s*\{([^}]+)\}/gm)].map((match) => {
+    const read = (name, suffix = "%") => Number(match[1].match(new RegExp(`${name}:\\s*([-\\d.]+)${suffix}`))[1]);
+    return { x0: read("--rain-x0"), y0: read("--rain-y0"),
+      x1: read("--rain-x1"), y1: read("--rain-y1"), delay: read("--rain-delay", "s") };
+  });
+  const duration = Number(css.match(/--rain-cycle:\s*([\d.]+)s/)[1]);
+  return { css, routes, duration };
+}
+
+test("the rain splash footprint stays on grass and clear of the flowerbed in normal and narrow scenes", () => {
+  const { GEOMETRY } = require("../garden-layout.js");
+  const { css, routes } = rainfallStyles();
+  assert.ok(routes.length >= 4 && routes.length <= 8);
+  const splash = [...css.matchAll(/^\.theme-rainfall::after\s*\{([^}]+)\}/gm)]
+    .map((match) => match[1]).find((block) => block.includes("width:"));
+  const readSize = (name, viewport) => {
+    const values = splash.match(new RegExp(`${name}:\\s*clamp\\(([\\d.]+)px,\\s*([\\d.]+)vw,\\s*([\\d.]+)px\\)`));
+    assert.ok(values, `The actual ${name} must remain inspectable`);
+    return Math.min(Number(values[3]), Math.max(Number(values[1]), viewport * Number(values[2]) / 100));
+  };
+  const splashFrames = css.match(/@keyframes sparse-rain-splash\s*\{([\s\S]*?)\n\}/)[1];
+  const maximumScale = Math.max(...[...splashFrames.matchAll(/scale\(([\d.]+)\)/g)].map((match) => Number(match[1])));
+  const distance = (point, diamond) => Math.abs(point.x - diamond.x) / diamond.radius +
+    Math.abs(point.y - diamond.y) / (diamond.radius * GEOMETRY.stepY / GEOMETRY.stepX);
+  for (const route of routes) {
+    assert.ok(route.y0 >= 12 && route.y0 <= 20);
+    assert.ok(route.y1 - route.y0 >= 15, "Rain falls from the sky, not from a few pixels above grass");
+    const ground = { x: route.x1 * GEOMETRY.width / 100, y: route.y1 * GEOMETRY.height / 100 };
+    for (const sceneWidth of [320, 816]) {
+      const viewport = sceneWidth + 44;
+      const rx = readSize("width", viewport) * GEOMETRY.width / sceneWidth / 2 * maximumScale;
+      const ry = readSize("height", viewport) * GEOMETRY.width / sceneWidth / 2 * maximumScale;
+      for (let step = 0; step < 360; step++) {
+        const angle = step * Math.PI / 180;
+        const point = { x: ground.x + rx * Math.cos(angle), y: ground.y + ry * Math.sin(angle) };
+        assert.ok(distance(point, GEOMETRY.island) < .98, "A splash must not float beyond the grass");
+        assert.ok(distance(point, GEOMETRY.bed) > 1.02, "A splash must not cover a flower");
+      }
+    }
+  }
+});
+
+test("rain phases supply a steady small shower and do not splash before their carrier lands", () => {
+  const { css, routes, duration } = rainfallStyles();
+  const readFrames = (name) => {
+    const frames = css.match(new RegExp(`@keyframes ${name}\\s*\\{([\\s\\S]*?)\\n\\}`))[1];
+    return [...frames.matchAll(/([\d.% ,]+)\{([^}]+)\}/g)].flatMap((match) => {
+      const opacity = Number(match[2].match(/opacity:\s*([\d.]+)/)[1]);
+      return match[1].trim().split(/,\s*/).map((percent) => ({ phase: Number(percent.replace("%", "")), opacity }));
+    }).sort((first, second) => first.phase - second.phase);
+  };
+  const opacityAt = (points, phase) => {
+    const upper = points.findIndex((point) => point.phase >= phase);
+    if (upper === 0) return points[0].opacity;
+    const before = points[upper - 1], after = points[upper];
+    return before.opacity + (after.opacity - before.opacity) * (phase - before.phase) / (after.phase - before.phase);
+  };
+  const drops = readFrames("sparse-rain-drop"), splashes = readFrames("sparse-rain-splash");
+  let minimum = Infinity, maximum = 0;
+  for (let time = 0; time < duration; time += .01) {
+    const falling = routes.filter((route) => opacityAt(drops, ((time - route.delay) % duration) / duration * 100) > .05).length;
+    minimum = Math.min(minimum, falling);
+    maximum = Math.max(maximum, falling);
+  }
+  assert.ok(minimum >= 1, "A sparse shower should not become an occasional isolated drip");
+  assert.ok(maximum <= 3, "Keep simultaneous visible rain lines limited");
+  for (let phase = 0; phase <= 36; phase += .1)
+    assert.equal(opacityAt(splashes, phase), 0, "Only show a splash after the carrier reaches the ground");
+  const routeFrames = css.match(/@keyframes sparse-rain-route\s*\{([\s\S]*?)\n\}/)[1];
+  assert.match(routeFrames, /36%,\s*52%\s*\{\s*transform:\s*translate\(var\(--rain-x1\),\s*var\(--rain-y1\)\)/);
 });

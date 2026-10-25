@@ -12,10 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 SPECIES = ("sunflower", "hydrangea", "tulip", "daisy", "rose", "lavender", "cosmos", "lily")
 AMBIENCE = ("swing", "bird", "butterfly", "bird-blue", "bird-robin", "bird-finch", "butterfly-amber", "butterfly-blue")
 FILES = [
-    "manifest.json", "icon.png", "background.js", "core.js", "store.js", "garden-layout.js",
+    "manifest.json", "icon.png", "background.js", "core.js", "store.js", "garden-layout.js", "i18n.js",
     "ui/index.html", "ui/style.css", "ui/album.css", "ui/drawer.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js", "ui/collection.js", "ui/features.css",
     "assets/collection/milestones.png", "assets/collection/themes.png",
-    "ui/compact.css", "ui/achievements.css", "ui/themes.css", "ui/theme-effects.css", "ui/pond.css", "ui/focus.css", "ui/focus-status.js",
+    "ui/compact.css", "ui/achievements.css", "ui/themes.css", "ui/theme-effects.css", "ui/pond.css", "ui/focus.css", "ui/focus-status.js", "ui/variants.js", "ui/variants.css",
     *(f"assets/collection/props-{theme}.png" for theme in ("rain", "dusk", "blossom")),
     *(f"assets/{name}.png" for name in SPECIES),
     *(f"assets/garden/{name}.png" for name in SPECIES),
@@ -23,6 +23,7 @@ FILES = [
     "README.md", "README.en.md", "intro/zh/README.md", "docs/usage.zh-CN.md", "docs/usage.en.md", "docs/development.md",
     "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md", "docs/artwork-ambience-070.md", "docs/plant-guide-sources.md", "docs/design-notes-forest.md", "docs/features-0110.md", "docs/artwork-collection-0110.md", "docs/features-0120.md", "docs/artwork-themes-0120.md",
     "docs/features-0130.md", "docs/features-0140.md", "docs/features-0150.md", "docs/screenshots/why-growth.jpg", "docs/screenshots/empty-garden.jpg", "docs/screenshots/meadow.jpg",
+    "docs/features-0160.md", "docs/screenshots/hidden-colors.jpg", "docs/screenshots/hidden-detail.jpg", "docs/screenshots/interface-en.jpg", "docs/screenshots/interface-ja.jpg",
     "docs/screenshots/garden.jpg", "docs/screenshots/album.jpg", "docs/screenshots/drawer.png", "docs/screenshots/current.png", "docs/screenshots/guide.png", "docs/screenshots/collection.jpg", "docs/screenshots/growing.png", "docs/screenshots/achievement.jpg", "docs/screenshots/rain.jpg", "docs/screenshots/dusk.jpg", "LICENSE",
 ]
 
