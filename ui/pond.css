@@ -1,0 +1,59 @@
+/* Shared by every palette. All drawing remains inside the water's local ellipse. */
+.pond-water-details { pointer-events: none; }
+.pond-water-details .pond-ripple {
+  transform-box: fill-box;
+  transform-origin: center;
+  fill: none;
+  stroke: #f2fffa;
+  stroke-width: 1.8;
+  opacity: .65;
+  animation: pond-visible-ripple 6.6s ease-out infinite paused;
+}
+.pond-water-details .pond-ripple + .pond-ripple { animation-duration: 8.2s; animation-delay: -4.1s; }
+.pond-water-details .pond-reflection {
+  transform-box: fill-box;
+  transform-origin: center;
+  stroke: #f2fffb;
+  stroke-width: 3;
+  opacity: .7;
+  animation: pond-visible-reflection 7.5s ease-in-out infinite paused;
+}
+.pond-water-details .pond-leaf-a,
+.pond-water-details .pond-leaf-b {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pond-leaf-drift-a 8.5s ease-in-out infinite paused;
+}
+.pond-water-details .pond-leaf-b { animation-name: pond-leaf-drift-b; animation-duration: 11s; animation-delay: -3.2s; }
+.garden-scene[data-motion="true"] .pond-water-details .pond-ripple,
+.garden-scene[data-motion="true"] .pond-water-details .pond-reflection,
+.garden-scene[data-motion="true"] .pond-water-details .pond-leaf-a,
+.garden-scene[data-motion="true"] .pond-water-details .pond-leaf-b { animation-play-state: running; }
+@keyframes pond-visible-ripple {
+  0% { opacity: .08; transform: scale(.45); }
+  22% { opacity: .72; }
+  75% { opacity: .35; }
+  100% { opacity: 0; transform: scale(1.8); }
+}
+@keyframes pond-visible-reflection {
+  0%, 100% { opacity: .48; transform: translateX(-2.5px) scaleX(.96); }
+  50% { opacity: .82; transform: translateX(2.5px) scaleX(1.03); }
+}
+@keyframes pond-leaf-drift-a {
+  0%, 100% { transform: translate(-2.4px, .8px) rotate(-2deg); }
+  50% { transform: translate(2.4px, -.8px) rotate(2deg); }
+}
+@keyframes pond-leaf-drift-b {
+  0%, 100% { transform: translate(1.8px, -1.1px) rotate(2deg); }
+  50% { transform: translate(-1.8px, 1.1px) rotate(-2deg); }
+}
+.garden-miniature .pond-water-details .pond-ripple,
+.garden-miniature .pond-water-details .pond-reflection,
+.garden-miniature .pond-water-details .pond-leaf-a,
+.garden-miniature .pond-water-details .pond-leaf-b { animation: none !important; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .pond-water-details .pond-ripple,
+  .pond-water-details .pond-reflection,
+  .pond-water-details .pond-leaf-a,
+  .pond-water-details .pond-leaf-b { animation: none !important; transform: none; }
+}

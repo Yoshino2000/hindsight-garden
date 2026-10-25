@@ -14,6 +14,7 @@
     // complete statement before any archive delta can run. Our own json_remove(_archive) keeps
     // these fields and remains valid with either recursive_triggers setting.
     "CREATE TRIGGER IF NOT EXISTS garden_require_features_v1 BEFORE UPDATE OF value ON garden_store WHEN OLD.key = 'state' AND NEW.key = 'state' AND json_type(OLD.value, '$.collection') = 'object' AND json_type(OLD.value, '$.plans') = 'array' AND json_type(OLD.value, '$.earnedAchievements') = 'object' AND (json_type(NEW.value, '$.collection') IS NOT 'object' OR json_type(NEW.value, '$.plans') IS NOT 'array' OR json_type(NEW.value, '$.earnedAchievements') IS NOT 'object') BEGIN SELECT RAISE(ABORT, '此版本的时光花园已过期，已阻止写入以保留种植方案、任务记忆和收藏成就。请关闭旧版本窗口并重新打开最新版。'); END",
+    "CREATE TRIGGER IF NOT EXISTS garden_require_focus_stats_v1 BEFORE UPDATE OF value ON garden_store WHEN OLD.key = 'state' AND NEW.key = 'state' AND json_type(OLD.value, '$.focusStats') = 'object' AND json_type(NEW.value, '$.focusStats') IS NOT 'object' BEGIN SELECT RAISE(ABORT, '此版本的时光花园已过期，已阻止写入以保留有效生长统计。请关闭旧版本窗口并重新打开最新版。'); END",
     "CREATE TABLE IF NOT EXISTS garden_plants (id TEXT PRIMARY KEY, value TEXT NOT NULL)",
     "CREATE TABLE IF NOT EXISTS garden_archive_meta (key TEXT PRIMARY KEY, version INTEGER NOT NULL)",
     "INSERT OR IGNORE INTO garden_archive_meta (key, version) VALUES ('archive', 0)",
@@ -124,7 +125,7 @@
           continue;
         }
         if (saved.state.collection !== null) {
-          if (saved.state.achievementRevision >= root.GardenCore.ACHIEVEMENT_REVISION) return saved;
+          if (saved.state.achievementRevision >= root.GardenCore.ACHIEVEMENT_REVISION && saved.state.focusStats !== null) return saved;
           // Catalog-only upgrades reuse lifetime counters. No archive scan and no rewriting
           // earlier award dates; the CAS also preserves concurrent page and worker changes.
           await commit(root.GardenCore.refreshAchievements(saved.state, Date.now()), saved);

@@ -164,3 +164,59 @@ test("the actual ground-light ellipses stay on the rear lawn without reaching th
     }
   }
 });
+
+function petalStyles() {
+  const { readFileSync } = require("node:fs");
+  const { join } = require("node:path");
+  const css = readFileSync(join(__dirname, "..", "ui", "theme-effects.css"), "utf8");
+  const routes = [...css.matchAll(/^\.theme-petal-[a-z]+\s*\{([^}]+)\}/gm)].map((match) => {
+    const read = (name, suffix = "%") => Number(match[1].match(new RegExp(`${name}:\\s*([-\\d.]+)${suffix}`))[1]);
+    return { x0: read("--petal-x0"), y0: read("--petal-y0"),
+      x1: read("--petal-x1"), y1: read("--petal-y1"), delay: read("animation-delay", "s") };
+  });
+  return { css, routes };
+}
+
+test("petals cross a visible height from above the garden and settle on safe grass rather than flowers", () => {
+  const { GEOMETRY } = require("../garden-layout.js");
+  const { routes } = petalStyles();
+  assert.ok(routes.length >= 4 && routes.length <= 6);
+  const distance = (point, diamond) => Math.abs(point.x - diamond.x) / diamond.radius +
+    Math.abs(point.y - diamond.y) / (diamond.radius * GEOMETRY.stepY / GEOMETRY.stepX);
+  for (const route of routes) {
+    assert.ok(route.y0 >= 12 && route.y0 <= 20, "A petal must start above the garden, below the viewport crop");
+    assert.ok(route.y1 - route.y0 >= 25, "A petal must travel much farther than a few sprite pixels");
+    const landed = { x: route.x1 * GEOMETRY.width / 100, y: route.y1 * GEOMETRY.height / 100 };
+    assert.ok(distance(landed, GEOMETRY.island) < .95, "The petal lands before the island edge");
+    assert.ok(distance(landed, GEOMETRY.bed) > 1.05, "The settled petal stays outside the flowerbed");
+  }
+});
+
+test("the configured petal phases remain visible regularly with at most three at once and a stationary landing", () => {
+  const { css, routes } = petalStyles();
+  const duration = Number(css.match(/^\.theme-petal\s*\{[^}]*animation:\s*theme-petal-fall\s+([\d.]+)s/m)[1]);
+  const frames = css.match(/@keyframes theme-petal-fall\s*\{([\s\S]*?)\n\}/)[1];
+  const points = [...frames.matchAll(/([\d.% ,]+)\{([^}]+)\}/g)].flatMap((match) => {
+    const opacity = Number(match[2].match(/opacity:\s*([\d.]+)/)[1]);
+    return match[1].trim().split(/,\s*/).map((percent) => ({ phase: Number(percent.replace("%", "")), opacity, transform: match[2].match(/transform:\s*([^;]+);/)[1] }));
+  }).sort((first, second) => first.phase - second.phase);
+  const opacityAt = (phase) => {
+    const upper = points.findIndex((point) => point.phase >= phase);
+    if (upper === 0) return points[0].opacity;
+    const before = points[upper - 1], after = points[upper];
+    return before.opacity + (after.opacity - before.opacity) * (phase - before.phase) / (after.phase - before.phase);
+  };
+  let maximum = 0, total = 0, samples = 0;
+  for (let time = 0; time < duration; time += .05) {
+    const visible = routes.filter((route) => opacityAt(((time - route.delay) % duration) / duration * 100) > .02).length;
+    maximum = Math.max(maximum, visible);
+    total += visible;
+    samples++;
+  }
+  assert.ok(maximum <= 3, "Avoid a shower of simultaneous petals");
+  assert.ok(total / samples >= 1.5, "Do not leave almost the whole cycle invisible");
+  const landing = points.find((point) => point.phase === 34);
+  const faded = points.find((point) => point.phase === 46);
+  assert.equal(landing.transform, faded.transform, "The final fade must remain at the landing point");
+  assert.ok((faded.phase - landing.phase) / 100 * duration >= 2, "Leave time to see the petal settle");
+});

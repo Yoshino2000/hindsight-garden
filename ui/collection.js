@@ -19,6 +19,18 @@
       id: "species-collection", name: "多彩收藏", ids: ["two-species", "four-species", "all-species"],
       metals: ["white", "purple", "rainbow"],
     },
+    {
+      id: "focus-streak", name: "一段心流", ids: ["streak-5m", "streak-15m", "streak-25m", "streak-45m", "streak-60m"],
+      metals: ["white", "blue", "purple", "gold", "rainbow"],
+    },
+    {
+      id: "focus-total", name: "时光积累", ids: ["focus-1h", "focus-5h", "focus-10h", "focus-25h", "focus-50h"],
+      metals: ["white", "blue", "purple", "gold", "rainbow"],
+    },
+    {
+      id: "focus-categories", name: "各有所长", ids: ["categories-2x10m", "categories-3x10m", "categories-5x10m"],
+      metals: ["white", "purple", "rainbow"],
+    },
   ];
   const LEVEL_NAMES = {
     none: "尚未获得", white: "白阶", blue: "蓝阶", purple: "紫阶", gold: "金阶", rainbow: "彩阶",

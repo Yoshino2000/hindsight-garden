@@ -1,8 +1,8 @@
-/* Fixed, scene-relative details. The light patches sit on the rear lawn, outside the bed. */
+/* Ground patches stay below props; airborne details pass above flowers without hit targets. */
 .theme-effects {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: auto;
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
@@ -22,84 +22,103 @@
   background-repeat: no-repeat;
   clip-path: polygon(9% 27%, 16% 16%, 29% 9%, 46% 5%, 64% 12%, 81% 22%, 90% 34%, 94% 46%, 77% 38%, 61% 31%, 48% 34%, 38% 30%, 25% 34%, 18% 28%);
   transform-origin: 50% 23%;
-  animation: rain-leaf-breathe 13s ease-in-out infinite;
+  animation: rain-leaf-breathe 8.5s ease-in-out infinite;
 }
 @keyframes rain-leaf-breathe {
-  0%, 100% { transform: rotate(-.18deg); }
-  50% { transform: rotate(.22deg); }
+  0%, 100% { transform: rotate(-.65deg); }
+  50% { transform: rotate(.8deg); }
 }
 
 #view-garden[data-theme="rain"] .theme-effects > .rain-drip { display: block; }
 .rain-drip {
-  width: .28%;
-  height: .65%;
+  z-index: 16;
+  width: clamp(3px, .45vw, 5px);
+  height: clamp(5px, .7vw, 8px);
   border-radius: 55% 55% 65% 65%;
-  background: #d5eeeb;
+  border: 1px solid #a2ced0;
+  background: #e4faf7;
   opacity: 0;
-  animation: rain-leaf-drip 21s linear infinite;
+  animation: rain-leaf-drip 10s ease-in infinite;
 }
-.rain-drip-left { left: 16.4%; top: 32.1%; animation-delay: -9s; }
-.rain-drip-right { left: 28.8%; top: 36.2%; animation-duration: 29s; animation-delay: -18s; }
+.rain-drip-left { left: 16.4%; top: 32.1%; animation-delay: -1.8s; }
+.rain-drip-right { left: 28.8%; top: 36.2%; animation-duration: 14s; animation-delay: -8s; }
 @keyframes rain-leaf-drip {
-  0%, 83%, 91%, 100% { opacity: 0; transform: translate(0, 0); }
-  84% { opacity: .65; transform: translate(0, 0); }
-  89% { opacity: 0; transform: translate(-55%, 320%); }
-  90% { opacity: 0; transform: translate(-55%, 320%); }
+  0%, 29%, 100% { opacity: 0; transform: translate(0, 0); }
+  4% { opacity: .9; transform: translate(0, 0); }
+  20% { opacity: .6; transform: translate(-35%, 340%); }
+  28% { opacity: 0; transform: translate(-55%, 520%); }
 }
 
 #view-garden[data-theme="dusk"] .theme-effects > .theme-ground-light,
 #view-garden[data-theme="blossom"] .theme-effects > .theme-light-lantern { display: block; }
 .theme-ground-light {
+  z-index: 0;
   border-radius: 50%;
-  background: radial-gradient(ellipse, #ffdb9166 0, #ffdc8e24 44%, #ffdc8e00 73%);
-  opacity: .78;
+  background: radial-gradient(ellipse, #ffdb91bd 0, #ffdc8e66 38%, #ffdc8e00 74%);
+  opacity: .9;
   animation: theme-lamplight 8.5s ease-in-out infinite;
 }
 .theme-light-bench { left: 18.4%; top: 43.1579%; width: 8.8%; height: 2.6316%; }
 .theme-light-lantern { left: 63.6%; top: 32.4342%; width: 5.8%; height: 1.9737%; animation-delay: -3s; }
 @keyframes theme-lamplight {
-  0%, 100% { opacity: .65; }
-  50% { opacity: .88; }
+  0%, 100% { opacity: .74; }
+  50% { opacity: .98; }
 }
 
 #view-garden[data-theme="dusk"] .theme-effects > .theme-firefly { display: block; }
 .theme-firefly {
-  width: .38%;
-  height: .5%;
+  z-index: 16;
+  width: clamp(5px, .7vw, 7px);
+  height: clamp(5px, .7vw, 7px);
   border-radius: 50%;
-  background: radial-gradient(circle, #fff5c4 0 20%, #ffdf8955 40%, #ffdf8900 72%);
+  background: radial-gradient(circle, #fff9cf 0 22%, #ffe49dbb 39%, #ffdf8900 73%);
   opacity: 0;
-  animation: theme-firefly-visit 37s linear infinite;
+  animation: theme-firefly-visit 18s ease-in-out infinite;
 }
-.theme-firefly-left { left: 29.4%; top: 33%; animation-delay: -7s; }
-.theme-firefly-right { left: 70.6%; top: 30.5%; animation-duration: 47s; animation-delay: -29s; }
+.theme-firefly-left { left: 29.4%; top: 33%; animation-delay: -3s; }
+.theme-firefly-right { left: 70.6%; top: 30.5%; animation-duration: 23s; animation-delay: -11s; }
 @keyframes theme-firefly-visit {
-  0%, 79%, 95%, 100% { opacity: 0; transform: translate(0, 0); }
-  81% { opacity: .55; transform: translate(-70%, -90%); }
-  84% { opacity: .15; transform: translate(-190%, -180%); }
-  87% { opacity: .65; transform: translate(-80%, -340%); }
-  90% { opacity: .2; transform: translate(130%, -410%); }
-  94% { opacity: 0; transform: translate(210%, -560%); }
+  0%, 40%, 100% { opacity: 0; transform: translate(0, 0); }
+  5% { opacity: .86; transform: translate(-40%, -30%); }
+  12% { opacity: .95; transform: translate(-160%, -200%); }
+  20% { opacity: .5; transform: translate(30%, -360%); }
+  30% { opacity: .9; transform: translate(180%, -430%); }
+  39% { opacity: 0; transform: translate(260%, -600%); }
 }
 
 #view-garden[data-theme="blossom"] .theme-effects > .theme-petal { display: block; }
 .theme-petal {
-  width: .55%;
-  height: .42%;
-  border-radius: 80% 15% 75% 20%;
-  background: #e9bac3;
+  z-index: 16;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
   opacity: 0;
-  animation: theme-petal-fall 31s ease-in-out infinite;
+  animation: theme-petal-fall 18s linear infinite;
 }
-.theme-petal-first { left: 81%; top: 24%; animation-delay: -3s; }
-.theme-petal-second { left: 83.2%; top: 26%; animation-duration: 41s; animation-delay: -19s; }
-.theme-petal-third { left: 79.4%; top: 28%; animation-duration: 53s; animation-delay: -36s; }
+.theme-petal::before {
+  content: "";
+  display: block;
+  width: clamp(6px, .85vw, 9px);
+  aspect-ratio: 1.3;
+  border-radius: 80% 15% 75% 20%;
+  border: 1px solid #d593a1;
+  background: #f0becb;
+}
+.theme-petal-first { --petal-x0: 35%; --petal-y0: 14%; --petal-x1: 30%; --petal-y1: 43.4211%; animation-delay: 0s; }
+.theme-petal-second { --petal-x0: 68%; --petal-y0: 16%; --petal-x1: 69%; --petal-y1: 41.4474%; animation-delay: -3.6s; }
+.theme-petal-third { --petal-x0: 22%; --petal-y0: 18%; --petal-x1: 18%; --petal-y1: 53.6842%; animation-delay: -7.2s; }
+.theme-petal-fourth { --petal-x0: 78%; --petal-y0: 13%; --petal-x1: 84%; --petal-y1: 53.2895%; animation-delay: -10.8s; }
+.theme-petal-fifth { --petal-x0: 55%; --petal-y0: 14%; --petal-x1: 75.5%; --petal-y1: 48.0263%; animation-delay: -14.4s; }
 @keyframes theme-petal-fall {
-  0%, 76%, 96%, 100% { opacity: 0; transform: translate(0, 0) rotate(0); }
-  78% { opacity: .55; transform: translate(0, 0) rotate(-20deg); }
-  84% { opacity: .62; transform: translate(-220%, 490%) rotate(55deg); }
-  90% { opacity: .38; transform: translate(-110%, 980%) rotate(110deg); }
-  95% { opacity: 0; transform: translate(-420%, 1300%) rotate(160deg); }
+  0% { opacity: 0; transform: translate(var(--petal-x0), var(--petal-y0)) rotate(-18deg); }
+  3% { opacity: .88; transform: translate(var(--petal-x0), var(--petal-y0)) rotate(-18deg); }
+  12% { opacity: .88; transform: translate(calc(var(--petal-x0) + 3%), calc(var(--petal-y0) + 7%)) rotate(20deg); }
+  22% { opacity: .8; transform: translate(calc(var(--petal-x1) - 2%), calc(var(--petal-y1) - 12%)) rotate(80deg); }
+  34% { opacity: .72; transform: translate(var(--petal-x1), var(--petal-y1)) rotate(145deg); }
+  39% { opacity: .68; transform: translate(var(--petal-x1), var(--petal-y1)) rotate(145deg); }
+  46% { opacity: 0; transform: translate(var(--petal-x1), var(--petal-y1)) rotate(145deg); }
+  47%, 100% { opacity: 0; transform: translate(var(--petal-x0), var(--petal-y0)) rotate(-18deg); }
 }
 
 .garden-miniature .theme-effects { display: none !important; }

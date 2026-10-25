@@ -44,3 +44,8 @@ Before branching, fetch upstream and check the previous PR status: 0.12.0 PR #3 
 The week index uses `GardenLayout.weekPage` with five chronological entries per page, independently of the twelve-miniature garden grouping. The motion checkbox is in the heading and the shared main-scene top trim is 9%. Badge colours use the twenty original persistent conditions in ten grouped cards; white cards fill pale yellow only when every tier is earned. IDs, earn dates, counters, schema 2, seven permissions and 64 MB are unchanged.
 
 `GardenAmbience.createThemeEffects` mounts nine decorative nodes once. `ui/theme-effects.css` provides rain, dusk and blossom details without new timers or per-frame JavaScript. The existing scene motion flag controls them, and miniatures stay static. Package the new stylesheet and the 0.14.0 feature notes. See [feature notes](features-0140.md) and [verification](verification.md).
+
+
+## 0.15.0 observed statistics
+
+`focusStats` is a bounded CAS-protected hot-state object, initialized at upgrade without historical backfill. Achievement revision 3 adds sixteen conditions to the original twenty. A persistent SQL guard rejects older writers that drop these records; close older runtimes and use a consistent pre-upgrade backup for rollback. Seven permissions, 64 MB and archive schema 2 remain. `ui/focus-status.js` explains the worker decision without observing activity itself; `ui/focus.css` styles its UI and statistics. `ui/pond.css` supplies shared clipped water motion; the existing theme layer has eleven fixed decorative nodes. Package these modules and [0.15 notes](features-0150.md). See [verification](verification.md) for current evidence and native limitations.

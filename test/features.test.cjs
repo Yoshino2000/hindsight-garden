@@ -110,6 +110,7 @@ async function seedOldArchive(host, count) {
   delete old.collection;
   delete old.earnedAchievements;
   delete old.achievementRevision;
+  delete old.focusStats;
   await host.call("db.execute", {
     sql: "CREATE TABLE garden_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, version INTEGER NOT NULL)", params: [],
   });
@@ -134,6 +135,7 @@ async function seed011Collection(host, count = 1) {
     earnedAchievements: { "first-bloom": 0, "ten-blooms": 20, "all-species": 30, "hundred-blooms": 40 },
   };
   delete state.achievementRevision;
+  delete state.focusStats;
   await host.call("db.execute", {
     sql: "UPDATE garden_store SET value = ?, version = version + 1 WHERE key = 'state'", params: [JSON.stringify(state)],
   });
@@ -401,6 +403,10 @@ test("feature SQL succeeds under the actual preview authorizer that denies SQLit
   await store.load();
   replayRestricted(host.calls, [
     "assert hot['collection']['totalBlooms']==10",
+    "assert hot['focusStats']['totalMs']==60000",
+    "assert hot['focusStats']['longestMs']==60000",
+    "assert hot['focusStats']['streakMs']==0",
+    "assert hot['focusStats']['categories'][0]['ms']==60000",
     "assert hot['earnedAchievements']['ten-blooms']==60000",
     "assert hot['plans'][0]['id']=='reading'",
     "archived=dict(connection.execute('SELECT id, value FROM garden_plants'))",
@@ -463,7 +469,7 @@ test("the guard rejects dropping any protected field but permits other keys and 
   const host = hostFor(t);
   await createStore(host.call).load();
   const before = host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get();
-  for (const field of ["collection", "plans", "earnedAchievements"]) {
+  for (const field of ["collection", "plans", "earnedAchievements", "focusStats"]) {
     const attempted = JSON.parse(before.value);
     delete attempted[field];
     assert.throws(() => host.db.prepare("UPDATE garden_store SET value = ?, version = version + 1 WHERE key = 'state'").run(JSON.stringify(attempted)), /已过期/);
@@ -475,9 +481,9 @@ test("the guard rejects dropping any protected field but permits other keys and 
   assert.deepEqual(host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get(), before);
 });
 
-test("the expanded catalog keeps four original identities and supplies twenty distinct, explainable achievements", () => {
-  assert.equal(core.ACHIEVEMENTS.length, 20);
-  assert.equal(new Set(core.ACHIEVEMENTS.map((item) => item.id)).size, 20);
+test("the expanded catalog keeps four original identities and supplies thirty-six distinct, explainable achievements", () => {
+  assert.equal(core.ACHIEVEMENTS.length, 36);
+  assert.equal(new Set(core.ACHIEVEMENTS.map((item) => item.id)).size, 36);
   assert.deepEqual(core.ACHIEVEMENTS.slice(0, 4).map(({ id, name, badge }) => ({ id, name, badge })), [
     { id: "first-bloom", name: "第一朵花", badge: 0 },
     { id: "ten-blooms", name: "小小花匠", badge: 1 },
@@ -542,8 +548,10 @@ test("an 0.11 collection upgrades on page load using lifetime counters, preservi
   assert.deepEqual(state.collection, old.collection);
   assert.equal(state.garden.length, 1, "Deleted historical flowers are not recreated");
   for (const [id, at] of Object.entries(old.earnedAchievements)) assert.equal(state.earnedAchievements[id], at);
-  for (const item of core.ACHIEVEMENTS.filter((entry) => !Object.hasOwn(old.earnedAchievements, entry.id)))
+  for (const item of core.ACHIEVEMENTS.filter((entry) => !entry.sinceStats && !Object.hasOwn(old.earnedAchievements, entry.id)))
     assert.ok(state.earnedAchievements[item.id] >= startedAt && state.earnedAchievements[item.id] <= finishedAt);
+  for (const item of core.ACHIEVEMENTS.filter((entry) => entry.sinceStats))
+    assert.equal(state.earnedAchievements[item.id], undefined);
   assert.equal(host.calls.filter(({ params }) => params.sql.includes("COUNT(*) AS count FROM garden_plants GROUP BY")).length, 0);
   assert.equal(host.db.prepare("SELECT version FROM garden_store WHERE key = 'state'").get().version, before.version + 1);
   const after = host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get();
@@ -604,7 +612,9 @@ test("catalog upgrades work under the host authorizer without changing the saved
   await seed011Collection(host, 0);
   await createStore(host.call).load();
   replayRestricted(host.calls, [
-    "assert hot['achievementRevision']==2",
+    "assert hot['achievementRevision']==3",
+    "assert hot['focusStats']['totalMs']==0",
+    "assert hot['focusStats']['categories']==[]",
     "assert hot['collection']['verifiedAt']==100",
     "assert hot['collection']['totalBlooms']==1000",
     "assert len(hot['earnedAchievements'])==20",

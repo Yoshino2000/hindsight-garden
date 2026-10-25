@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="achievements.css" />
     <link rel="stylesheet" href="themes.css" />
     <link rel="stylesheet" href="theme-effects.css" />
+    <link rel="stylesheet" href="pond.css" />
+    <link rel="stylesheet" href="focus.css" />
   </head>
   <body>
     <main class="app">
@@ -129,6 +131,12 @@
             </div>
           </div>
           <p id="active-target-summary" class="hint"></p>
+          <section id="growth-explanation" class="growth-explanation" aria-labelledby="growth-explanation-title">
+            <h3 id="growth-explanation-title">当前生长状态</h3>
+            <p id="growth-explanation-summary"></p>
+            <dl id="growth-observation" class="growth-observation"></dl>
+            <p id="growth-advice" class="growth-advice"></p>
+          </section>
           <p class="hint field-intro">满足以下任意一条规则时累计时间。修改规则会保留当前进度。</p>
           <ul id="active-rules" class="rule-summary"></ul>
           <p id="penalty-summary" class="hint"></p>
@@ -407,6 +415,7 @@
               focusable="false"
             >
               <defs>
+                <clipPath id="pond-water-surface-clip"><ellipse cx="749" cy="324" rx="62" ry="23" /></clipPath>
                 <linearGradient id="grass-top" x1="0" y1="0" x2="0" y2="1">
                   <stop stop-color="#d8e6b7" />
                   <stop offset="1" stop-color="#b5ce93" />
@@ -586,6 +595,7 @@
                 ry="23"
                 fill="url(#pond-water)"
               />
+              <g class="pond-water-details" clip-path="url(#pond-water-surface-clip)">
               <path
                 class="pond-reflection"
                 d="M702 320Q724 310 748 315M754 336Q781 340 797 328"
@@ -597,10 +607,16 @@
               />
               <ellipse class="pond-ripple" cx="730" cy="329" rx="15" ry="5" fill="none" stroke="#e0f1e7" stroke-width="1.5" opacity=".35" />
               <ellipse class="pond-ripple" cx="774" cy="319" rx="11" ry="4" fill="none" stroke="#e0f1e7" stroke-width="1.5" opacity=".3" />
-              <g data-scene-part="pond-leaves" stroke-linejoin="round">
+              <g class="pond-leaf-a" stroke-linejoin="round">
                 <path d="M720 327C706 317 705 311 716 308C727 305 741 312 740 318L725 317Z" fill="#90b58b" stroke="#7fa680" stroke-width="1.5" />
+                <path d="M716 312 730 316" fill="none" stroke="#c5ddad" stroke-width="2" stroke-linecap="round" />
+              </g>
+              <g class="pond-leaf-b" stroke-linejoin="round">
                 <path d="M771 324C759 316 761 310 773 310C786 309 795 315 788 322L777 317Z" fill="#a1c597" stroke="#88af84" stroke-width="1.5" />
-                <path d="M716 312 730 316M770 314 783 317" fill="none" stroke="#c5ddad" stroke-width="2" stroke-linecap="round" />
+                <path d="M770 314 783 317" fill="none" stroke="#c5ddad" stroke-width="2" stroke-linecap="round" />
+              </g>
+              </g>
+              <g data-scene-part="pond-leaves" stroke-linejoin="round">
                 <path d="M816 317Q810 301 817 286M816 317Q821 298 827 296M816 317Q806 307 804 296" fill="none" stroke="#89ab7e" stroke-width="3" stroke-linecap="round" />
                 <ellipse cx="819" cy="291" rx="3" ry="8" fill="#b9bd82" transform="rotate(12 819 291)" />
                 <path d="M691 310Q688 299 693 292M691 310Q699 302 701 297" fill="none" stroke="#91b18b" stroke-width="2.5" stroke-linecap="round" />
@@ -689,15 +705,14 @@
             ></div>
           </div>
           </div>
+          <div id="garden-empty-row" class="garden-empty-row">
           <p id="garden-empty" class="garden-scene-caption">
             第一朵花会种在这里。完成当前盆栽，它就会留在这座花园里。
-          </p>
-          <p id="garden-interaction-hint" class="garden-scene-caption" hidden>
-            点击一朵花，看看它留下的时间。
           </p>
           <button id="garden-start" class="button quiet small" type="button">
             去看看当前盆栽
           </button>
+          </div>
           <div class="garden-toolbar">
             <nav
               id="garden-pagination"
@@ -712,6 +727,9 @@
                 下一座
               </button>
             </nav>
+            <p id="garden-interaction-hint" class="garden-scene-caption" hidden>
+              点击一朵花，看看它留下的时间。
+            </p>
           </div>
         </section>
         <section class="card garden-browser" aria-label="选择花园">
@@ -767,12 +785,22 @@
         </section>
         <details id="collection-settings" class="card collection-settings">
           <summary>收藏成就与主题<span id="collection-summary" class="collection-summary"></span></summary>
+          <section class="focus-statistics" aria-labelledby="focus-statistics-title">
+            <h3 id="focus-statistics-title">有效生长记录</h3>
+            <p id="focus-statistics-since" class="note-privacy"></p>
+            <dl id="focus-statistics-summary" class="focus-statistics-summary"></dl>
+            <p class="note-privacy">分类比例包含未分类与其他；最多单列 24 个分类，其后新分类汇总为「其他」。连续段在暂停、离开、不匹配或花开时结束。</p>
+            <div id="focus-distribution-bar" class="focus-distribution-bar" aria-hidden="true"></div>
+            <p id="focus-distribution-empty" class="note-privacy">获得有效生长时间后，这里会显示分类比例。</p>
+            <ul id="focus-distribution-preview" class="focus-distribution-list"></ul>
+            <details id="focus-distribution-more" hidden><summary>查看其余分类</summary><ul id="focus-distribution-rest" class="focus-distribution-list"></ul></details>
+          </section>
           <div id="achievement-filters" class="achievement-filters" role="group" aria-label="筛选成就">
-            <button type="button" data-filter="all" aria-pressed="true">全部</button><button type="button" data-filter="blooms" aria-pressed="false">株数里程碑</button><button type="button" data-filter="species" aria-pressed="false">品种收藏</button><button type="button" data-filter="earned" aria-pressed="false">已获得</button>
+            <button type="button" data-filter="all" aria-pressed="true">全部</button><button type="button" data-filter="blooms" aria-pressed="false">株数里程碑</button><button type="button" data-filter="species" aria-pressed="false">品种收藏</button><button type="button" data-filter="focus" aria-pressed="false">生长记录</button><button type="button" data-filter="earned" aria-pressed="false">已获得</button>
           </div>
           <p class="note-privacy">点击查看各级条件与日期。徽章有白、蓝、紫、金、彩五档颜色；整组全部达成后，卡片才会填上淡黄色。</p>
           <div id="achievement-list" class="achievement-list" aria-label="收藏成就"></div>
-          <p class="note-privacy">成就永久保留。首次升级从当时仍在收藏的花开始核验，以后新开花继续累计；删除花朵不撤回成就。旧版本已经移除的花无法还原。</p>
+          <p class="note-privacy">花朵收藏成就按现存档案核验，已删除的旧花无法还原；有效生长成就只从上方统计起点开始。已获得等级永久保留，删除花朵不撤回。</p>
           <p id="achievement-empty" class="achievement-empty" hidden>还没有符合筛选的成就，先从一朵花开始吧。</p>
           <h3 class="theme-heading">给花园换个心情</h3>
           <div id="theme-options" class="theme-options" role="group" aria-label="选择花园主题"></div>
@@ -852,6 +880,7 @@
     <script src="ambience.js"></script>
     <script src="plant-guide.js"></script>
     <script src="collection.js"></script>
+    <script src="focus-status.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

@@ -521,7 +521,67 @@
     ));
   }
 
+  function focusTime(value) {
+    return value < 3600000 ? minutes(value) : GardenCollection.totalTime(value);
+  }
+
+  function achievementProgressText(item) {
+    if (["focusStreak", "focusTotal"].includes(item.metric))
+      return `${focusTime(item.current)} / ${focusTime(item.target)}`;
+    if (item.metric === "focusCategories") return `${item.current} / ${item.target} 个达标分类`;
+    if (item.metric === "focusRatio") return `${item.current}% 条件进度`;
+    return `${item.current} / ${item.target}${item.metric === "blooms" ? " 朵" : item.metric === "species" ? " 种" : ""}`;
+  }
+
+  function focusAchievementActual(item) {
+    const summary = C.focusSummary(state);
+    if (item.metric === "focusStreak") return `最长连续 ${focusTime(summary.longestMs)}`;
+    if (item.metric === "focusTotal") return focusTime(summary.totalMs);
+    if (item.metric === "focusCategories") return `${summary.qualifiedCategories} 个分类各达到 10 分钟`;
+    return `有效生长 ${focusTime(summary.totalMs)}；第 ${item.displayTier.requiredCategories} 大分类占比 ${Number(item.displayTier.actualSharePercent.toFixed(1))}%`;
+  }
+
+  function renderFocusStatistics() {
+    const summary = C.focusSummary(state);
+    $("focus-statistics-since").textContent = `${summary.startedAt === null ? "从升级后首次记录开始" : `${date(summary.startedAt)} 起记录`} · 只统计养花且匹配规则时的有效生长时间，历史花朵不回推。`;
+    $("focus-statistics-summary").replaceChildren(...[
+      ["累计有效生长", summary.totalMs], ["最长连续", summary.longestMs], ["本次连续", summary.streakMs],
+    ].map(([label, value]) => {
+      const row = el("div");
+      row.append(el("dt", "", label), el("dd", "", focusTime(value)));
+      return row;
+    }));
+    const colors = ["#7e9f79", "#87a6c0", "#b297c4", "#d0ad69", "#ce9f9b", "#8eb8ac"];
+    const categoryColors = new Map((state.focusStats?.categories || []).map((bucket, index) =>
+      [bucket.id, colors[index % colors.length]]));
+    const buckets = [...summary.buckets].sort((first, second) => second.ms - first.ms);
+    const color = (bucket) => {
+      if (bucket.kind !== "category") return bucket.kind === "other" ? "#a6afa2" : "#c5c9c1";
+      return categoryColors.get(bucket.id) || colors[0];
+    };
+    $("focus-distribution-bar").replaceChildren(...buckets.map((bucket) => {
+      const segment = el("span");
+      segment.style.width = `${bucket.percent}%`;
+      segment.style.backgroundColor = color(bucket);
+      return segment;
+    }));
+    const rows = buckets.map((bucket) => {
+      const row = el("li");
+      const dot = el("span", "focus-category-dot");
+      dot.style.backgroundColor = color(bucket);
+      row.append(dot, el("span", "focus-category-name", bucket.name),
+        el("span", "", `${Number(bucket.percent.toFixed(1))}% · ${focusTime(bucket.ms)}`));
+      return row;
+    });
+    $("focus-distribution-preview").replaceChildren(...rows.slice(0, 4));
+    $("focus-distribution-rest").replaceChildren(...rows.slice(4));
+    $("focus-distribution-more").hidden = rows.length <= 4;
+    $("focus-distribution-empty").hidden = summary.totalMs !== 0;
+    $("focus-distribution-bar").hidden = summary.totalMs === 0;
+  }
+
   function renderCollection() {
+    renderFocusStatistics();
     const progress = C.achievementProgress(state);
     const chosen = GardenCollection.theme(gardenTheme, state.earnedAchievements);
     const previousTheme = $("view-garden").dataset.theme;
@@ -534,12 +594,12 @@
     if (signature === collectionSignature) return;
     collectionSignature = signature;
     const matches = (item, filter) => filter === "all" ||
-      (filter === "earned" ? item.earnedCount > 0 : filter === "blooms" ? item.metric === "blooms" : item.metric !== "blooms");
+      (filter === "earned" ? item.earnedCount > 0 : filter === "blooms" ? item.metric === "blooms" : filter === "focus" ? item.metric.startsWith("focus") : ["species", "speciesBloom"].includes(item.metric));
     const visible = groups.filter((item) => matches(item, achievementFilter));
     for (const button of $("achievement-filters").children) {
       const filter = button.dataset.filter;
       button.setAttribute("aria-pressed", String(filter === achievementFilter));
-      const name = { all: "全部", blooms: "株数里程碑", species: "品种收藏", earned: "已获得" }[filter];
+      const name = { all: "全部", blooms: "株数里程碑", species: "品种收藏", focus: "生长记录", earned: "已获得" }[filter];
       button.textContent = `${name} ${groups.filter((item) => matches(item, filter)).length}`;
     }
     $("achievement-empty").hidden = visible.length !== 0;
@@ -554,13 +614,13 @@
       card.setAttribute("aria-controls", "achievement-drawer");
       const level = item.currentTier?.levelName;
       const status = item.complete ? (item.tiers.length > 1 ? `${level} · 全部达成` : "已获得 · 查看") :
-        `${level ? `${level} · ` : ""}${item.current} / ${item.target}${item.metric === "blooms" ? " 朵" : item.metric === "species" ? " 种" : ""}`;
+        `${level ? `${level} · ` : ""}${achievementProgressText(item)}`;
       card.setAttribute("aria-label", `${item.name}，${status}，查看各级条件与日期`);
       card.title = item.nextTier?.condition || item.currentTier?.condition;
       const bar = el("progress");
       bar.max = item.target;
-      bar.value = item.current;
-      bar.setAttribute("aria-label", `${item.name} ${item.current}/${item.target}`);
+      bar.value = item.complete ? item.target : item.current;
+      bar.setAttribute("aria-label", item.complete ? `${item.name} 已全部获得` : `${item.name} ${achievementProgressText(item)}`);
       card.append(achievementArtwork(item.displayTier), el("span", "achievement-name", item.name),
         el("span", "achievement-status", status), bar);
       card.addEventListener("click", () => {
@@ -598,7 +658,21 @@
     const art = el("span", "achievement-art");
     art.setAttribute("aria-hidden", "true");
     art.dataset.metal = item.metal || "none";
-    if (item.metric === "speciesBloom") {
+    if (item.metric.startsWith("focus")) {
+      art.dataset.focus = item.metric;
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 48 48");
+      svg.setAttribute("focusable", "false");
+      const path = document.createElementNS(svg.namespaceURI, "path");
+      path.setAttribute("d", {
+        focusStreak: "M24 8a16 16 0 1 0 0 32 16 16 0 0 0 0-32M24 15v10l7 4M19 3h10",
+        focusTotal: "M13 6h22v6c0 6-8 9-11 12 3 3 11 6 11 12v6H13v-6c0-6 8-9 11-12-3-3-11-6-11-12ZM17 37h14M17 11h14",
+        focusCategories: "M8 40h32M11 34V23h6v11ZM21 34V14h6v20ZM31 34V7h6v27Z",
+        focusRatio: "M24 7v17h17A17 17 0 1 1 24 7ZM29 6v13h13A17 17 0 0 0 29 6Z",
+      }[item.metric]);
+      svg.append(path);
+      art.append(svg);
+    } else if (item.metric === "speciesBloom") {
       art.dataset.species = item.species;
       art.style.backgroundImage = `url("../assets/garden/${species(item.species).id}.png")`;
     } else art.style.setProperty("--badge-position", `${item.badge / 3 * 100}%`);
@@ -625,7 +699,7 @@
     art.dataset.complete = String(item.complete);
     art.append(achievementArtwork(item.displayTier));
     const actual = item.metric === "blooms" ? `${state.collection.totalBlooms} 朵花` :
-      item.metric === "species" ? `${state.collection.species.length} 种` : `${item.current} / 1 次首次开花`;
+      item.metric === "species" ? `${state.collection.species.length} 种` : item.metric.startsWith("focus") ? focusAchievementActual(item) : `${item.current} / 1 次首次开花`;
     const stats = el("dl", "achievement-detail-stats");
     for (const [label, value] of [["当前累计", actual], ["已获等级", `${item.earnedCount} / ${item.tiers.length}`],
       ["当前等级", item.currentTier ? item.tiers.length > 1 ? item.currentTier.levelName : "已获得" : "尚未获得"],
@@ -639,12 +713,14 @@
       const rewards = GardenCollection.THEMES.filter((theme) => theme.achievement === tier.id).map((theme) => theme.name);
       row.append(el("strong", "", `${item.tiers.length > 1 ? `${tier.levelName} · ` : ""}${tier.name}`),
         el("p", "", tier.condition),
-        el("small", "", tier.earnedAt !== null ? `已获得 · ${date(tier.earnedAt)}（获得/核验日）` : `尚未获得 · ${tier.current} / ${tier.target}`));
+        el("small", "", tier.earnedAt !== null ? `已获得 · ${date(tier.earnedAt)}（获得/核验日）` : `尚未获得 · ${achievementProgressText(tier)}`));
       if (rewards.length) row.append(el("small", "", `解锁「${rewards.join("、")}」主题`));
       tiers.append(row);
     }
     $("achievement-details").replaceChildren(title, art, el("p", "achievement-description", item.displayTier.description), stats, tiers,
-      el("p", "note-privacy", "等级只是合并展示，原有条件与获得日期都保留。累计从首次核验时仍保留的收藏开始，此后新开花继续计入，删除不扣回。新成就可能按永久计数补授；获得日期可能为核验日，旧版本已删除的花不能还原。"));
+      el("p", "note-privacy", item.metric.startsWith("focus")
+        ? "只统计升级后统计起点以来实际获得的有效生长时间，不回推旧花、目标时长或升级前进度。未分类与其他计入总量；分类比例变化不会撤回已获等级。连续段在暂停、离开、不匹配、花开或未观察到的时间间隔后结束。"
+        : "等级只是合并展示，原有条件与获得日期都保留。累计从首次核验时仍保留的收藏开始，此后新开花继续计入，删除不扣回。新成就可能按永久计数补授；获得日期可能为核验日，旧版本已删除的花不能还原。"));
     for (const button of $("achievement-list").children)
       button.setAttribute("aria-expanded", String(button.dataset.achievement === item.id));
     $("achievement-drawer").hidden = false;
@@ -663,16 +739,12 @@
 
   function renderCurrent() {
     const plant = state.active;
-    const fresh =
-      Number.isFinite(state.heartbeatAt) &&
-      Date.now() - state.heartbeatAt < 12000;
-    const growing = Boolean(
-      plant &&
-        fresh &&
-        !state.paused &&
-        state.focus &&
-        C.matches(plant.rules, state.focus),
-    );
+    const explanation = GardenFocus.explain(state, Date.now(), {
+      ruleLabel: ruleText,
+      catalogs: Object.fromEntries(Object.entries(catalogs).map(([type, catalog]) =>
+        [type, catalog.loaded && !catalog.error ? catalog.items : null])),
+    });
+    const { fresh, growing } = explanation;
     $("growth-status").classList.toggle("growing", growing);
     document.querySelector(".hero").classList.toggle("growing", growing);
     $("current-hero").hidden = !plant;
@@ -732,24 +804,14 @@
       `${minutes(plant.progressMs)} / ${minutes(plant.targetMs)}`;
     $("progress-percent").textContent = `${Math.floor(ratio)}%`;
     $("pause").textContent = state.paused ? "继续生长" : "暂停生长";
-    $("growth-status").textContent = state.paused
-      ? "安心暂停中"
-      : growing
-        ? "正在生长"
-        : "等待你回来";
-    $("growth-hint").textContent = state.paused
-      ? "进度已经保存。准备好了，再继续。"
-      : !fresh || !state.focus
-        ? "等待新的前台活动信息，暂不累计时间。"
-        : state.focus.away
-          ? "你离开了电脑，植物正在休息，不会扣进度。"
-          : growing
-            ? "当前活动符合约定，小花正在慢慢生长。"
-            : plant.penalty.enabled && state.interruption
-              ? state.interruption.applied
-                ? "本次中断已处理。停在这里不会再次扣减，回来后继续生长。"
-                : "当前活动不在规则中。超过宽限时间，将按约定扣减一次进度。"
-              : "当前活动不在规则中，生长暂停，已有进度保留。";
+    $("growth-status").textContent = growing ? "正在生长" : explanation.title;
+    $("growth-hint").textContent = explanation.summary;
+    $("growth-explanation").dataset.status = explanation.code;
+    $("growth-explanation-title").textContent = growing ? "为什么正在生长" : "为什么暂时没生长";
+    $("growth-explanation-summary").textContent = explanation.title;
+    $("growth-observation").replaceChildren(...explanation.observations.flatMap(([label, value]) =>
+      [el("dt", "", label), el("dd", "", value)]));
+    $("growth-advice").textContent = explanation.advice;
     $("active-rules").replaceChildren(
       ...plant.rules.map((rule) => el("li", "", ruleText(rule))),
     );
@@ -791,6 +853,7 @@
       : "第一朵花会种在这里。完成当前盆栽，它就会留在这座花园里。";
     if (gardenMode === "week" && layout.total === 0 && gardenView.total > 0)
       $("garden-empty").textContent = `这一周还没有收藏的花朵。其他周已收藏 ${gardenView.total} 株，可直接在下方周相册中查看。`;
+    $("garden-empty-row").hidden = layout.total > 0;
     $("garden-empty").hidden = layout.total > 0;
     $("garden-start").hidden = layout.total > 0;
     $("garden-interaction-hint").hidden = layout.total === 0;

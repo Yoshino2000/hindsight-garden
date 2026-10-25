@@ -71,6 +71,7 @@
       "theme-ground-light theme-light-bench", "theme-ground-light theme-light-lantern",
       "theme-firefly theme-firefly-left", "theme-firefly theme-firefly-right",
       "theme-petal theme-petal-first", "theme-petal theme-petal-second", "theme-petal theme-petal-third",
+      "theme-petal theme-petal-fourth", "theme-petal theme-petal-fifth",
     ]) {
       const item = scene.ownerDocument.createElement("span");
       item.className = name;

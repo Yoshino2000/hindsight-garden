@@ -3,7 +3,9 @@
   "use strict";
 
   const MAX_GAP_MS = 10000;
-  const ACHIEVEMENT_REVISION = 2;
+  const ACHIEVEMENT_REVISION = 3;
+  const FOCUS_CATEGORY_LIMIT = 24;
+  const CATEGORY_GOAL_MS = 10 * 60000;
   const SPECIES = [
     {
       id: "sunflower",
@@ -99,6 +101,33 @@
       id: "first-" + item.id, name: item.name + "初绽", metric: "speciesBloom",
       species: item.id, target: 1, badge: null,
       condition: `至少让一株${item.name}开花。`, description: item.description,
+    })),
+    ...[5, 15, 25, 45, 60].map((minutes) => ({
+      id: `streak-${minutes}m`, name: `连续 ${minutes} 分钟`, metric: "focusStreak",
+      target: minutes * 60000, badge: 0, sinceStats: true,
+      condition: `从有效生长统计开始后，单次连续累计 ${minutes} 分钟实际生长时间。切出规则、离开、暂停、休眠、重启、修改规则或开花都会结束连续段。`,
+      description: "正在养花、符合生长规则并实际增加进度的时间，会累计成一段连续记录。",
+    })),
+    ...[1, 5, 10, 25, 50].map((hours) => ({
+      id: `focus-${hours}h`, name: `累计 ${hours} 小时`, metric: "focusTotal",
+      target: hours * 3600000, badge: 1, sinceStats: true,
+      condition: `从有效生长统计开始后，累计 ${hours} 小时实际生长时间。旧花朵、旧目标时长与升级前进度不补算。`,
+      description: "可以分多次、跨天积累。惩罚不倒扣已经真实获得的生长时间，规则重叠也只计一次。",
+    })),
+    ...[2, 3, 5].map((count) => ({
+      id: `categories-${count}x10m`, name: `${count} 类时光`, metric: "focusCategories",
+      target: count, minCategoryMs: CATEGORY_GOAL_MS, badge: 2, sinceStats: true,
+      condition: `从有效生长统计开始后，至少 ${count} 个单列分类各累计 10 分钟实际生长时间。未分类与超出 24 个分类后合并的「其他」不计入。`,
+      description: "分类来自当时真实的 Hindsight 分类标识，不从规则名称猜测，也不拆分同一段时间。",
+    })),
+    ...[
+      { id: "ratio-single-80", name: "专心一隅", minTotalMs: 3600000, requiredCategories: 1, sharePercent: 80 },
+      { id: "ratio-dual-25", name: "双类均衡", minTotalMs: 3600000, requiredCategories: 2, sharePercent: 25 },
+      { id: "ratio-triple-15", name: "三类交响", minTotalMs: 7200000, requiredCategories: 3, sharePercent: 15 },
+    ].map((item) => ({
+      ...item, metric: "focusRatio", target: 100, badge: 3, sinceStats: true,
+      condition: `从有效生长统计开始后，总计至少 ${item.minTotalMs / 3600000} 小时；至少 ${item.requiredCategories} 个单列分类各占总有效生长时间的 ${item.sharePercent}%。总量包含未分类和「其他」，它们不作为合格分类。`,
+      description: "进度条表示时长门槛与比例条件的共同完成度，不是实际分类百分比。达成后永久保留，之后比例变化不会撤回。",
     })),
   ];
 
@@ -301,6 +330,7 @@
       collection: null,
       earnedAchievements: {},
       achievementRevision: ACHIEVEMENT_REVISION,
+      focusStats: null,
       focus: null,
       lastAt: null,
       sessionId: null,
@@ -352,16 +382,122 @@
     return Object.fromEntries(Object.entries(value).map(([id, at]) => [id, timestamp(at)]));
   }
 
+  function counter(value) {
+    if (!Number.isSafeInteger(value) || value < 0)
+      throw new Error("有效生长统计数值不正确，请保留数据并检查。");
+    return value;
+  }
+
+  function initialFocusStats(now) {
+    return {
+      schema: 1, startedAt: timestamp(now), totalMs: 0, longestMs: 0, streakMs: 0,
+      categories: [], uncategorizedMs: 0, otherMs: 0,
+    };
+  }
+
+  function savedFocusStats(value) {
+    if (value == null) return null;
+    if (typeof value !== "object" || Array.isArray(value) || value.schema !== 1 ||
+        !Array.isArray(value.categories) || value.categories.length > FOCUS_CATEGORY_LIMIT)
+      throw new Error("有效生长统计格式或版本不支持，请保留数据并使用最新版。");
+    const stats = {
+      schema: 1, startedAt: timestamp(value.startedAt), totalMs: counter(value.totalMs),
+      longestMs: counter(value.longestMs), streakMs: counter(value.streakMs),
+      categories: value.categories.map((item) => {
+        if (!item || typeof item.id !== "string" || !item.id.trim() || item.id.length > 128 ||
+            typeof item.name !== "string" || item.name.length > 80 || !counter(item.ms))
+          throw new Error("有效生长分类统计不正确，请保留数据并检查。");
+        return { id: item.id.trim(), name: item.name.trim(), ms: item.ms };
+      }),
+      uncategorizedMs: counter(value.uncategorizedMs), otherMs: counter(value.otherMs),
+    };
+    const sum = counter(stats.categories.reduce((total, item) => counter(total + item.ms),
+      counter(stats.uncategorizedMs + stats.otherMs)));
+    if (new Set(stats.categories.map((item) => item.id)).size !== stats.categories.length ||
+        sum !== stats.totalMs || stats.longestMs > stats.totalMs || stats.streakMs > stats.longestMs)
+      throw new Error("有效生长统计合计不一致，请保留数据并检查。");
+    return stats;
+  }
+
+  function endFocusStreak(state) {
+    if (state.focusStats) state.focusStats.streakMs = 0;
+  }
+
+  function creditFocus(state, elapsed) {
+    if (!elapsed) return;
+    const stats = state.focusStats;
+    stats.totalMs = counter(stats.totalMs + elapsed);
+    stats.streakMs = counter(stats.streakMs + elapsed);
+    stats.longestMs = Math.max(stats.longestMs, stats.streakMs);
+    const category = state.focus?.category;
+    if (!category?.id) {
+      stats.uncategorizedMs = counter(stats.uncategorizedMs + elapsed);
+      return;
+    }
+    const bucket = stats.categories.find((item) => item.id === category.id);
+    if (bucket) {
+      bucket.ms = counter(bucket.ms + elapsed);
+      if (category.name) bucket.name = category.name;
+    } else if (stats.categories.length < FOCUS_CATEGORY_LIMIT) {
+      stats.categories.push({ id: category.id, name: category.name || "", ms: elapsed });
+    } else {
+      stats.otherMs = counter(stats.otherMs + elapsed);
+    }
+  }
+
+  function focusSummary(state) {
+    const stats = state?.focusStats;
+    const totalMs = stats?.totalMs || 0;
+    const buckets = (stats?.categories || []).map((item) => ({
+      ...item, kind: "category", name: item.name || "未命名分类",
+    }));
+    if (stats?.uncategorizedMs) buckets.push({ kind: "uncategorized", id: null, name: "未分类", ms: stats.uncategorizedMs });
+    if (stats?.otherMs) buckets.push({ kind: "other", id: null, name: "其他", ms: stats.otherMs });
+    buckets.sort((first, second) => second.ms - first.ms ||
+      String(first.id || first.kind).localeCompare(String(second.id || second.kind)));
+    return {
+      startedAt: stats?.startedAt ?? null, totalMs, longestMs: stats?.longestMs || 0,
+      streakMs: stats?.streakMs || 0, categoryLimit: FOCUS_CATEGORY_LIMIT,
+      qualifiedCategories: (stats?.categories || []).filter((item) => item.ms >= CATEGORY_GOAL_MS).length,
+      buckets: buckets.map((item) => ({ ...item, percent: totalMs ? item.ms / totalMs * 100 : 0 })),
+    };
+  }
+
+  function ratioProgress(stats, item) {
+    const total = stats?.totalMs || 0;
+    const categories = [...(stats?.categories || [])].sort((first, second) => second.ms - first.ms);
+    const categoryMs = categories[item.requiredCategories - 1]?.ms || 0;
+    const actualSharePercent = total ? categoryMs / total * 100 : 0;
+    // Integer comparison guards qualification at the exact boundary; display percentages are
+    // approximate, and can never round an unmet condition up into an earned achievement.
+    const eligible = total >= item.minTotalMs &&
+      BigInt(categoryMs) * 100n >= BigInt(total) * BigInt(item.sharePercent);
+    return {
+      current: eligible ? 100 : Math.min(99, Math.floor(Math.min(total / item.minTotalMs,
+        actualSharePercent / item.sharePercent) * 100)),
+      actualSharePercent, observedTotalMs: total, eligible,
+    };
+  }
+
   function achievementProgress(state) {
     const collection = state.collection;
-    return ACHIEVEMENTS.map((item) => ({
-      ...item,
-      current: Math.min(item.target, item.metric === "speciesBloom"
-        ? Number(collection?.species.includes(item.species) || false)
-        : item.metric === "species"
-          ? collection?.species.length || 0 : collection?.totalBlooms || 0),
-      earnedAt: state.earnedAchievements?.[item.id] ?? null,
-    }));
+    const stats = state.focusStats;
+    return ACHIEVEMENTS.map((item) => {
+      let current = 0;
+      let extra = {};
+      if (item.metric === "blooms") current = collection?.totalBlooms || 0;
+      else if (item.metric === "species") current = collection?.species.length || 0;
+      else if (item.metric === "speciesBloom") current = Number(collection?.species.includes(item.species) || false);
+      else if (item.metric === "focusStreak") current = stats?.longestMs || 0;
+      else if (item.metric === "focusTotal") current = stats?.totalMs || 0;
+      else if (item.metric === "focusCategories") current =
+        (stats?.categories || []).filter((bucket) => bucket.ms >= item.minCategoryMs).length;
+      else if (item.metric === "focusRatio") {
+        extra = ratioProgress(stats, item);
+        current = extra.current;
+      }
+      return { ...item, ...extra, current: Math.min(item.target, current), earnedAt: state.earnedAchievements?.[item.id] ?? null };
+    });
   }
 
   function awardAchievements(state, now) {
@@ -386,8 +522,14 @@
   // established. Existing award dates are facts and are never replaced by an upgrade date.
   function refreshAchievements(state, now) {
     timestamp(now);
+    // No old progress or target duration is a time log. Start at zero and require a fresh
+    // foreground observation before settling any interval that crosses this upgrade.
+    const base = state.focusStats == null ? {
+      ...state, focusStats: initialFocusStats(now), focus: null, lastAt: now,
+      interruption: null, heartbeatAt: null,
+    } : state;
     const next = {
-      ...state,
+      ...base,
       achievementRevision: ACHIEVEMENT_REVISION,
       earnedAchievements: savedAchievements(state.earnedAchievements),
     };
@@ -519,6 +661,7 @@
       value.achievementRevision, 0, ACHIEVEMENT_REVISION,
       "收藏成就版本不支持，请保留数据并使用最新版时光花园。",
     );
+    state.focusStats = savedFocusStats(value.focusStats);
     const ids = [
       ...state.garden.map((plant) => plant.id),
       ...(state.active ? [state.active.id] : []),
@@ -590,9 +733,9 @@
       Number.MAX_SAFE_INTEGER, "收藏成就数量超出可保存范围。");
     if (!state.collection.species.includes(mature.species))
       state.collection.species.push(mature.species);
-    awardAchievements(state, now);
     state.active = null;
     state.interruption = null;
+    endFocusStreak(state);
     state.lastBloom = { id: mature.id, at: now };
     if (state.notify)
       notes.push({
@@ -627,6 +770,7 @@
   function advance(state, now, notes) {
     if (state.lastAt === null) {
       state.lastAt = now;
+      endFocusStreak(state);
       return;
     }
     const elapsed = now - state.lastAt;
@@ -634,15 +778,17 @@
     if (elapsed < 0 || elapsed > MAX_GAP_MS) {
       state.focus = null;
       state.interruption = null;
+      endFocusStreak(state);
       return;
     }
     if (growing(state)) {
-      state.active.progressMs = Math.min(
-        state.active.targetMs,
-        state.active.progressMs + elapsed,
-      );
+      const credited = Math.min(elapsed, state.active.targetMs - state.active.progressMs);
+      state.active.progressMs += credited;
+      creditFocus(state, credited);
       bloom(state, now, notes);
+      awardAchievements(state, now);
     } else {
+      endFocusStreak(state);
       applyPenalty(state, now);
     }
   }
@@ -653,7 +799,7 @@
     timestamp(now);
     if (state.collection === null) state = initializeCollection(state, state.garden.length,
       state.garden.map((plant) => plant.species), now);
-    else if (state.achievementRevision < ACHIEVEMENT_REVISION)
+    else if (state.achievementRevision < ACHIEVEMENT_REVISION || state.focusStats === null)
       state = refreshAchievements(state, now);
     if (!input || typeof input !== "object")
       throw new Error("花园操作不正确。");
@@ -664,6 +810,7 @@
       state.lastAt = now;
       state.heartbeatAt = now;
       state.lastError = null;
+      endFocusStreak(state);
       return { state, notes };
     }
     if (input.type === "tick" || input.type === "focus") {
@@ -676,6 +823,7 @@
       if (input.type === "focus") {
         const wasGrowing = growing(state);
         state.focus = cleanFocus(input.event);
+        if (!growing(state)) endFocusStreak(state);
         if (
           !state.focus ||
           state.focus.away ||
@@ -701,6 +849,7 @@
     ) {
       state.focus = null;
       state.interruption = null;
+      endFocusStreak(state);
     }
     state.lastAt = now;
     switch (input.type) {
@@ -719,6 +868,7 @@
         state.lastPlanting = plantingSettings(input.plant);
         state.interruption = null;
         state.lastPenalty = null;
+        endFocusStreak(state);
         break;
       }
       case "pause":
@@ -726,6 +876,7 @@
           throw new Error("暂停状态不正确。");
         state.paused = input.paused;
         state.interruption = null;
+        endFocusStreak(state);
         break;
       case "notifications":
         if (typeof input.enabled !== "boolean")
@@ -739,6 +890,7 @@
         // Editing what grows the plant is a user choice, never an interruption.
         state.interruption = null;
         state.lastPenalty = null;
+        endFocusStreak(state);
         break;
       case "rename": {
         const plant =
@@ -776,6 +928,7 @@
         if (state.active?.id === input.id) {
           state.active = null;
           state.interruption = null;
+          endFocusStreak(state);
         } else if (state.garden.some((plant) => plant.id === input.id)) {
           state.garden = state.garden.filter((plant) => plant.id !== input.id);
         } else {
@@ -789,6 +942,7 @@
         );
         state.focus = null;
         state.interruption = null;
+        endFocusStreak(state);
         break;
       case "clearError":
         state.lastError = null;
@@ -803,6 +957,7 @@
     SPECIES,
     ACHIEVEMENTS,
     ACHIEVEMENT_REVISION,
+    FOCUS_CATEGORY_LIMIT,
     MAX_GAP_MS,
     initialState,
     normalizeState,
@@ -815,6 +970,8 @@
     achievementProgress,
     initializeCollection,
     refreshAchievements,
+    initialFocusStats,
+    focusSummary,
     matches,
     stage,
     reduce,

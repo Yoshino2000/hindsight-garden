@@ -22,7 +22,7 @@ FILES = {
     "manifest.json", "background.js", "core.js", "store.js", "garden-layout.js",
     "ui/index.html", "ui/style.css", "ui/album.css", "ui/drawer.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js", "ui/collection.js", "ui/features.css",
     "assets/collection/milestones.png", "assets/collection/themes.png",
-    "ui/compact.css", "ui/achievements.css", "ui/themes.css", "ui/theme-effects.css",
+    "ui/compact.css", "ui/achievements.css", "ui/themes.css", "ui/theme-effects.css", "ui/pond.css", "ui/focus.css", "ui/focus-status.js",
     *(f"assets/collection/props-{theme}.png" for theme in ("rain", "dusk", "blossom")),
     "icon.png", "assets/sunflower.png", "assets/hydrangea.png",
     "assets/tulip.png", "assets/daisy.png",
@@ -128,7 +128,7 @@ def database_call(server, method, params):
 def seed_garden(server, params):
     """Explicit synthetic scene fixtures, available only in the development host."""
     count = params.get("count") if isinstance(params, dict) else None
-    if type(count) is not int or count not in (0, 1, 8, 26, 56, 122, 200, 500, 1000, 5001, 18):
+    if type(count) is not int or count not in (0, 1, 8, 26, 56, 122, 200, 500, 1000, 5001, 18, 36):
         raise ValueError("Choose a supported synthetic garden size")
     names = [("sunflower", "向日葵"), ("hydrangea", "绣球"), ("tulip", "郁金香"), ("daisy", "雏菊"),
              ("rose", "玫瑰"), ("lavender", "薰衣草"), ("cosmos", "波斯菊"), ("lily", "百合")]
@@ -159,6 +159,16 @@ def seed_garden(server, params):
     state = {"schema": 1, "paused": False, "notify": False, "active": None, "garden": garden,
              "focus": None, "lastAt": None, "sessionId": None, "interruption": None,
              "heartbeatAt": None, "lastPenalty": None, "lastBloom": None, "lastError": None}
+    if count == 36:
+        # Explicit display fixture, never inferred from the flowers or the user's activity.
+        state["focusStats"] = {
+            "schema": 1, "startedAt": int(time.time() * 1000) - 7 * 86400000,
+            "totalMs": 10800000, "longestMs": 2700000, "streakMs": 0,
+            "categories": [{"id": "reading", "name": "阅读", "ms": 5400000},
+                           {"id": "code", "name": "编程", "ms": 3600000},
+                           {"id": "games", "name": "游戏", "ms": 1800000}],
+            "uncategorizedMs": 0, "otherMs": 0,
+        }
     # Explicit disposable fixtures only. Large fixtures are written as individual rows rather
     # than forging a giant legacy state that the real host would correctly reject.
     assert Path(server.db_path).parent.name.startswith("hindsight-garden-preview-")

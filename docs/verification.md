@@ -1,10 +1,26 @@
 # Verification
 
-Version: **0.14.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.15.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified across 2026-10-25/26 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.14.0 results
+## Current 0.15.0 results
+
+Verified on 2026-10-26 with Node, Python and connected Chrome, using extracted host bridges, strict CSP/sandbox and temporary synthetic SQLite. No personal Hindsight database or native app UI was accessed.
+
+- **170 automated tests pass, no skips.** New effective-growth tests cover exact credited milliseconds, category attribution and conservation, the 24-bucket bound, uninterrupted-run boundaries, metadata edits, clock reversal/gaps, restart, penalty handling, ratio duration/share thresholds and permanent awards. Concurrent CAS writes do not duplicate a tick. Simulated quota failure rolls back the bloom archive and statistics together. Tests using actual host SQLite limits and authorizer rules cover both trigger recursion settings.
+- Upgrade tests execute frozen 0.14.0 core/store code: existing active progress and old award dates survive, new time starts at zero and waits for a fresh observation. The old reader rejects revision 3; even with the catalog revision artificially lowered, the persistent SQL guard rejects an older writer dropping `focusStats`. No historical duration or category mix is inferred from flowers.
+- Pure explanation tests distinguish mismatch, missing classification/domain information, deleted categories, unavailable catalogs, away, manual pause, stale/reversed timestamps and a successful alternative OR rule. They retain applicable interruption-penalty wording and do not display window titles or mutate input.
+- Connected Chrome exercised a real preview-worker planting flow with a 60-minute reading target. Gaming showed a concrete mismatch and observed category; unclassified activity showed missing information; away and manual pause had distinct states; reading resumed growth. Observed worker time populated the new summary and a 100% reading distribution. After a worker restart, a new observation was required. Editing the rule to the Work parent and switching to Code kept growth valid and produced a second category bucket. A refreshed deleted-category catalog produced its dedicated explanation. These are simulated-host observations, not native foreground-capture tests.
+- The explicit statistics fixture shows three hours, a 45-minute longest stretch and category shares of 50%/33.3%/16.7%. It produces 36 levels in 16 cards, a six-card growth-record filter, the five continuous thresholds and qualified ratio details. This fixture is synthetic and separate from the ordinary observed-time check.
+- Natural Chrome frames showed visible petals at different airborne/landed positions, changing ripple scale and independent leaf transforms. Rain drops and dusk fireflies had nonzero opacity and moving transforms; all four theme scenes were visually inspected. Decorative additions remain eleven fixed nodes without new JavaScript timers. Miniature leaf animations are `none`, and cloned SVG IDs remain unique. Motion-off pauses water and hides theme effects; reduced-motion disables the checkbox and removes water animations. Temporary media/viewport overrides were reset.
+- Empty-week captions and their button sit left/right. Populated-garden navigation and its hint share one row: measured vertical-center difference is **0 pixels** at both the normal viewport and a 390-pixel viewport. Narrow body/scroll widths are both 375 pixels. The new statistics grid also has no horizontal overflow at that width.
+- Twenty browser result records were saved; none has an explicit failed result, and final warning/error logs are empty. Updated actual browser screenshots show all four themes, the statistics/achievement list, the continuous-achievement drawer, the growth explanation and the compact empty footer. Album and unchanged form/guide images remain from earlier verified versions. No UI was painted or reconstructed.
+- Original plant/furniture PNGs, flat icon, background entry and garden projection are unchanged. Seven permissions, 64 MB and archive schema 2 remain; achievement revision is now 3 and the new bounded statistics object uses schema 1. No personal data was read, populated or uploaded.
+
+The final 0.15.0 ZIP has not been installed in native Hindsight in this run. Native installation/capture, OS notifications, genuinely hidden documents and long-duration/multiplatform behaviour retain the limits below. Close older runtimes and keep a consistent pre-upgrade backup; direct downgrade is not supported. Public download/hash, clean rebuild and official listing checks are recorded after publication.
+
+## Previous 0.14.0 results
 
 Verified on 2026-10-26 with Node, Python and connected Chrome, using the real extracted page/worker bridges, strict CSP, sandbox and temporary synthetic SQLite. No native-app automation or personal database access was used.
 

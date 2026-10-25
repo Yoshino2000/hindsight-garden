@@ -6,7 +6,7 @@
 
 Let a little everyday time become a garden. A third-party [Hindsight](https://github.com/Tomotsugu-dev/Hindsight) plugin that grows flowers from matching foreground activity, using your existing categories.
 
-**[Download 0.14.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.14.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
+**[Download 0.15.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.15.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
 
 ![A complete garden with its own furniture, compact navigation and motion controls](docs/screenshots/garden.jpg)
 
@@ -22,6 +22,12 @@ Cumulative mode is the default: switching away pauses growth. Progress sits besi
 
 ![The current pot with its progress and settings side by side](docs/screenshots/growing.png)
 
+## Understand why growth pauses
+
+The current pot explains the observed app, domain, category and matching rule, with distinct messages for manual pause, missing information, mismatches and deleted categories.
+
+![Current pot with a concrete explanation of paused growth](docs/screenshots/why-growth.jpg)
+
 ## A garden for every week
 
 Completed flowers stay in weekly albums, splitting into another garden after 25 plants. Browse the chronological index five weeks per page, with navigation for older pages. Weekly reviews summarize blooms, species and completed goal time; old flowers are never automatically deleted to make room.
@@ -30,7 +36,7 @@ Completed flowers stay in weekly albums, splitting into another garden after 25 
 
 ## Collect five colours of memories
 
-Twenty achievement levels fit into ten cards. All nine bloom milestones share one card with white, blue, purple, gold and rainbow badge colours. Cards stay white until every level is earned, then turn pale yellow. Open one for the original conditions, progress and dates.
+Thirty-six achievement levels fit into sixteen cards. All nine bloom milestones share one card with white, blue, purple, gold and rainbow badge colours. Cards stay white until every level is earned, then turn pale yellow. New levels cover uninterrupted stretches, total effective growth, category variety and category shares. Statistics begin at upgrade, without reconstructing old activity. Open one for its conditions, progress and dates.
 
 ![Compact achievement cards and four complete garden themes](docs/screenshots/collection.jpg)
 
@@ -38,7 +44,7 @@ Twenty achievement levels fit into ten cards. All nine bloom milestones share on
 
 ## Change the garden's mood
 
-Meadow keeps its gently swaying swing. Rain adds leaf-tip drops, dusk adds ground light and occasional fireflies, and blossom adds sparse petals and lantern light. Each has its own palette and furniture. Small birds, butterflies and pond ripples visit quietly; motion is optional.
+Meadow keeps its gently swaying swing. Rain adds leaf-tip drops, dusk adds ground light and occasional fireflies, and blossom adds petals falling from the scene top and fading on the lawn, plus lantern light. Each has its own palette and furniture. All four themes have expanding pond ripples and subtly drifting lily pads. Small birds and butterflies visit quietly; motion is optional.
 
 | Meadow | After the rain |
 | :--: | :--: |
