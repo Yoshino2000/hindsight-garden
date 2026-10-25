@@ -25,16 +25,17 @@ test("unknown or locked theme preferences fall back while timestamp zero remains
   assert.equal(C.theme("missing").id, "meadow");
   assert.equal(C.theme("blossom", {}).id, "meadow");
   assert.equal(C.theme("blossom", { "all-species": 0 }).id, "blossom");
+  assert.equal(C.theme("rain", { "first-bloom": 0 }).id, "rain");
+  assert.equal(C.theme("dusk", { "ten-blooms": 0 }).id, "dusk");
 });
 
-test("twenty persistent achievements become thirteen display cards without granting any locked tiers", () => {
+test("twenty persistent achievements become ten display cards without granting any locked tiers", () => {
   assert.deepEqual(C.achievementGroups([]), []);
   const result = groups();
-  assert.equal(result.length, 13);
+  assert.equal(result.length, 10);
   assert.equal(result.flatMap((item) => item.tiers).length, 20);
   assert.equal(new Set(result.flatMap((item) => item.tiers.map((tier) => tier.id))).size, 20);
-  assert.deepEqual(result.slice(0, 5).map((item) => item.id),
-    ["first-bloom", "bloom-sprouts", "bloom-gardens", "bloom-landscape", "species-collection"]);
+  assert.deepEqual(result.slice(0, 2).map((item) => item.id), ["bloom-collection", "species-collection"]);
   for (const item of result) {
     assert.equal(item.currentLevel, 0);
     assert.equal(item.currentTier, null);
@@ -45,25 +46,35 @@ test("twenty persistent achievements become thirteen display cards without grant
     assert.equal(item.earnedAt, null);
     assert.equal(item.nextTier.id, item.tiers[0].id);
   }
-  const quantity = result.find((item) => item.id === "bloom-sprouts");
+  const quantity = result.find((item) => item.id === "bloom-collection");
   assert.equal(quantity.current, 0);
-  assert.equal(quantity.target, 5);
+  assert.equal(quantity.target, 1);
   assert.deepEqual(quantity.tiers.map((item) => [item.target, item.metal, item.levelName]),
-    [[5, "white", "白阶"], [10, "silver", "银阶"], [25, "gold", "金阶"]]);
+    [[1, "white", "白阶 1/2"], [5, "white", "白阶 2/2"], [10, "blue", "蓝阶 1/2"],
+      [25, "blue", "蓝阶 2/2"], [50, "purple", "紫阶 1/2"], [100, "purple", "紫阶 2/2"],
+      [250, "gold", "金阶 1/2"], [500, "gold", "金阶 2/2"], [1000, "rainbow", "彩阶"]]);
 });
 
-test("a three-tier card follows the highest earned level while progress targets its next unmet tier", () => {
+test("one nine-tier card reaches all five badge colors and always targets its next unmet milestone", () => {
   for (const [total, level, metal, current, target, complete] of [
-    [7, 1, "white", 7, 10, false],
-    [10, 2, "silver", 10, 25, false],
-    [25, 3, "gold", 25, 25, true],
-    [1000, 3, "gold", 25, 25, true],
+    [1, 1, "white", 1, 5, false],
+    [7, 2, "white", 7, 10, false],
+    [10, 3, "blue", 10, 25, false],
+    [25, 4, "blue", 25, 50, false],
+    [50, 5, "purple", 50, 100, false],
+    [100, 6, "purple", 100, 250, false],
+    [250, 7, "gold", 250, 500, false],
+    [500, 8, "gold", 500, 1000, false],
+    [1000, 9, "rainbow", 1000, 1000, true],
   ]) {
-    const item = groups(total, ["hydrangea"], 0).find((entry) => entry.id === "bloom-sprouts");
+    const item = groups(total, ["hydrangea"], 0).find((entry) => entry.id === "bloom-collection");
     assert.equal(item.currentLevel, level);
     assert.equal(item.currentTier.level, level);
     assert.equal(item.earnedCount, level);
     assert.equal(item.metal, metal);
+    assert.equal(item.colorStep, level === 9 ? 1 : (level - 1) % 2 + 1);
+    assert.equal(item.colorSteps, level === 9 ? 1 : 2);
+    assert.equal(item.colorName, item.currentTier.colorName);
     assert.equal(item.current, current);
     assert.equal(item.target, target);
     assert.equal(item.complete, complete);
@@ -73,20 +84,22 @@ test("a three-tier card follows the highest earned level while progress targets 
   }
 });
 
-test("two-tier cards use white then gold, while the first flower stays its own permanent card", () => {
-  const white = groups(50, ["daisy"]).find((item) => item.id === "bloom-gardens");
-  assert.equal(white.currentLevel, 1);
-  assert.equal(white.metal, "white");
-  assert.equal(white.nextTier.target, 100);
-  const gold = groups(100, ["daisy"]).find((item) => item.id === "bloom-gardens");
-  assert.equal(gold.currentLevel, 2);
+test("a gold badge remains incomplete until the final milestone, without changing theme unlock identities", () => {
+  const gold = groups(500, ["daisy"]).find((item) => item.id === "bloom-collection");
+  assert.equal(gold.currentLevel, 8);
   assert.equal(gold.metal, "gold");
-  assert.equal(gold.complete, true);
-  assert.equal(gold.nextTier, null);
-  const first = groups(1, ["daisy"]).find((item) => item.id === "first-bloom");
-  assert.deepEqual(first.tiers.map((item) => item.id), ["first-bloom"]);
-  assert.equal(first.complete, true);
-  assert.equal(first.target, 1);
+  assert.equal(gold.complete, false);
+  assert.equal(gold.nextTier.target, 1000);
+  const complete = groups(1000, ["daisy"]).find((item) => item.id === "bloom-collection");
+  assert.equal(complete.metal, "rainbow");
+  assert.equal(complete.complete, true);
+  assert.equal(complete.nextTier, null);
+  const first = groups(1, ["daisy"], 0).find((item) => item.id === "bloom-collection");
+  assert.equal(first.currentTier.id, "first-bloom");
+  assert.equal(first.complete, false);
+  const original = Object.fromEntries(first.tiers.filter((tier) => tier.earned).map((tier) => [tier.id, tier.earnedAt]));
+  assert.equal(C.theme("rain", original).id, "rain");
+  assert.equal(C.theme("dusk", original).id, "meadow");
 });
 
 test("250, 500 and 1000 share one card and retain the original conditions, ids and individual dates", () => {
@@ -99,8 +112,8 @@ test("250, 500 and 1000 share one card and retain the original conditions, ids a
   for (const item of progress) Object.freeze(item);
   Object.freeze(progress);
   const result = C.achievementGroups(progress);
-  const landscape = result.find((item) => item.id === "bloom-landscape");
-  assert.deepEqual(landscape.tiers.map((item) => [item.id, item.target, item.earnedAt]), [
+  const landscape = result.find((item) => item.id === "bloom-collection");
+  assert.deepEqual(landscape.tiers.filter((item) => item.target >= 250).map((item) => [item.id, item.target, item.earnedAt]), [
     ["two-hundred-fifty-blooms", 250, 101],
     ["five-hundred-blooms", 500, 202],
     ["thousand-blooms", 1000, 303],
@@ -123,15 +136,15 @@ test("a higher earned tier never fabricates missing lower awards or hides their 
   const state = core.initializeCollection(core.initialState(), 1000, [], 500);
   state.earnedAchievements = { "thousand-blooms": 0 };
   const result = C.achievementGroups(core.achievementProgress(state));
-  const item = result.find((entry) => entry.id === "bloom-landscape");
-  assert.equal(item.currentLevel, 3);
-  assert.equal(item.metal, "gold");
+  const item = result.find((entry) => entry.id === "bloom-collection");
+  assert.equal(item.currentLevel, 9);
+  assert.equal(item.metal, "rainbow");
   assert.equal(item.earnedCount, 1);
   assert.equal(item.complete, false);
-  assert.equal(item.nextTier.id, "two-hundred-fifty-blooms");
-  assert.equal(item.target, 250);
-  assert.deepEqual(item.tiers.map((tier) => tier.earnedAt), [null, null, 0]);
-  assert.deepEqual(item.tiers.map((tier) => tier.earned), [false, false, true]);
+  assert.equal(item.nextTier.id, "first-bloom");
+  assert.equal(item.target, 1);
+  assert.deepEqual(item.tiers.map((tier) => tier.earnedAt), [...Array(8).fill(null), 0]);
+  assert.deepEqual(item.tiers.map((tier) => tier.earned), [...Array(8).fill(false), true]);
 });
 
 test("species diversity tiers stay separate from eight individual species memories", () => {
@@ -139,13 +152,15 @@ test("species diversity tiers stay separate from eight individual species memori
   const diversity = result.find((item) => item.id === "species-collection");
   assert.deepEqual(diversity.tiers.map((item) => item.target), [2, 4, 8]);
   assert.equal(diversity.currentLevel, 2);
-  assert.equal(diversity.metal, "silver");
+  assert.equal(diversity.metal, "purple");
   assert.equal(diversity.current, 4);
   assert.equal(diversity.target, 8);
   const singles = result.filter((item) => item.metric === "speciesBloom");
   assert.equal(singles.length, 8);
   assert.equal(singles.filter((item) => item.earned).length, 4);
   assert.equal(singles.find((item) => item.id === "first-rose").displayTier.species, "rose");
+  assert.equal(singles.find((item) => item.id === "first-rose").metal, "white");
+  assert.equal(singles.find((item) => item.id === "first-rose").complete, true);
   assert.equal(singles.find((item) => item.id === "first-sunflower").earnedAt, null);
 });
 
@@ -153,22 +168,21 @@ test("tier ordering does not depend on source order and unknown future achieveme
   const state = core.initializeCollection(core.initialState(), 1000, [], 500);
   const reversed = core.achievementProgress(state).reverse();
   const result = C.achievementGroups(reversed);
-  assert.deepEqual(result.slice(0, 5).map((item) => item.id),
-    ["first-bloom", "bloom-sprouts", "bloom-gardens", "bloom-landscape", "species-collection"]);
-  assert.deepEqual(result.find((item) => item.id === "bloom-landscape").tiers.map((item) => item.target), [250, 500, 1000]);
+  assert.deepEqual(result.slice(0, 2).map((item) => item.id), ["bloom-collection", "species-collection"]);
+  assert.deepEqual(result.find((item) => item.id === "bloom-collection").tiers.map((item) => item.target), [1, 5, 10, 25, 50, 100, 250, 500, 1000]);
   const future = { id: "future-award", name: "未来徽章", metric: "blooms", target: 2000, current: 1000, earnedAt: null };
   const withFuture = C.achievementGroups([...reversed, future]);
-  assert.equal(withFuture.length, 14);
+  assert.equal(withFuture.length, 11);
   assert.equal(withFuture.find((item) => item.id === "future-award").nextTier.condition, undefined);
   assert.equal(withFuture.find((item) => item.id === "future-award").target, 2000);
 });
 
-test("missing catalog entries do not silently turn a white tier into a completed gold group", () => {
+test("missing catalog entries do not silently turn an intermediate tier into a completed group", () => {
   const onlyWhite = { id: "fifty-blooms", name: "50 朵花开", metric: "blooms", target: 50, current: 50, earnedAt: 0 };
   const [item] = C.achievementGroups([onlyWhite]);
-  assert.equal(item.currentLevel, 1);
-  assert.equal(item.levelCount, 2);
-  assert.equal(item.metal, "white");
+  assert.equal(item.currentLevel, 5);
+  assert.equal(item.levelCount, 9);
+  assert.equal(item.metal, "purple");
   assert.equal(item.complete, false);
   assert.equal(item.tiers.length, 1);
   assert.equal(item.tiers[0].id, "fifty-blooms");

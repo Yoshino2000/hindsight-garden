@@ -9,18 +9,20 @@
     { id: "blossom", name: "樱枝来信", description: "春樱和风花园、鸟居、神社石灯笼和竹筒手水钵", achievement: "all-species", cell: 2 },
   ];
   const ACHIEVEMENT_GROUPS = [
-    { id: "first-bloom", name: "第一朵花", ids: ["first-bloom"] },
-    { id: "bloom-sprouts", name: "花开小记", ids: ["five-blooms", "ten-blooms", "twenty-five-blooms"] },
-    { id: "bloom-gardens", name: "满园花开", ids: ["fifty-blooms", "hundred-blooms"] },
-    { id: "bloom-landscape", name: "繁花长卷", ids: ["two-hundred-fifty-blooms", "five-hundred-blooms", "thousand-blooms"] },
-    { id: "species-collection", name: "多彩收藏", ids: ["two-species", "four-species", "all-species"] },
+    {
+      id: "bloom-collection", name: "花开成园",
+      ids: ["first-bloom", "five-blooms", "ten-blooms", "twenty-five-blooms", "fifty-blooms",
+        "hundred-blooms", "two-hundred-fifty-blooms", "five-hundred-blooms", "thousand-blooms"],
+      metals: ["white", "white", "blue", "blue", "purple", "purple", "gold", "gold", "rainbow"],
+    },
+    {
+      id: "species-collection", name: "多彩收藏", ids: ["two-species", "four-species", "all-species"],
+      metals: ["white", "purple", "rainbow"],
+    },
   ];
-  const LEVELS = {
-    1: ["gold"],
-    2: ["white", "gold"],
-    3: ["white", "silver", "gold"],
+  const LEVEL_NAMES = {
+    none: "尚未获得", white: "白阶", blue: "蓝阶", purple: "紫阶", gold: "金阶", rainbow: "彩阶",
   };
-  const LEVEL_NAMES = { none: "尚未获得", white: "白阶", silver: "银阶", gold: "金阶" };
   const NAME_TASKS = [
     "论文阅读", "写作整理", "课程学习", "代码创作", "项目推进",
     "资料查阅", "娱乐休息", "游戏放松", "灵感速记", "日常充电",
@@ -60,7 +62,7 @@
     const definitions = [
       ...ACHIEVEMENT_GROUPS,
       ...entries.filter((item) => !ACHIEVEMENT_GROUPS.some((group) => group.ids.includes(item.id)))
-        .map((item) => ({ id: item.id, name: item.name, ids: [item.id] })),
+        .map((item) => ({ id: item.id, name: item.name, ids: [item.id], metals: ["white"] })),
     ];
     const groups = [];
     for (const definition of definitions) {
@@ -69,9 +71,13 @@
         const entry = byId.get(id);
         if (!entry) return [];
         used.add(id);
-        const metal = LEVELS[definition.ids.length][index];
+        const metal = definition.metals[index];
+        const colorStep = definition.metals.slice(0, index + 1).filter((value) => value === metal).length;
+        const colorSteps = definition.metals.filter((value) => value === metal).length;
+        const colorName = LEVEL_NAMES[metal];
+        const levelName = colorName + (colorSteps > 1 ? ` ${colorStep}/${colorSteps}` : "");
         const earned = Number.isSafeInteger(entry.earnedAt) && entry.earnedAt >= 0;
-        return [{ ...entry, earned, level: index + 1, metal, levelName: LEVEL_NAMES[metal] }];
+        return [{ ...entry, earned, level: index + 1, metal, levelName, colorName, colorStep, colorSteps }];
       });
       if (!tiers.length) continue;
       const earnedTiers = tiers.filter((item) => item.earned);
@@ -95,7 +101,10 @@
         earned: earnedTiers.length > 0,
         complete: earnedTiers.length === definition.ids.length,
         metal,
-        levelName: LEVEL_NAMES[metal],
+        levelName: currentTier?.levelName || LEVEL_NAMES.none,
+        colorName: LEVEL_NAMES[metal],
+        colorStep: currentTier?.colorStep || 0,
+        colorSteps: currentTier?.colorSteps || 0,
         earnedAt: currentTier?.earnedAt ?? null,
       });
       used.add(definition.id);

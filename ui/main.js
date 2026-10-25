@@ -104,13 +104,13 @@
   let gardenWeek = "";
   let gardenView = null;
   let albumSignature = "";
-  const WEEK_GROUP_SIZE = 12;
   let weekSignature = "";
   let ambienceEnabled = true;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const visitors = GardenAmbience.createVisitors(
     document.querySelector(".ambience-bird"), document.querySelector(".ambience-butterfly"),
   );
+  GardenAmbience.createThemeEffects(document.querySelector(".garden-scene:not(.garden-miniature)"));
   let errorSource = "";
   let editPlantId = null;
   let catalogRequest = null;
@@ -241,9 +241,11 @@
     $("garden-motion").disabled = reducedMotion.matches;
     $("garden-motion-hint").textContent = reducedMotion.matches
       ? "已跟随系统减少动态效果"
-      : $("view-garden").dataset.theme && $("view-garden").dataset.theme !== "meadow"
-        ? "小鸟约每 15–30 秒来访，蝴蝶偶尔飞舞，水面泛起微波"
-        : "秋千轻摆，小鸟约每 15–30 秒来访，水面泛起微波";
+      : ({
+        rain: "叶尖偶落水滴，叶伞轻动，小鸟和蝴蝶偶尔来访",
+        dusk: "暖灯轻映草地，偶有萤火，小鸟和蝴蝶来访",
+        blossom: "樱瓣偶落，石灯笼轻映草地，小鸟和蝴蝶来访",
+      }[$("view-garden").dataset.theme] || "秋千轻摆，小鸟约每 15–30 秒来访，水面泛起微波");
     $("garden-motion").closest(".garden-motion-setting").title = $("garden-motion-hint").textContent;
   }
 
@@ -547,6 +549,7 @@
       card.dataset.achievement = item.id;
       card.dataset.earned = String(item.earnedCount > 0);
       card.dataset.metal = item.metal;
+      card.dataset.complete = String(item.complete);
       card.setAttribute("aria-expanded", String(selectedAchievement === item.id));
       card.setAttribute("aria-controls", "achievement-drawer");
       const level = item.currentTier?.levelName;
@@ -594,6 +597,7 @@
   function achievementArtwork(item) {
     const art = el("span", "achievement-art");
     art.setAttribute("aria-hidden", "true");
+    art.dataset.metal = item.metal || "none";
     if (item.metric === "speciesBloom") {
       art.dataset.species = item.species;
       art.style.backgroundImage = `url("../assets/garden/${species(item.species).id}.png")`;
@@ -618,6 +622,7 @@
     title.id = "achievement-detail-title";
     const art = el("div", "achievement-drawer-art");
     art.dataset.metal = item.metal;
+    art.dataset.complete = String(item.complete);
     art.append(achievementArtwork(item.displayTier));
     const actual = item.metric === "blooms" ? `${state.collection.totalBlooms} 朵花` :
       item.metric === "species" ? `${state.collection.species.length} 种` : `${item.current} / 1 次首次开花`;
@@ -899,12 +904,8 @@
 
   function renderWeekIndex() {
     $("garden-week-browser").hidden = gardenMode !== "week";
-    // Calendar order runs from older to newer, matching the vertical time line.
-    const weeks = [...gardenView.weeks].reverse();
-    const index = Math.max(0, weeks.findIndex((week) => week.key === gardenWeek));
-    const page = Math.floor(index / WEEK_GROUP_SIZE);
-    const start = page * WEEK_GROUP_SIZE;
-    const visible = weeks.slice(start, start + WEEK_GROUP_SIZE);
+    const index = GardenLayout.weekPage(gardenView.weeks, gardenWeek);
+    const { page, start, total, pageCount, weeks: visible } = index;
     const signature = JSON.stringify({ start, weeks: visible });
     if (signature !== weekSignature) {
       weekSignature = signature;
@@ -936,10 +937,10 @@
       entry.firstElementChild.setAttribute("aria-pressed", String(selected));
     }
     $("garden-album-layout").dataset.mode = gardenMode;
-    $("garden-week-navigation").hidden = gardenView.weeks.length <= WEEK_GROUP_SIZE;
+    $("garden-week-navigation").hidden = pageCount <= 1;
     $("garden-week-prev").disabled = page === 0;
-    $("garden-week-next").disabled = start + visible.length >= weeks.length;
-    $("garden-week-range").textContent = `第 ${start + 1}—${start + visible.length} / ${weeks.length} 周`;
+    $("garden-week-next").disabled = index.next === null;
+    $("garden-week-range").textContent = `第 ${page + 1} / ${pageCount} 页 · ${start + 1}—${start + visible.length} / ${total} 周`;
     $("garden-this-week").disabled = gardenView.weeks.some((week) => week.current && week.key === gardenWeek);
   }
 
@@ -1061,13 +1062,6 @@
     gardenPage = 0;
     changeGardenPage(0);
     if (previous !== `${gardenMode}:${gardenWeek}`) animateWeekChange();
-    const selected = [...$("garden-week-list").children].find((entry) => entry.dataset.week === gardenWeek);
-    // Move only the bounded week list, without jumping the page or moving its review panel.
-    if (selected) {
-      const list = $("garden-week-list");
-      if (selected.offsetTop < list.scrollTop || selected.offsetTop + selected.offsetHeight > list.scrollTop + list.clientHeight)
-        list.scrollTop = Math.max(0, selected.offsetTop - list.clientHeight / 2);
-    }
   }
 
   function locateWeek() {
@@ -1528,11 +1522,9 @@
   $("garden-this-week").addEventListener("click", () => changeGardenScope("week", ""));
   function moveGardenWeek(delta) {
     if (!gardenView) return;
-    const weeks = [...gardenView.weeks].reverse();
-    const index = weeks.findIndex((week) => week.key === gardenWeek);
-    const group = Math.floor(Math.max(0, index) / WEEK_GROUP_SIZE) + delta;
-    const week = group >= 0 ? weeks[group * WEEK_GROUP_SIZE] : null;
-    if (week) changeGardenScope("week", week.key);
+    const page = GardenLayout.weekPage(gardenView.weeks, gardenWeek);
+    const key = delta < 0 ? page.previous : page.next;
+    if (key) changeGardenScope("week", key);
   }
   $("garden-week-prev").addEventListener("click", () => moveGardenWeek(-1));
   $("garden-week-next").addEventListener("click", () => moveGardenWeek(1));

@@ -2,16 +2,28 @@
 .achievement-filters { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 14px; }
 .achievement-filters button { border: 1px solid #e0e6d4; padding: 5px 9px; border-radius: 8px; font-size: 10px; color: #6a7d5e; background: #f8faf2; }
 .achievement-filters button[aria-pressed="true"] { border-color: #8fab76; background: #eaf1df; color: #45643d; }
-.achievement { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; text-align: left; gap: 0 7px; border-radius: 10px; padding: 8px; color: #425b3c; min-height: 65px; }
-.achievement[aria-expanded="true"] { border-color: #8fab76; background: #edf3e2; box-shadow: 0 0 0 1px #8fab76; }
-.achievement-art { grid-row: 1 / 4; width: 32px; margin: 0; }
+.achievement,
+.achievement-tier,
+.achievement-drawer-art {
+  --badge-line: #dce1dd;
+  --badge-base: #f7f8f6;
+  --grade-text: #7d8879;
+}
+.achievement { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; text-align: left; gap: 0 7px; border: 1px solid #e1e7d5; border-radius: 10px; background: #fff; padding: 8px; color: #425b3c; min-height: 65px; }
+.achievement[aria-expanded="true"] { outline: 2px solid #6e8956; outline-offset: 1px; box-shadow: none; background: #fff; }
+.achievement[data-complete="true"] { background: #fff3d2; border-color: #d6bd7b; }
+.achievement-art { position: relative; display: block; grid-row: 1 / 4; width: 32px; margin: 0; border: 2px solid var(--badge-line); border-radius: 11px; background-color: var(--badge-base); box-shadow: inset 0 0 0 1px #ffffffc9, 0 1px 2px #41523612; }
+.achievement-art::after { content: ""; position: absolute; left: 20%; right: 20%; bottom: -4px; height: 3px; border-radius: 50%; background: var(--badge-line); opacity: .3; pointer-events: none; }
 .achievement-art[data-species] { aspect-ratio: 1; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.achievement[data-earned="false"] .achievement-art { filter: grayscale(.95); opacity: .52; }
+.achievement[data-earned="true"] .achievement-art { filter: none; opacity: 1; }
 .achievement-name { min-width: 0; font-size: 10px; font-weight: 600; line-height: 1.6; overflow-wrap: anywhere; }
-.achievement-status { font-size: 9px; color: #88917e; line-height: 1.7; }
+.achievement-status { font-size: 9px; color: var(--grade-text); line-height: 1.7; }
 .achievement progress { width: 100%; height: 3px; margin: 4px 0 0; appearance: none; border: 0; }
 .achievement progress::-moz-progress-bar { background: #8aa86b; }
-.achievement-drawer-art { display: flex; align-items: center; justify-content: center; border-radius: 14px; background: #f1f5e9; min-height: 110px; margin: 14px 0; }
-.achievement-drawer-art .achievement-art { width: 78px; }
+.achievement-drawer-art { display: flex; align-items: center; justify-content: center; border: 1px solid #e1e7d5; border-radius: 14px; background: #fff; min-height: 110px; margin: 14px 0; }
+.achievement-drawer-art[data-complete="true"] { background: #fff3d2; border-color: #d6bd7b; }
+.achievement-drawer-art .achievement-art { width: 78px; border-width: 3px; border-radius: 22px; }
 .achievement-description { margin: 13px 0; font-size: 12px; line-height: 1.9; color: #68765e; }
 .achievement-detail-stats { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 9px; font-size: 12px; line-height: 1.7; }
 .achievement-detail-stats dt { color: #88917e; }
@@ -23,13 +35,53 @@
   .achievement-art { width: 28px; }
 }
 
-.achievement[data-metal="white"], .achievement-tier[data-metal="white"], .achievement-drawer-art[data-metal="white"] { background: #fffef9; border-color: #d9d7ca; }
-.achievement[data-metal="silver"], .achievement-tier[data-metal="silver"], .achievement-drawer-art[data-metal="silver"] { background: #eef1f5; border-color: #9caaba; }
-.achievement[data-metal="gold"], .achievement-tier[data-metal="gold"], .achievement-drawer-art[data-metal="gold"] { background: #fff3d2; border-color: #ccac57; }
-.achievement[aria-expanded="true"] { outline: 2px solid #6e8956; outline-offset: 1px; box-shadow: none; }
+/* Grade colors belong to the badge and its text, never to a partially earned card. */
+.achievement[data-metal="white"],
+.achievement-tier[data-metal="white"],
+.achievement-drawer-art[data-metal="white"],
+.achievement-art[data-metal="white"] {
+  --badge-line: #bac7cb;
+  --badge-base: #f8fafb;
+  --grade-text: #62777f;
+}
+.achievement[data-metal="blue"],
+.achievement-tier[data-metal="blue"],
+.achievement-drawer-art[data-metal="blue"],
+.achievement-art[data-metal="blue"] {
+  --badge-line: #79a8d0;
+  --badge-base: #eaf4ff;
+  --grade-text: #416d9b;
+}
+.achievement[data-metal="purple"],
+.achievement-tier[data-metal="purple"],
+.achievement-drawer-art[data-metal="purple"],
+.achievement-art[data-metal="purple"] {
+  --badge-line: #ad87ce;
+  --badge-base: #f2eaff;
+  --grade-text: #8056a1;
+}
+.achievement[data-metal="gold"],
+.achievement-tier[data-metal="gold"],
+.achievement-drawer-art[data-metal="gold"],
+.achievement-art[data-metal="gold"] {
+  --badge-line: #c6a34c;
+  --badge-base: #fff4ce;
+  --grade-text: #8a6924;
+}
+.achievement[data-metal="rainbow"],
+.achievement-tier[data-metal="rainbow"],
+.achievement-drawer-art[data-metal="rainbow"],
+.achievement-art[data-metal="rainbow"] {
+  --badge-line: #b68fb8;
+  --badge-base: #fff3f4;
+  --grade-text: #8a587d;
+}
+.achievement[data-metal="rainbow"] .achievement-art,
+.achievement-drawer-art[data-metal="rainbow"] .achievement-art,
+.achievement-art[data-metal="rainbow"] { border-color: #79adcf #af88d0 #d4af60 #d58fa9; }
 .achievement-tiers { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 9px; }
-.achievement-tier { border: 1px solid; border-radius: 11px; padding: 11px; font-size: 12px; line-height: 1.8; }
-.achievement-tier strong { color: #4a5947; }
+.achievement-tier { border: 1px solid var(--badge-line); border-left-width: 3px; border-radius: 11px; padding: 11px; background: #fff; font-size: 12px; line-height: 1.8; }
+.achievement-tier strong { color: var(--grade-text); }
 .achievement-tier p { margin: 4px 0; color: #68765e; }
 .achievement-tier small { display: block; color: #778372; font-size: 10px; }
 .achievement-tier[data-earned="false"] { border-style: dashed; }

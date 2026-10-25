@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createVisitors } = require("../ui/ambience.js");
+const { createVisitors, createThemeEffects } = require("../ui/ambience.js");
 
 function fixture(random = () => 0.5) {
   let time = 0;
@@ -96,4 +96,71 @@ test("hiding during a flight ends that visit and preserves the wait for the next
   assert.equal(f.bird.dataset.visiting, "false");
   f.advance(1);
   assert.equal(f.bird.dataset.visiting, "true");
+});
+
+function sceneFixture(miniature = false) {
+  const document = {
+    createElement(tagName) {
+      const node = {
+        tagName, className: "", attributes: {}, children: [], ownerDocument: document,
+        setAttribute(name, value) { node.attributes[name] = value; },
+        append(item) { node.children.push(item); item.parentElement = node; },
+        querySelector(selector) {
+          assert.equal(selector, ".theme-effects");
+          return node.children.find((item) => item.classList.contains("theme-effects")) || null;
+        },
+        addEventListener() { throw new Error("A static theme layer must not register an event loop"); },
+      };
+      node.classList = { contains(name) { return node.className.split(/\s+/).includes(name); } };
+      return node;
+    },
+  };
+  const scene = document.createElement("div");
+  scene.className = "garden-scene" + (miniature ? " garden-miniature" : "");
+  return scene;
+}
+
+test("theme details mount once as a bounded decorative layer without controls or resource loads", () => {
+  const scene = sceneFixture();
+  const layer = createThemeEffects(scene);
+  assert.equal(createThemeEffects(scene), layer);
+  assert.equal(scene.children.length, 1);
+  assert.equal(layer.attributes["aria-hidden"], "true");
+  assert.ok(layer.children.length > 0 && layer.children.length <= 12);
+  for (const node of layer.children) {
+    assert.equal(node.tagName, "span");
+    assert.deepEqual(node.attributes, {});
+    assert.equal(node.children.length, 0);
+  }
+});
+
+test("theme details never add animated nodes to album miniatures or a missing scene", () => {
+  const scene = sceneFixture(true);
+  assert.equal(createThemeEffects(scene), null);
+  assert.equal(createThemeEffects(null), null);
+  assert.equal(scene.children.length, 0);
+});
+
+test("the actual ground-light ellipses stay on the rear lawn without reaching the flowerbed", () => {
+  const { readFileSync } = require("node:fs");
+  const { join } = require("node:path");
+  const { GEOMETRY } = require("../garden-layout.js");
+  const css = readFileSync(join(__dirname, "..", "ui", "theme-effects.css"), "utf8");
+  const distance = (point, diamond) => Math.abs(point.x - diamond.x) / diamond.radius +
+    Math.abs(point.y - diamond.y) / (diamond.radius * GEOMETRY.stepY / GEOMETRY.stepX);
+  for (const selector of ["theme-light-bench", "theme-light-lantern"]) {
+    const block = css.match(new RegExp(`^\\.${selector}\\s*\\{([^}]+)\\}`, "m"));
+    assert.ok(block, selector);
+    const read = (name) => Number(block[1].match(new RegExp(`\\b${name}:\\s*([\\d.]+)%`))[1]) / 100;
+    const width = read("width") * GEOMETRY.width, height = read("height") * GEOMETRY.height;
+    const center = { x: read("left") * GEOMETRY.width + width / 2,
+      y: read("top") * GEOMETRY.height + height / 2 };
+    assert.ok(width <= 90 && height <= 21, "Keep each light a small, low-cost ground patch");
+    for (let step = 0; step < 360; step++) {
+      const angle = step * Math.PI / 180;
+      const point = { x: center.x + width / 2 * Math.cos(angle), y: center.y + height / 2 * Math.sin(angle) };
+      assert.ok(distance(point, GEOMETRY.island) < .98, `${selector} leaves the grass`);
+      assert.ok(distance(point, GEOMETRY.bed) > 1.05, `${selector} reaches the flowers`);
+    }
+  }
 });

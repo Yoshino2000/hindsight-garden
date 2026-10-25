@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="compact.css" />
     <link rel="stylesheet" href="achievements.css" />
     <link rel="stylesheet" href="themes.css" />
+    <link rel="stylesheet" href="theme-effects.css" />
   </head>
   <body>
     <main class="app">
@@ -386,7 +387,14 @@
               <p id="garden-period-summary" class="eyebrow" aria-live="polite">你的时间，在这里留下花朵</p>
               <h2 id="garden-scene-title">慢慢长成一座花园</h2>
             </div>
-            <span id="garden-total" class="badge">0 株已开花</span>
+            <div class="garden-heading-controls">
+              <span id="garden-total" class="badge">0 株已开花</span>
+              <div class="garden-motion-setting">
+                <label class="garden-motion-control" for="garden-motion"><input id="garden-motion" type="checkbox" aria-describedby="garden-motion-hint" checked><span>轻柔动效</span></label>
+                <span id="garden-theme-label" class="subtle"></span>
+                <span id="garden-motion-hint" class="subtle">秋千微摆，偶尔有小鸟和蝴蝶来访</span>
+              </div>
+            </div>
           </div>
           <div class="garden-scene-viewport"><div class="garden-scene">
             <div class="theme-ornament" aria-hidden="true"></div>
@@ -691,24 +699,19 @@
             去看看当前盆栽
           </button>
           <div class="garden-toolbar">
-          <nav
-            id="garden-pagination"
-            class="garden-pagination"
-            aria-label="切换花园"
-            hidden
-          >
-            <button id="garden-prev" class="button quiet small" type="button">
-              上一座</button
-            ><span id="garden-page-label" class="subtle"></span
-            ><button id="garden-next" class="button quiet small" type="button">
-              下一座
-            </button>
-          </nav>
-          <div class="garden-motion-setting">
-            <label class="garden-motion-control" for="garden-motion"><input id="garden-motion" type="checkbox" aria-describedby="garden-motion-hint" checked><span>轻柔动效</span></label>
-            <span id="garden-theme-label" class="subtle"></span>
-            <span id="garden-motion-hint" class="subtle">秋千微摆，偶尔有小鸟和蝴蝶来访</span>
-          </div>
+            <nav
+              id="garden-pagination"
+              class="garden-pagination"
+              aria-label="切换花园"
+              hidden
+            >
+              <button id="garden-prev" class="button quiet small" type="button">
+                上一座</button
+              ><span id="garden-page-label" class="subtle"></span
+              ><button id="garden-next" class="button quiet small" type="button">
+                下一座
+              </button>
+            </nav>
           </div>
         </section>
         <section class="card garden-browser" aria-label="选择花园">
@@ -725,14 +728,14 @@
           <div id="garden-album-layout" class="garden-album-layout" data-mode="week">
           <section id="garden-week-browser" class="garden-week-browser" aria-label="按周选择花园">
             <div class="garden-week-heading">
-              <p class="subtle">从早到晚 · 每组 12 周</p>
+              <p class="subtle">从早到晚 · 每页 5 周</p>
               <button id="garden-this-week" class="button quiet small" type="button">回到本周</button>
             </div>
             <ol id="garden-week-list" class="garden-week-list" aria-label="每周相册，从早到晚"></ol>
             <nav id="garden-week-navigation" class="album-week-navigation" aria-label="更多周相册" hidden>
-              <button id="garden-week-prev" class="button quiet small" type="button">更早一组</button>
+              <button id="garden-week-prev" class="button quiet small" type="button">上一页</button>
               <span id="garden-week-range" class="subtle"></span>
-              <button id="garden-week-next" class="button quiet small" type="button">更近一组</button>
+              <button id="garden-week-next" class="button quiet small" type="button">下一页</button>
             </nav>
             <div class="week-locate"><label for="garden-week-date">日期直达</label><input id="garden-week-date" type="date" aria-label="选择日期定位到所在周"><button id="garden-week-locate" class="button quiet small" type="button">查看</button></div>
           </section>
@@ -767,7 +770,7 @@
           <div id="achievement-filters" class="achievement-filters" role="group" aria-label="筛选成就">
             <button type="button" data-filter="all" aria-pressed="true">全部</button><button type="button" data-filter="blooms" aria-pressed="false">株数里程碑</button><button type="button" data-filter="species" aria-pressed="false">品种收藏</button><button type="button" data-filter="earned" aria-pressed="false">已获得</button>
           </div>
-          <p class="note-privacy">点击查看各级条件与日期。白、银、金表示逐级收藏，已获得的等级永久保留。</p>
+          <p class="note-privacy">点击查看各级条件与日期。徽章有白、蓝、紫、金、彩五档颜色；整组全部达成后，卡片才会填上淡黄色。</p>
           <div id="achievement-list" class="achievement-list" aria-label="收藏成就"></div>
           <p class="note-privacy">成就永久保留。首次升级从当时仍在收藏的花开始核验，以后新开花继续累计；删除花朵不撤回成就。旧版本已经移除的花无法还原。</p>
           <p id="achievement-empty" class="achievement-empty" hidden>还没有符合筛选的成就，先从一朵花开始吧。</p>

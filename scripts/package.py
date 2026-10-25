@@ -15,15 +15,15 @@ FILES = [
     "manifest.json", "icon.png", "background.js", "core.js", "store.js", "garden-layout.js",
     "ui/index.html", "ui/style.css", "ui/album.css", "ui/drawer.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js", "ui/collection.js", "ui/features.css",
     "assets/collection/milestones.png", "assets/collection/themes.png",
-    "ui/compact.css", "ui/achievements.css", "ui/themes.css",
+    "ui/compact.css", "ui/achievements.css", "ui/themes.css", "ui/theme-effects.css",
     *(f"assets/collection/props-{theme}.png" for theme in ("rain", "dusk", "blossom")),
     *(f"assets/{name}.png" for name in SPECIES),
     *(f"assets/garden/{name}.png" for name in SPECIES),
     *(f"assets/ambience/{name}.png" for name in AMBIENCE),
     "README.md", "README.en.md", "intro/zh/README.md", "docs/usage.zh-CN.md", "docs/usage.en.md", "docs/development.md",
     "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md", "docs/artwork-ambience-070.md", "docs/plant-guide-sources.md", "docs/design-notes-forest.md", "docs/features-0110.md", "docs/artwork-collection-0110.md", "docs/features-0120.md", "docs/artwork-themes-0120.md",
-    "docs/features-0130.md", "docs/screenshots/meadow.png",
-    "docs/screenshots/garden.png", "docs/screenshots/album.png", "docs/screenshots/drawer.png", "docs/screenshots/current.png", "docs/screenshots/guide.png", "docs/screenshots/collection.png", "docs/screenshots/growing.png", "docs/screenshots/achievement.png", "docs/screenshots/rain.png", "docs/screenshots/dusk.png", "LICENSE",
+    "docs/features-0130.md", "docs/features-0140.md", "docs/screenshots/meadow.jpg",
+    "docs/screenshots/garden.jpg", "docs/screenshots/album.jpg", "docs/screenshots/drawer.png", "docs/screenshots/current.png", "docs/screenshots/guide.png", "docs/screenshots/collection.jpg", "docs/screenshots/growing.png", "docs/screenshots/achievement.jpg", "docs/screenshots/rain.jpg", "docs/screenshots/dusk.jpg", "LICENSE",
 ]
 
 
@@ -78,7 +78,7 @@ def main():
     with zipfile.ZipFile(destination, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for name in FILES:
             data = (ROOT / name).read_bytes()
-            if not name.endswith(".png"):
+            if not name.endswith((".png", ".jpg")):
                 data = data.decode("utf-8-sig").replace("\r\n", "\n").encode("utf-8")
             total += len(data)
             entry = zipfile.ZipInfo(name, date_time=(2026, 10, 25, 0, 0, 0))

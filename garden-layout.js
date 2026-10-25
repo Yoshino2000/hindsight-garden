@@ -4,6 +4,7 @@
 
   const PAGE_SIZE = 25;
   const ALBUM_SIZE = 12;
+  const WEEK_PAGE_SIZE = 5;
   // One ground projection for the island, flowerbed and plot lattice. Static SVG paths are
   // checked against these dimensions so the scene cannot quietly acquire a second slope.
   const GEOMETRY = Object.freeze({
@@ -224,7 +225,22 @@
       albumPage, albumPageCount: Math.ceil(layout.pageCount / ALBUM_SIZE), albumStart };
   }
 
-  const api = { PAGE_SIZE, ALBUM_SIZE, GEOMETRY, createLayout, createView };
+  // A bounded index, independent of flower/garden pagination. Input weeks are newest first.
+  function weekPage(weeks, selectedKey) {
+    const ordered = [...weeks].reverse();
+    const index = Math.max(0, ordered.findIndex((week) => week.key === selectedKey));
+    const page = Math.floor(index / WEEK_PAGE_SIZE);
+    const start = page * WEEK_PAGE_SIZE;
+    return {
+      page, start, total: ordered.length,
+      pageCount: Math.ceil(ordered.length / WEEK_PAGE_SIZE),
+      weeks: ordered.slice(start, start + WEEK_PAGE_SIZE),
+      previous: ordered[start - WEEK_PAGE_SIZE]?.key || null,
+      next: ordered[start + WEEK_PAGE_SIZE]?.key || null,
+    };
+  }
+
+  const api = { PAGE_SIZE, ALBUM_SIZE, WEEK_PAGE_SIZE, GEOMETRY, createLayout, createView, weekPage };
   root.GardenLayout = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : self);

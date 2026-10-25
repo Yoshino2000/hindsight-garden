@@ -57,6 +57,29 @@
     };
   }
 
-  root.GardenAmbience = { createVisitors };
+  function createThemeEffects(scene) {
+    // All motion is CSS-driven by the scene's existing data-motion flag. Mount once,
+    // without a timer, event handler, focusable control or additional scene observer.
+    if (!scene || scene.classList.contains("garden-miniature")) return null;
+    const existing = scene.querySelector(".theme-effects");
+    if (existing) return existing;
+    const effects = scene.ownerDocument.createElement("div");
+    effects.className = "theme-effects";
+    effects.setAttribute("aria-hidden", "true");
+    for (const name of [
+      "rain-drip rain-drip-left", "rain-drip rain-drip-right",
+      "theme-ground-light theme-light-bench", "theme-ground-light theme-light-lantern",
+      "theme-firefly theme-firefly-left", "theme-firefly theme-firefly-right",
+      "theme-petal theme-petal-first", "theme-petal theme-petal-second", "theme-petal theme-petal-third",
+    ]) {
+      const item = scene.ownerDocument.createElement("span");
+      item.className = name;
+      effects.append(item);
+    }
+    scene.append(effects);
+    return effects;
+  }
+
+  root.GardenAmbience = { createVisitors, createThemeEffects };
   if (typeof module !== "undefined" && module.exports) module.exports = root.GardenAmbience;
 })(typeof globalThis !== "undefined" ? globalThis : self);

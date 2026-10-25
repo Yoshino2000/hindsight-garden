@@ -1,10 +1,24 @@
 # Verification
 
-Version: **0.13.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.14.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified across 2026-10-25/26 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.13.0 results
+## Current 0.14.0 results
+
+Verified on 2026-10-26 with Node, Python and connected Chrome, using the real extracted page/worker bridges, strict CSP, sandbox and temporary synthetic SQLite. No native-app automation or personal database access was used.
+
+- **144 automated tests pass, no skips.** Five-week pagination covers 1/5/6/18 weeks and 260-week traversal, including last-page boundaries and selected empty weeks. Original achievement conditions, IDs, dates and all five colours remain covered; theme tests verify bounded one-time mounting, static miniatures and actual ground-light ellipses staying on the rear lawn.
+- An 18-week browser fixture showed four chronological pages of 5/5/5/3 weeks. Previous/next, date navigation and returning to the current week reached the appropriate page. Each displayed list had equal scroll/client height, with no internal scrollbar. Normal garden next/previous controls still work independently.
+- Browser states confirmed white, purple, gold and rainbow quantity badges at 1, 56, 500 and 1,000 blooms; the 18-week fixture also showed blue. A 500-bloom card stays white, while the fully completed 1,000-bloom card fills pale yellow. The detail drawer retains nine original bloom conditions, dates and three theme rewards, with no inferred history.
+- The motion checkbox appears once in the garden heading. The shared top trim is 9% of scene width; the large scene, all props, flowers and shadows retain the same projection. A 390-pixel browser viewport had a 375-pixel body with no horizontal overflow. Its title fits one line after the responsive heading refinement.
+- Rain, dusk and blossom were visually inspected in Chrome with the original furniture and small fixed CSS effects. Changing leaf rotation, changing ground-light opacity and a naturally active petal were observed. Water drops and fireflies use long sparse CSS cycles; the screenshots are still frames, not a measured frequency or performance benchmark. Nine decorative nodes are mounted only in the main scene, with none in miniatures. Turning motion off pauses/hides the additions; leaving the garden clears the scene motion flag. Emulated reduced motion disabled and unchecked the switch and hid the effects; the temporary media and viewport overrides were reset.
+- New `.jpg` screenshots for the garden, four themes, five-week album, collection and achievement drawer are actual Chrome captures, using synthetic data. The unchanged planting/growing/guide screenshots remain from earlier versions. Most captures use browser-native clipping; the achievement drawer retains the full viewport context. No UI was painted or reconstructed. Final browser warning/error log is empty.
+- Core growth, storage, background worker, permanent achievement definitions and original PNG/icon bytes remain unchanged from 0.13.0. Only a pure week-pagination helper extends the layout module. Schema 2, seven permissions and 64 MB remain. No data migration is introduced.
+
+The final 0.14.0 ZIP has not been installed in native Hindsight during this run. Real OS notification delivery, hidden-document behaviour and long-duration/multiplatform checks retain the limits below. Public asset/hash and official market checks are recorded separately after publication; older checks are not native evidence for this version.
+
+## Previous 0.13.0 results
 
 Verified across 2026-10-25/26 with the same local toolchain and connected Chrome. No native computer-control automation or personal database access was used.
 

@@ -22,7 +22,7 @@ FILES = {
     "manifest.json", "background.js", "core.js", "store.js", "garden-layout.js",
     "ui/index.html", "ui/style.css", "ui/album.css", "ui/drawer.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js", "ui/collection.js", "ui/features.css",
     "assets/collection/milestones.png", "assets/collection/themes.png",
-    "ui/compact.css", "ui/achievements.css", "ui/themes.css",
+    "ui/compact.css", "ui/achievements.css", "ui/themes.css", "ui/theme-effects.css",
     *(f"assets/collection/props-{theme}.png" for theme in ("rain", "dusk", "blossom")),
     "icon.png", "assets/sunflower.png", "assets/hydrangea.png",
     "assets/tulip.png", "assets/daisy.png",
@@ -128,7 +128,7 @@ def database_call(server, method, params):
 def seed_garden(server, params):
     """Explicit synthetic scene fixtures, available only in the development host."""
     count = params.get("count") if isinstance(params, dict) else None
-    if type(count) is not int or count not in (0, 1, 8, 26, 56, 122, 200, 500, 1000, 5001):
+    if type(count) is not int or count not in (0, 1, 8, 26, 56, 122, 200, 500, 1000, 5001, 18):
         raise ValueError("Choose a supported synthetic garden size")
     names = [("sunflower", "向日葵"), ("hydrangea", "绣球"), ("tulip", "郁金香"), ("daisy", "雏菊"),
              ("rose", "玫瑰"), ("lavender", "薰衣草"), ("cosmos", "波斯菊"), ("lily", "百合")]
@@ -137,7 +137,12 @@ def seed_garden(server, params):
     for index in range(count):
         species, name = names[index % len(names)]
         at = base + index * 3600000
-        if count == 56:
+        if count == 18:
+            # One bloom per week for 18 weeks: four bounded week-index pages.
+            current = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            monday = current - timedelta(days=current.weekday())
+            at = int((monday - timedelta(weeks=17 - index) + timedelta(hours=12)).timestamp() * 1000)
+        elif count == 56:
             # Two calendar weeks with 28 blooms each, to exercise weekly overflow.
             current = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
             monday = current - timedelta(days=current.weekday())

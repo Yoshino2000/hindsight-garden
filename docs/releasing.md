@@ -37,3 +37,10 @@ Version 0.12.0 keeps schema 2, seven permissions and 64 MB. Achievement catalogu
 This is a presentation update with the same seven permissions, 64 MB, schema 2 and achievement revision 2. Related levels are grouped without replacing IDs or dates. Publish the changed flat `icon.png` byte-for-byte to the listing icon as well as the ZIP. The source's Chinese default README and English counterpart use new browser screenshots; detailed rules and compatibility information live in `docs/usage.*.md`.
 
 Before branching, fetch upstream and check the previous PR status: 0.12.0 PR #3 was merged into upstream `b11646f`, so 0.13.0 needs a new branch and update PR. Preserve every previously listed ZIP and checksum. Run the official listing check after the release is reachable. The final native-host installation remains unverified and must stay disclosed.
+
+
+## 0.14.0 presentation update
+
+The week index uses `GardenLayout.weekPage` with five chronological entries per page, independently of the twelve-miniature garden grouping. The motion checkbox is in the heading and the shared main-scene top trim is 9%. Badge colours use the twenty original persistent conditions in ten grouped cards; white cards fill pale yellow only when every tier is earned. IDs, earn dates, counters, schema 2, seven permissions and 64 MB are unchanged.
+
+`GardenAmbience.createThemeEffects` mounts nine decorative nodes once. `ui/theme-effects.css` provides rain, dusk and blossom details without new timers or per-frame JavaScript. The existing scene motion flag controls them, and miniatures stay static. Package the new stylesheet and the 0.14.0 feature notes. See [feature notes](features-0140.md) and [verification](verification.md).

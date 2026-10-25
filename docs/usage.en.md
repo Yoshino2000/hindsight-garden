@@ -8,14 +8,14 @@ Grow a small garden while you use your computer. A third-party plugin for [Hinds
 
 - **Eight plants**: sunflower, hydrangea, tulip, daisy, rose, lavender, cosmos and lily, each with five growth stages.
 - **A complete garden scene**: finished flowers grow on an isometric garden island with paths, pond and fence. The flowerbed area is 23.5% larger, with surrounding decorations scaled to 80%; the island, bed and planting positions retain one symmetric 4/7 projection. Layered trees, distant hills, a seed basket, ferns and small verge details frame the four corners behind the island and are omitted from thumbnails. The watering can has one close-fitting base shadow, and the swing seat's small shadow follows its illustrated direction even with motion off. Names and records stay hidden until you choose a flower; close its details to return to the whole garden.
-- **A compact garden album**: weekly mode opens by default, with earlier-to-later weeks in a bounded, internally scrolling index and the selected week's review and small garden previews beside it. Narrow windows stack these sections. Weeks and thumbnails each use groups of at most 12; date navigation jumps directly to any local week, including an empty one. A short transition accompanies explicit week changes and respects reduced-motion settings.
+- **A compact garden album**: weekly mode opens by default, with five earlier-to-later weeks per page and the selected week's review and small garden previews beside it. Use previous/next pages when there are more than five weeks. Narrow windows stack these sections. Garden thumbnails still use groups of at most 12; date navigation reveals the page containing any local week, including an empty one. A short transition accompanies explicit week changes and respects reduced-motion settings.
 - **Saved planting plans**: save up to 20 named sets of species, target time, rules and penalty settings. Plan choices show your name, the current category/rules and target minutes without rewriting saved names. Load, update or delete a plan, or reuse the last planting settings, then confirm the next planting yourself. Enter in the plan-name field saves a plan without planting. Flower names and task notes are not copied into plans.
 - **Weekly review**: see completed flowers, species and completed goal time for the selected bloom week, with a species breakdown. These totals exclude the current pot and describe the flowers' goals, not actual time spent during that week.
 - **Task memories**: optionally leave up to 280 characters when planting and edit the note later on the active pot or in the flower drawer. Notes stay local and are omitted from bloom notifications; old flowers receive no invented history.
-- **Twenty permanent achievement levels in thirteen display cards**: reach nine bloom-count milestones from 1 to 1,000, three species-count milestones and the first bloom of each of the eight plants. Thirteen compact cards combine related levels with white, silver and gold styling. Their filterable list opens every original condition, progress and reward in a right-side nonmodal drawer. Earned badges remain after flowers are removed.
+- **Twenty permanent achievement levels in ten display cards**: reach nine bloom-count milestones from 1 to 1,000, three species-count milestones and the first bloom of each of the eight plants. Badge colours progress through white, blue, purple, gold and rainbow. Cards stay white until every level is earned, then fill pale yellow. Their filterable list opens every original condition, progress and reward in a right-side nonmodal drawer. Earned badges remain after flowers are removed.
 - **Complete visual themes**: meadow keeps the original swing, wooden sign and watering can. Unlocked rain, dusk and blossom themes replace these three props with their own original illustrations and recolor the lawn, island faces, flowerbed, water, fence, paths and distant scenery. The scene and album thumbnails share the same theme; flower art receives no color filter. Themes change appearance, not growth rules.
 - **Flower details beside the garden**: click a flower to open a nonmodal drawer on the right without scrolling below the scene. Other flowers remain clickable and update the drawer. Rename or remove a flower there; close with its close button, Escape or a click outside.
-- **Gentle ambient motion**: the meadow swing sways lightly; the other themes use still props with simple fixed shadows. Small blue tits, robins or greenfinches and lilac, honey-orange or sky-blue butterflies visit the large scene alongside soft pond ripples and reflections. Visitor timing is unchanged, and thumbnails stay still. Motion can be disabled and follows reduced-motion settings. Disabling it, leaving the garden tab or hiding the page cancels current flights while retaining the next-visit wait, and pauses continuous effects.
+- **Gentle ambient motion**: the meadow swing sways lightly; rain adds leaf-tip drops and a slight leaf movement, dusk adds ground light and occasional fireflies, and blossom adds sparse petals and lantern light. Furniture keeps simple fixed shadows. Small blue tits, robins or greenfinches and lilac, honey-orange or sky-blue butterflies visit the large scene alongside soft pond ripples and reflections. Visitor timing is unchanged, and thumbnails stay still. Motion can be disabled and follows reduced-motion settings. Disabling it, leaving the garden tab or hiding the page cancels current flights while retaining the next-visit wait, and pauses or hides the decorative effects.
 - **Denser current-pot layouts**: at 540 CSS pixels and wider, an active plant and its progress sit beside its rules, task memory and notification setting. The planting form places saved plans and eight plant choices on the left, and the new flower's settings on the right. Narrow windows stack the sections; the separate compact-pot view keeps its existing layout. The high-definition gallery remains expandable.
 - **Two illustration roles**: the planting form offers high-definition potted plant art in its optional gallery. The garden uses separately generated, simplified ground-planted flower sprites, without pots or permanent labels.
 - **Plant stories to read offline**: all eight gallery entries include origins, a short story and a clearly qualified cultural or garden-created meaning, with sources from Kew, RHS, universities and Greenaway's public-domain flower-language book. See the [complete source notes](plant-guide-sources.md).
@@ -28,9 +28,9 @@ Grow a small garden while you use your computer. A third-party plugin for [Hinds
 
 Manual pause, an away event, background restart and an unobserved clock gap do not cause a penalty. Closing the plugin page does not stop its background worker while Hindsight is running.
 
-![Time Garden overview](screenshots/garden.png)
+![Time Garden overview](screenshots/garden.jpg)
 
-![Weekly garden albums](screenshots/album.png)
+![Weekly garden albums](screenshots/album.jpg)
 
 [Flower detail overlay](screenshots/drawer.png)
 
@@ -38,22 +38,22 @@ Manual pause, an away event, background restart and an unobserved clock gap do n
 
 [Plant stories and meanings](screenshots/guide.png)
 
-[Collection achievements and themes](screenshots/collection.png) · [Achievement details](screenshots/achievement.png)
+[Collection achievements and themes](screenshots/collection.jpg) · [Achievement details](screenshots/achievement.jpg)
 
-[Rain theme](screenshots/rain.png) · [Dusk theme](screenshots/dusk.png)
+[Rain theme](screenshots/rain.jpg) · [Dusk theme](screenshots/dusk.jpg)
 
 Preview with synthetic test data. Scenery is original; plant art was created for this plugin with the built-in image generation tool.
 
 ## Install
 
-Requires Hindsight **0.10.0 or later**. Version 0.13.0 is a prerelease of an experimental personal plugin, not an official Hindsight plugin. Basic functionality is usable, and development and iteration are ongoing. It has not been exhaustively tested and may contain problems or risks.
+Requires Hindsight **0.10.0 or later**. Version 0.14.0 is a prerelease of an experimental personal plugin, not an official Hindsight plugin. Basic functionality is usable, and development and iteration are ongoing. It has not been exhaustively tested and may contain problems or risks.
 
-1. Download the prerelease `hindsight-garden-0.13.0.zip` from [Releases](https://github.com/Yoshino2000/hindsight-garden/releases), or build it below.
+1. Download the prerelease `hindsight-garden-0.14.0.zip` from [Releases](https://github.com/Yoshino2000/hindsight-garden/releases), or build it below.
 2. In Hindsight, open **Settings → Plugins** and choose the local ZIP installation option.
 3. Review the seven permissions and the 64 MB database allowance, then install.
 4. Open **时光花园**, pick a plant, give it a name and select a Hindsight category or group. App/domain rules are optional.
 
-**Back up the plugin database before upgrading.** Make the backup while Hindsight is stopped, or use SQLite's online backup facility for a consistent backup while it runs. Install this ZIP as an update to the same plugin rather than deleting its data. Version 0.13.0 retains schema 2, seven API permissions and the 64 MB allowance. Upgrading from 0.11.0 reuses its permanent collection counters to award newly eligible achievements once, retaining the original four achievement dates. Newly awarded dates record this verification, not guessed historical dates. Older gardens first establish their collection baseline from the remaining archive; previously deleted flowers cannot be recovered for it. The increase from 4 MB to 64 MB was introduced in 0.5.0; an upgrade from 0.1.0 also includes the three category permissions introduced in 0.2.0.
+**Back up the plugin database before upgrading.** Make the backup while Hindsight is stopped, or use SQLite's online backup facility for a consistent backup while it runs. Install this ZIP as an update to the same plugin rather than deleting its data. Version 0.14.0 retains schema 2, seven API permissions and the 64 MB allowance. Upgrading from 0.11.0 reuses its permanent collection counters to award newly eligible achievements once, retaining the original four achievement dates. Newly awarded dates record this verification, not guessed historical dates. Older gardens first establish their collection baseline from the remaining archive; previously deleted flowers cannot be recovered for it. The increase from 4 MB to 64 MB was introduced in 0.5.0; an upgrade from 0.1.0 also includes the three category permissions introduced in 0.2.0.
 
 **Do not downgrade or run old and new versions together.** Version 0.11.0 rejects the new achievement IDs; versions 0.5.0–0.10.0 cannot preserve the plan, milestone and task-note fields, and a persistent database guard blocks their incompatible writes. An old page or worker can therefore report an error; close it and reopen the latest version. To return to an older release, restore a consistent backup made before upgrading. A matching schema number does not guarantee safe downgrade compatibility.
 
@@ -67,7 +67,7 @@ Selecting a flower opens its dates and controls in the right-side overlay drawer
 
 Switching tabs clears old success messages and page-action errors. A current background runtime error remains visible so navigation cannot hide a stopped worker.
 
-Version 0.13.0 passes 137 automated tests and has 23 connected-Chrome result records using isolated synthetic data; the final ZIP has not yet been installed in a native Hindsight instance in this round. Earlier-version checks do not establish native verification of this version. See [verification](verification.md) for recorded results and [the 0.13.0 feature notes](features-0130.md) for behavior and upgrade details.
+Version 0.14.0 passes 144 automated tests and has connected-Chrome checks of five-week pagination, badge colours and theme ambience using isolated synthetic data; the final ZIP has not yet been installed in a native Hindsight instance in this round. Earlier-version checks do not establish native verification of this version. See [verification](verification.md) for recorded results and [the 0.14.0 feature notes](features-0140.md) for behavior and upgrade details.
 
 The default opens in a separate **ordinary window**. Its title bar, background and overlap with other windows are controlled by Hindsight. Transparent desktop overlays, always-on-top, click-through and autonomous window movement are not supported. Use Hindsight's plugin settings to change where the page opens; compact view only changes this plugin's layout.
 

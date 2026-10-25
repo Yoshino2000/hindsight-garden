@@ -6,9 +6,9 @@
 
 Let a little everyday time become a garden. A third-party [Hindsight](https://github.com/Tomotsugu-dev/Hindsight) plugin that grows flowers from matching foreground activity, using your existing categories.
 
-**[Download 0.13.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.13.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
+**[Download 0.14.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.14.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
 
-![A complete garden with its own furniture, compact navigation and motion controls](docs/screenshots/garden.png)
+![A complete garden with its own furniture, compact navigation and motion controls](docs/screenshots/garden.jpg)
 
 ## Choose a flower, plant a little hope
 
@@ -24,27 +24,27 @@ Cumulative mode is the default: switching away pauses growth. Progress sits besi
 
 ## A garden for every week
 
-Completed flowers stay in weekly albums, splitting into another garden after 25 plants. Use the compact chronological index to revisit them. Weekly reviews summarize blooms, species and completed goal time; old flowers are never automatically deleted to make room.
+Completed flowers stay in weekly albums, splitting into another garden after 25 plants. Browse the chronological index five weeks per page, with navigation for older pages. Weekly reviews summarize blooms, species and completed goal time; old flowers are never automatically deleted to make room.
 
-![Chronological weekly albums, small previews and a weekly review](docs/screenshots/album.png)
+![Chronological weekly albums, small previews and a weekly review](docs/screenshots/album.jpg)
 
-## Collect memories in white, silver and gold
+## Collect five colours of memories
 
-Twenty achievement levels fit into thirteen cards. The 250 / 500 / 1,000-bloom milestones share a tiered card. Open it to see each condition, progress and earned date.
+Twenty achievement levels fit into ten cards. All nine bloom milestones share one card with white, blue, purple, gold and rainbow badge colours. Cards stay white until every level is earned, then turn pale yellow. Open one for the original conditions, progress and dates.
 
-![Compact achievement cards and four complete garden themes](docs/screenshots/collection.png)
+![Compact achievement cards and four complete garden themes](docs/screenshots/collection.jpg)
 
-![Achievement details retain each tier's conditions and earned record](docs/screenshots/achievement.png)
+![Achievement details retain each tier's conditions and earned record](docs/screenshots/achievement.jpg)
 
 ## Change the garden's mood
 
-Meadow keeps its gently swaying swing. Rain, dusk and blossom have distinct palettes and furniture. Small birds, butterflies and pond ripples visit quietly; motion is optional.
+Meadow keeps its gently swaying swing. Rain adds leaf-tip drops, dusk adds ground light and occasional fireflies, and blossom adds sparse petals and lantern light. Each has its own palette and furniture. Small birds, butterflies and pond ripples visit quietly; motion is optional.
 
 | Meadow | After the rain |
 | :--: | :--: |
-| ![Meadow with a swing](docs/screenshots/meadow.png) | ![Cool rain garden, leaf-canopy bench and ceramic frog](docs/screenshots/rain.png) |
+| ![Meadow with a swing](docs/screenshots/meadow.jpg) | ![Cool rain garden, leaf-canopy bench and ceramic frog](docs/screenshots/rain.jpg) |
 | **Lantern dusk** | **Blossom letter** |
-| ![Dusk garden with warm lanterns and a birdhouse](docs/screenshots/dusk.png) | ![Blossom garden with a torii, stone lanterns and washbasin](docs/screenshots/garden.png) |
+| ![Dusk garden with warm lanterns and a birdhouse](docs/screenshots/dusk.jpg) | ![Blossom garden with a torii, stone lanterns and washbasin](docs/screenshots/garden.jpg) |
 
 ## Get started
 

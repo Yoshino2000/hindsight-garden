@@ -685,6 +685,18 @@ legend {
   padding: 0 8px;
   text-align: left;
 }
+.garden-heading-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 12px;
+}
+.garden-heading-controls .garden-motion-setting { margin-left: 0; }
+@media (max-width: 520px) {
+  .garden-heading { display: block; }
+  .garden-heading-controls { justify-content: space-between; margin-top: 5px; }
+}
 .garden-heading .badge {
   flex-shrink: 0;
   background: #e7eed8;
@@ -697,7 +709,7 @@ legend {
   overflow: hidden;
 }
 .garden-scene-viewport > .garden-scene {
-  margin-top: -5.5%;
+  margin-top: -9%;
 }
 .garden-scene {
   position: relative;
@@ -1199,8 +1211,12 @@ body.compact .hero h2 {
     padding: 18px 5px 16px;
   }
   .garden-heading {
-    align-items: flex-start;
+    display: block;
     padding: 0 10px;
+  }
+  .garden-heading-controls {
+    justify-content: space-between;
+    margin-top: 5px;
   }
   .garden-heading h2 {
     font-size: 15px;

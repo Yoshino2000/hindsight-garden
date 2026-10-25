@@ -6,9 +6,9 @@
 
 让一段日常，长成一座花园。为 [Hindsight](https://github.com/Tomotsugu-dev/Hindsight) 制作的第三方插件：选择已有分类，累计前台使用时间，慢慢等花开。
 
-**[下载 0.13.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.13.0)** · [安装与使用](docs/usage.zh-CN.md) · [开发与验证](docs/verification.md)
+**[下载 0.14.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.14.0)** · [安装与使用](docs/usage.zh-CN.md) · [开发与验证](docs/verification.md)
 
-![时光花园：完整花圃、专属装饰和同一行的切园与动效开关](docs/screenshots/garden.png)
+![时光花园：完整花圃、专属装饰、顶部动效开关和紧凑切园导航](docs/screenshots/garden.jpg)
 
 ## 选一朵花，种下一点期待
 
@@ -24,27 +24,27 @@
 
 ## 每一周，都有自己的花园
 
-按周收藏，种满 25 株自动分园。相册用紧凑的时间索引跳转，旧花不会为了腾位置而自动删除。周回顾展示已开花数量、品种与完成目标时长。
+按周收藏，种满 25 株自动分园。相册按时间先后每页展示 5 周，超过后翻页，旧花不会为了腾位置而自动删除。周回顾展示已开花数量、品种与完成目标时长。
 
-![按时间排列的每周花园、缩略图与周回顾](docs/screenshots/album.png)
+![按时间排列的每周花园、缩略图与周回顾](docs/screenshots/album.jpg)
 
-## 把努力，收进白、银、金的记忆
+## 把时光，收进五色徽章
 
-20 级成就收在 13 张卡片中；250／500／1000 朵共用一张分级卡。点开可看每一级的条件、进度和获得日期。
+20 级成就收在 10 张卡片中；累计开花共用一张九级卡，徽章分白、蓝、紫、金、彩五档颜色。卡片默认白底，整组全部达成后才填淡黄。点开可看各级条件、进度和获得日期。
 
-![紧凑的分级成就与四种整体花园主题](docs/screenshots/collection.png)
+![紧凑的分级成就与四种整体花园主题](docs/screenshots/collection.jpg)
 
-![成就详情保留各级条件与获得记录](docs/screenshots/achievement.png)
+![成就详情保留各级条件与获得记录](docs/screenshots/achievement.jpg)
 
 ## 给花园换个心情
 
-草木晴日保留轻摆秋千；雨后小憩、晚灯花园、樱枝来信有各自的整体配色与摆设。小鸟、蝴蝶和水波轻轻来访，动效可关闭。
+草木晴日保留轻摆秋千；雨后小憩有叶尖水滴，晚灯花园有地面暖光与偶现萤火，樱枝来信有稀疏落樱和石灯笼柔光。每个主题都有整体配色与专属摆设。小鸟、蝴蝶和水波轻轻来访，动效可关闭。
 
 | 草木晴日 | 雨后小憩 |
 | :--: | :--: |
-| ![草木晴日：浅绿花园与秋千](docs/screenshots/meadow.png) | ![雨后小憩：雨后青绿、叶伞长椅与陶蛙](docs/screenshots/rain.png) |
+| ![草木晴日：浅绿花园与秋千](docs/screenshots/meadow.jpg) | ![雨后小憩：雨后青绿、叶伞长椅与陶蛙](docs/screenshots/rain.jpg) |
 | **晚灯花园** | **樱枝来信** |
-| ![晚灯花园：紫暮配色、暖灯与木鸟屋](docs/screenshots/dusk.png) | ![樱枝来信：和风鸟居、石灯笼和手水钵](docs/screenshots/garden.png) |
+| ![晚灯花园：紫暮配色、暖灯与木鸟屋](docs/screenshots/dusk.jpg) | ![樱枝来信：和风鸟居、石灯笼和手水钵](docs/screenshots/garden.jpg) |
 
 ## 开始使用
 

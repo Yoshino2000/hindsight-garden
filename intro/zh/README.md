@@ -4,4 +4,4 @@
 
 [打开中文首页](../../README.md) · [English](../../README.en.md) · [详细使用说明](../../docs/usage.zh-CN.md)
 
-![时光花园](../../docs/screenshots/garden.png)
+![时光花园](../../docs/screenshots/garden.jpg)
