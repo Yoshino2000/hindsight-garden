@@ -564,16 +564,17 @@ legend {
   margin: 12px 0 0;
 }
 .garden-album {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .garden-album-card {
+  flex: 0 0 96px;
+  width: 96px;
   min-width: 0;
   border: 1px solid #e0e8d3;
-  border-radius: 15px;
-  padding: 6px 7px 10px;
+  border-radius: 11px;
+  padding: 3px 4px 6px;
   background: #f7f9ee;
   color: #34473b;
   text-align: left;
@@ -590,10 +591,21 @@ legend {
 }
 .garden-album-caption {
   display: flex;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 0 5px;
+  justify-content: center;
+  font-size: 11px;
+}
+.garden-tools {
+  margin-top: 12px;
+  color: var(--muted);
   font-size: 12px;
+}
+.garden-tools > summary {
+  cursor: pointer;
+  width: fit-content;
+  padding: 5px 0;
+}
+.garden-tools-content {
+  margin-top: 12px;
 }
 .garden-miniature {
   pointer-events: none;
@@ -653,6 +665,115 @@ legend {
 }
 .garden-landscape {
   pointer-events: none;
+}
+.garden-ambience {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 20;
+}
+.ambience-swing {
+  position: absolute;
+  left: 20%;
+  top: 22%;
+  width: 18%;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+.ambience-swing-frame,
+.ambience-swing-seat {
+  position: absolute;
+  inset: 0;
+  background-image: url("../assets/ambience/swing.png");
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+}
+.ambience-swing-frame {
+  background-position: 0 0;
+}
+.ambience-swing-seat {
+  background-position: 100% 0;
+  transform-origin: 50% 18%;
+  animation: garden-swing 8.5s ease-in-out infinite;
+}
+.ambience-bird,
+.ambience-butterfly {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+.ambience-bird {
+  animation: garden-bird 58s linear 8s infinite;
+}
+.ambience-bird img {
+  display: block;
+  width: 5.8%;
+  height: auto;
+}
+.ambience-butterfly {
+  animation: garden-butterfly 40s ease-in-out 5s infinite;
+}
+.ambience-butterfly img {
+  display: block;
+  width: 3.8%;
+  height: auto;
+  animation: garden-wings 1.4s ease-in-out infinite;
+}
+.garden-ambience[data-running="false"] *,
+.garden-ambience[data-enabled="false"] * {
+  animation-play-state: paused !important;
+}
+.garden-ambience[data-enabled="false"] .ambience-swing-seat,
+.garden-miniature .ambience-swing-seat {
+  animation: none;
+  transform: none;
+}
+.garden-ambience[data-enabled="false"] .ambience-bird,
+.garden-ambience[data-enabled="false"] .ambience-butterfly {
+  display: none;
+}
+.garden-motion-setting {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  margin-top: 14px;
+}
+.garden-motion-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+.garden-motion-setting .subtle {
+  font-size: 10px;
+}
+@keyframes garden-swing {
+  0%, 100% { transform: rotate(-1.6deg); }
+  50% { transform: rotate(1.6deg); }
+}
+@keyframes garden-bird {
+  0%, 20% { opacity: 0; visibility: hidden; transform: translate(-9%, 23%); }
+  21% { opacity: .8; visibility: visible; }
+  28% { opacity: .8; visibility: visible; transform: translate(104%, 17%); }
+  29%, 100% { opacity: 0; visibility: hidden; transform: translate(104%, 17%); }
+}
+@keyframes garden-butterfly {
+  0%, 45% { opacity: 0; visibility: hidden; transform: translate(36%, 52%); }
+  47% { opacity: .85; visibility: visible; }
+  58% { transform: translate(53%, 46%); }
+  69% { opacity: .85; visibility: visible; transform: translate(67%, 57%); }
+  78%, 100% { opacity: 0; visibility: hidden; transform: translate(62%, 64%); }
+}
+@keyframes garden-wings {
+  0%, 100% { transform: scaleX(1) rotate(-4deg); }
+  50% { transform: scaleX(.7) rotate(4deg); }
 }
 .garden-flower {
   position: absolute;
@@ -831,9 +952,6 @@ body.compact .hero h2 {
   }
 }
 @media (min-width: 680px) {
-  .garden-album {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
   .hero .plant-scene {
     width: 290px;
   }
@@ -848,6 +966,10 @@ body.compact .hero h2 {
   }
 }
 @media (max-width: 380px) {
+  .garden-album-card {
+    flex-basis: 80px;
+    width: 80px;
+  }
   .app {
     padding: 19px 13px 16px;
   }

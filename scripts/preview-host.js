@@ -209,6 +209,7 @@ document.getElementById("clear-notifications").addEventListener("click", () => {
 document.getElementById("seed-garden").addEventListener("click", async () => {
   const button = document.getElementById("seed-garden");
   button.disabled = true;
+  delete button.dataset.loadedCount;
   try {
     const response = await fetch("/api/call", {
       method: "POST",
@@ -221,7 +222,11 @@ document.getElementById("seed-garden").addEventListener("click", async () => {
     const result = await response.json();
     if (result.error) throw new Error(result.error);
     await restartWorker();
-    frame.src = "/plugin/ui/index.html";
+    await new Promise((resolve) => {
+      frame.addEventListener("load", resolve, { once: true });
+      frame.src = "/plugin/ui/index.html";
+    });
+    button.dataset.loadedCount = String(result.result.count);
   } catch (error) {
     status.textContent = String(error.message || error);
   } finally {

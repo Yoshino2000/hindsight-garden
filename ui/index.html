@@ -329,48 +329,10 @@
         tabindex="0"
         hidden
       >
-        <section class="card garden-browser" aria-label="选择花园">
-          <div class="garden-browser-heading">
-            <h2>花园相册</h2>
-            <span id="garden-collection-total" class="subtle"></span>
-          </div>
-          <label class="field" for="garden-view-mode">
-            <span>展示范围</span>
-            <select id="garden-view-mode">
-              <option value="all">全部花园</option>
-              <option value="week">按周查看</option>
-            </select>
-          </label>
-          <div id="garden-week-controls" hidden>
-            <label class="field" for="garden-week">
-              <span>选择一周</span>
-              <select id="garden-week"></select>
-            </label>
-            <div class="garden-week-navigation">
-              <button id="garden-week-prev" class="button quiet small" type="button">更早的周</button>
-              <button id="garden-this-week" class="button quiet small" type="button">回到本周</button>
-              <button id="garden-week-next" class="button quiet small" type="button">更近的周</button>
-            </div>
-          </div>
-          <p id="garden-period-summary" class="subtle" aria-live="polite"></p>
-          <div id="garden-album" class="garden-album" role="group" aria-label="不同花园，选择后查看全景" hidden></div>
-          <nav id="garden-album-navigation" class="garden-album-navigation" aria-label="更多花园" hidden>
-            <button id="garden-album-prev" class="button quiet small" type="button">前一组</button>
-            <span id="garden-album-range" class="subtle"></span>
-            <button id="garden-album-next" class="button quiet small" type="button">后一组</button>
-          </nav>
-          <div id="garden-jump-control" class="garden-jump" hidden>
-            <label for="garden-jump">前往第</label>
-            <input id="garden-jump" type="number" min="1" step="1" inputmode="numeric" aria-label="花园序号" required>
-            <span>座</span>
-            <button id="garden-jump-confirm" class="button quiet small" type="button">查看</button>
-          </div>
-          <p class="garden-capacity-hint">每座花园最多 25 株，种满后自动分园。按开花日期归入每周，本地时间周一至周日。</p>
-        </section>
         <section class="garden-island-card" aria-label="时光花园全景">
           <div class="garden-heading">
             <div>
-              <p class="eyebrow">你的时间，在这里留下花朵</p>
+              <p id="garden-period-summary" class="eyebrow" aria-live="polite">你的时间，在这里留下花朵</p>
               <h2 id="garden-scene-title">慢慢长成一座花园</h2>
             </div>
             <span id="garden-total" class="badge">0 株已开花</span>
@@ -399,6 +361,9 @@
                   <stop stop-color="#badfda" />
                   <stop offset="1" stop-color="#8fc8c5" />
                 </linearGradient>
+                <clipPath id="flowerbed-grid-clip">
+                  <path d="M500 328 806.25 468 500 608 193.75 468Z" />
+                </clipPath>
               </defs>
               <ellipse
                 cx="500"
@@ -436,49 +401,32 @@
                 stroke-linecap="round"
                 opacity=".55"
               />
+              <!-- All flowerbed edges use the plot lattice's 32 / 70 slope. The
+                   wooden border stands alone: no path passes beneath its front tip. -->
               <path
-                d="M180 430 500 631 835 429"
-                fill="none"
-                stroke="#a9bf86"
-                stroke-width="39"
-                stroke-linecap="round"
-              />
-              <path
-                d="M180 425 500 626 835 424"
-                fill="none"
-                stroke="#ede4c8"
-                stroke-width="29"
-                stroke-linecap="round"
+                data-scene-part="flowerbed-border"
+                d="M500 324 815 468 500 612 185 468Z"
+                fill="#c9b68d"
+                stroke="#b4a17b"
+                stroke-width="2"
                 stroke-linejoin="round"
               />
               <path
-                d="M180 425 500 626 835 424"
-                fill="none"
-                stroke="#fff6df"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-dasharray="1 17"
-                opacity=".8"
-              />
-              <path
-                d="M500 300 829 468 500 634 171 468Z"
-                fill="#bbce98"
-                stroke="#a5bd82"
-                stroke-width="3"
-              />
-              <path
-                d="M500 312 807 468 500 622 193 468Z"
-                fill="none"
-                stroke="#dce8ba"
-                stroke-width="3"
-                opacity=".7"
-              />
-              <path
-                d="M277 425 610 593M388 369 720 537M388 593 720 425M277 537 610 369"
-                fill="none"
-                stroke="#aec58a"
+                data-scene-part="flowerbed-soil"
+                d="M500 328 806.25 468 500 608 193.75 468Z"
+                fill="#bfd19d"
+                stroke="#e2dfbb"
                 stroke-width="2"
-                opacity=".5"
+                stroke-linejoin="round"
+              />
+              <path
+                data-scene-part="flowerbed-grid"
+                d="M548.125 350 241.875 490M618.125 382 311.875 522M688.125 414 381.875 554M758.125 446 451.875 586M451.875 350 758.125 490M381.875 382 688.125 522M311.875 414 618.125 554M241.875 446 548.125 586"
+                fill="none"
+                stroke="#aec58d"
+                stroke-width="1.5"
+                opacity=".55"
+                clip-path="url(#flowerbed-grid-clip)"
               />
               <ellipse cx="749" cy="330" rx="91" ry="44" fill="#a6bd91" />
               <ellipse cx="749" cy="325" rx="82" ry="36" fill="#e5e9d4" />
@@ -508,35 +456,6 @@
               <ellipse cx="702" cy="352" rx="15" ry="8" fill="#b7c1a8" />
               <ellipse cx="799" cy="300" rx="19" ry="10" fill="#b8c3ae" />
               <ellipse cx="808" cy="340" rx="12" ry="7" fill="#ced4bf" />
-              <g stroke-linejoin="round" stroke-linecap="round">
-                <path
-                  d="M238 286 238 312M301 322 301 347M338 300 338 321"
-                  stroke="#8e9b73"
-                  stroke-width="9"
-                />
-                <path
-                  d="M224 284 264 260 349 308 306 334Z"
-                  fill="#b99871"
-                  stroke="#987f62"
-                  stroke-width="2"
-                />
-                <path
-                  d="M237 280 320 327M250 272 333 319"
-                  stroke="#d6bc91"
-                  stroke-width="5"
-                />
-                <path
-                  d="M225 281 225 254 268 230 268 257Z"
-                  fill="#c4aa7f"
-                  stroke="#a58c67"
-                  stroke-width="2"
-                />
-                <path
-                  d="M229 258 265 238M229 271 265 251"
-                  stroke="#e0cba0"
-                  stroke-width="5"
-                />
-              </g>
               <g
                 fill="#f5f0db"
                 stroke="#c3c8a6"
@@ -560,12 +479,13 @@
                   d="m143 424-4-12m4 12 7-9M574 640l-1-13m1 13 7-10M872 397l-3-11m3 11 6-8M352 579l-3-10m3 10 5-8"
                 />
               </g>
-              <g data-scene-part="path-pebbles" stroke="#d6c9a8" stroke-width="1.5">
-                <ellipse cx="195" cy="436" rx="10" ry="4" fill="#f7edcf" transform="rotate(29 195 436)" />
-                <ellipse cx="462" cy="608" rx="9" ry="4" fill="#e4d9b8" transform="rotate(29 462 608)" />
-                <ellipse cx="488" cy="622" rx="12" ry="4.5" fill="#f5eccf" transform="rotate(29 488 622)" />
-                <ellipse cx="521" cy="615" rx="10" ry="4" fill="#e4d9b8" transform="rotate(-29 521 615)" />
-                <ellipse cx="814" cy="439" rx="9" ry="4" fill="#f7edcf" transform="rotate(-29 814 439)" />
+              <g data-scene-part="side-stepping-stones" stroke="#d6c9a8" stroke-width="1.5">
+                <ellipse cx="132" cy="402" rx="11" ry="5" fill="#f7edcf" transform="rotate(25 132 402)" />
+                <ellipse cx="149" cy="416" rx="12" ry="5" fill="#ece3c5" transform="rotate(25 149 416)" />
+                <ellipse cx="166" cy="430" rx="11" ry="5" fill="#f7edcf" transform="rotate(25 166 430)" />
+                <ellipse cx="868" cy="402" rx="11" ry="5" fill="#f7edcf" transform="rotate(-25 868 402)" />
+                <ellipse cx="851" cy="416" rx="12" ry="5" fill="#ece3c5" transform="rotate(-25 851 416)" />
+                <ellipse cx="834" cy="430" rx="11" ry="5" fill="#f7edcf" transform="rotate(-25 834 430)" />
               </g>
               <g data-scene-part="watering-can" stroke="#8ea99c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
                 <ellipse cx="169" cy="376" rx="25" ry="7" fill="#8fab81" opacity=".18" stroke="none" />
@@ -584,30 +504,20 @@
                 <path d="M577 235 626 241M577 253 626 260" fill="none" stroke="#eddbb4" stroke-width="2" />
                 <path d="M600 253Q586 242 592 240Q601 236 604 250M601 253Q610 237 617 245Q620 251 603 253" fill="#a5b481" stroke="#9ca877" stroke-width="1" />
               </g>
-              <g data-scene-part="fence-bird" stroke-linecap="round">
-                <ellipse cx="433" cy="147" rx="12" ry="9" fill="#bfd4cd" />
-                <circle cx="441" cy="140" r="7" fill="#bfd4cd" />
-                <path d="m447 139 6 3-6 2Z" fill="#d8b986" />
-                <path d="m422 146-8-5 3 10Z" fill="#a6c2b8" />
-                <path d="M425 145Q430 155 437 147" fill="#9fbeb3" />
-                <circle cx="443" cy="139" r="1.4" fill="#6b817a" />
-                <path d="m431 155-1 5m5-5 1 4" stroke="#a69b7e" stroke-width="1.5" />
-              </g>
-              <g data-scene-part="small-insects" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M185 316C165 296 162 322 181 326C165 323 169 339 185 329C200 340 205 323 189 325C208 313 192 301 185 316Z" fill="#e2c9c6" stroke="#cbb6b6" stroke-width="1.5" />
-                <path d="m185 316 1 14m-1-14-3-4m3 4 3-4" fill="none" stroke="#ad9d98" stroke-width="1.5" />
-                <ellipse cx="847" cy="353" rx="7" ry="4.5" fill="#f0d6a2" transform="rotate(-15 847 353)" />
-                <ellipse cx="842" cy="347" rx="4" ry="6" fill="#f4f4df" transform="rotate(-31 842 347)" />
-                <ellipse cx="849" cy="346" rx="4" ry="6" fill="#f4f4df" transform="rotate(18 849 346)" />
-                <path d="m844 350 1 6m3-7 1 6" stroke="#c4a66f" stroke-width="2" />
-                <circle cx="853" cy="351" r="1" fill="#9f8e6e" />
-              </g>
               <g data-scene-part="moss-and-grass" stroke-linecap="round">
                 <g fill="#86a274"><ellipse cx="170" cy="385" rx="5" ry="2.5" /><ellipse cx="180" cy="387" rx="4" ry="2" /><ellipse cx="187" cy="377" rx="3.5" ry="2" /><ellipse cx="798" cy="297" rx="6" ry="3" /><ellipse cx="807" cy="338" rx="4" ry="2" /></g>
                 <path d="M120 407q-3-11-8-13m8 13 2-15m-2 15 7-8M606 647q-2-11-6-13m6 13 4-16m-4 16 9-9M849 416q-2-12-8-16m8 16 1-17m-1 17 8-9M643 270q-2-10-7-13m7 13 3-13" fill="none" stroke="#91ac78" stroke-width="3" />
                 <g fill="#dce8bd"><ellipse cx="133" cy="410" rx="2.5" ry="1.5" /><ellipse cx="610" cy="656" rx="3" ry="1.5" /><ellipse cx="835" cy="412" rx="2.5" ry="1.5" /></g>
               </g>
             </svg>
+            <div id="garden-ambience" class="garden-ambience" data-enabled="false" data-running="false" aria-hidden="true">
+              <div class="ambience-swing">
+                <span class="ambience-swing-frame"></span>
+                <span class="ambience-swing-seat"></span>
+              </div>
+              <div class="ambience-bird"><img src="../assets/ambience/bird.png" alt="" draggable="false"></div>
+              <div class="ambience-butterfly"><img src="../assets/ambience/butterfly.png" alt="" draggable="false"></div>
+            </div>
             <div
               id="garden-grid"
               class="garden-plants"
@@ -637,8 +547,54 @@
               下一座
             </button>
           </nav>
+          <div class="garden-motion-setting">
+            <label class="garden-motion-control" for="garden-motion"><input id="garden-motion" type="checkbox" checked><span>轻柔动效</span></label>
+            <span id="garden-motion-hint" class="subtle">秋千微摆，偶尔有小鸟和蝴蝶来访</span>
+          </div>
         </section>
         <section id="flower-details" class="card detail-card" hidden></section>
+        <section class="card garden-browser" aria-label="选择花园">
+          <div class="garden-browser-heading">
+            <h2>花园相册</h2>
+            <span id="garden-collection-total" class="subtle"></span>
+          </div>
+          <div id="garden-album" class="garden-album" role="group" aria-label="不同花园，选择后查看全景" hidden></div>
+          <details id="garden-tools" class="garden-tools">
+            <summary>筛选与跳转</summary>
+            <div class="garden-tools-content">
+              <label class="field" for="garden-view-mode">
+                <span>展示范围</span>
+                <select id="garden-view-mode">
+                  <option value="all">全部花园</option>
+                  <option value="week">按周查看</option>
+                </select>
+              </label>
+              <div id="garden-week-controls" hidden>
+                <label class="field" for="garden-week">
+                  <span>选择一周</span>
+                  <select id="garden-week"></select>
+                </label>
+                <div class="garden-week-navigation">
+                  <button id="garden-week-prev" class="button quiet small" type="button">更早的周</button>
+                  <button id="garden-this-week" class="button quiet small" type="button">回到本周</button>
+                  <button id="garden-week-next" class="button quiet small" type="button">更近的周</button>
+                </div>
+              </div>
+              <nav id="garden-album-navigation" class="garden-album-navigation" aria-label="更多花园" hidden>
+                <button id="garden-album-prev" class="button quiet small" type="button">前一组</button>
+                <span id="garden-album-range" class="subtle"></span>
+                <button id="garden-album-next" class="button quiet small" type="button">后一组</button>
+              </nav>
+              <div id="garden-jump-control" class="garden-jump" hidden>
+                <label for="garden-jump">前往第</label>
+                <input id="garden-jump" type="number" min="1" step="1" inputmode="numeric" aria-label="花园序号" required>
+                <span>座</span>
+                <button id="garden-jump-confirm" class="button quiet small" type="button">查看</button>
+              </div>
+              <p class="garden-capacity-hint">每座花园最多 25 株，种满后自动分园。按开花日期归入每周，本地时间周一至周日。</p>
+            </div>
+          </details>
+        </section>
       </section>
 
       <section

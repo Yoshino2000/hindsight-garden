@@ -1,10 +1,19 @@
 # Verification
 
-Version: **0.5.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.6.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified on 2026-10-25 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.5.0 results
+## Current 0.6.0 results
+
+- The existing **84 automated tests pass, with no skips**. Growth, storage, archive schema and layout-position modules are unchanged in this version. No new tests mirroring decorative CSS were added.
+- **20 connected Chrome checks passed** using actual host bridges, CSP, sandbox and synthetic data. They cover the scene above the album, default 96-pixel thumbnails (80 pixels in the 354 CSS-pixel narrow body), count-only captions, collapsed native filter/jump tools, keyboard selection and details. A 5,001-plant collection still renders at most twelve miniature scenes and can switch groups or jump to garden 201. A single garden retains a compact thumbnail. No horizontal overflow was observed in the narrow check.
+- The original PNG support/seat atlas, bird and butterfly load from local paths. The seat visibly changes its rotation while the support and all miniatures stay still. Natural, unaccelerated passes of the bird and butterfly were observed with nonzero opacity. Their cycles are 58 and 40 seconds with long hidden intervals. The off switch, saved preference, system reduced-motion priority, leaving the garden tab and restoration after the temporary media override were checked. The document-visibility handler was code-reviewed; browser inspection reactivates its tab, so a truly hidden document was not independently observed. The media and viewport overrides were reset afterward.
+- Flowerbed inner/outer edges and grid use the plot lattice's 32/70 slope; grid endpoints and all 25 plant anchors lie within the inner bed. The conflicting V-shaped path and front-corner pebbles are removed. Scene geometry and the complete front edge were reviewed. SVG IDs remain unique across the album.
+- Three original transparent assets were generated with the built-in image generator; source pixels are unchanged. The swing atlas is 1774 × 887, with two registered square cells, and bird/butterfly PNGs are 1254 × 1254. Full prompts are in `artwork-ambience.md`. No API permissions, storage allowance or schema changes are introduced: seven permissions, 64 MB, schema 2 remain. Automated/browser checks use isolated synthetic databases and do not modify the user's garden.
+- No plugin/preview-script warnings or errors were logged. Three errors came from an unrelated SingleFile browser extension; their extension URLs were retained in the local raw evidence rather than attributed to this plugin.
+
+## Previous 0.5.0 results
 
 - **84 automated tests passed, with no skips**: 33 pure-rule tests, 21 garden-layout/view tests, 20 actual SQLite store tests and 10 worker integration tests. They cover 1,000/5,000 archived flowers, 5,001-plant layout without truncation, twelve-thumbnail album windows, old-state migration under contention, atomic rollback on migration/archive failure, revision caching and byte-bounded pagination. Frozen 0.4.0 reader fixtures verify that older code refuses schema 2 instead of overwriting an apparently empty garden. Tests pass both in the checkout and in a source copy without Git history. Node 22.13+ and Python 3.11+ are required.
 - The store SQL was replayed through Python SQLite using a new connection per call, defensive mode, the host's 256,000-byte row/string limit, eight function arguments, SQL/VM/trigger limits and both recursive-trigger settings. Migration and subsequent archive changes succeed. Storage-full faults injected into archive writes roll back the state and keep existing flowers and progress; filling a real 64 MB native database was not tested.
@@ -57,7 +66,7 @@ Use the isolated preview with the actual Hindsight bridge, restrictive CSP and s
 
 ## Native checks
 
-**A native installation of the final 0.5.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.5.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
+**A native installation of the final 0.6.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.6.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
 
 macOS/Linux, long-duration use, sleep/resume, multiple monitors, clock changes under a real host and every notification configuration require separate verification. Market installation is subject to a published release and maintainer review. No public-market listing is implied by a local package.
 

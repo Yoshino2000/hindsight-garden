@@ -1,5 +1,7 @@
 # Original artwork
 
+The original environment sprites and their complete prompts for version 0.6.0 are documented in [Ambience artwork](artwork-ambience.md).
+
 The four plant strips were created for Time Garden with the built-in image generation tool on 2026-10-25. They are original generated illustrations, not Forest assets or edits of third-party art. They use a cute hand-painted style and real PNG alpha transparency. Five frames show seed, sprout, leaves, bud and bloom. Each strip is 1983 × 793 pixels. The generator did not space every frame equally: the UI uses per-frame horizontal bounds and CSS background positioning to show one plant at its original proportions, without changing the source pixels. No generated plant image was edited with Python or another image editor. The source dimensions and visible frame bounds were inspected read-only.
 
 The software is MIT-licensed. These AI-generated illustrations are provided with the project for use and redistribution to the extent permitted by applicable law; exclusive copyright in generated imagery is not asserted. No affiliation with Forest is implied.

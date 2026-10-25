@@ -95,6 +95,8 @@
   let gardenWeek = "";
   let gardenView = null;
   let albumSignature = "";
+  let ambienceEnabled = true;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   let errorSource = "";
   let editPlantId = null;
   let catalogRequest = null;
@@ -193,6 +195,20 @@
       $("view-" + item).hidden = !selected;
     }
     if (focus) $("tab-" + name).focus();
+    updateAmbience();
+  }
+
+  function updateAmbience() {
+    const enabled = ambienceEnabled && !reducedMotion.matches;
+    const running = document.visibilityState === "visible" &&
+      !$("view-garden").hidden && !document.body.classList.contains("compact");
+    $("garden-ambience").dataset.enabled = String(enabled);
+    $("garden-ambience").dataset.running = String(running);
+    $("garden-motion").checked = enabled;
+    $("garden-motion").disabled = reducedMotion.matches;
+    $("garden-motion-hint").textContent = reducedMotion.matches
+      ? "已跟随系统减少动态效果"
+      : "秋千微摆，偶尔有小鸟和蝴蝶来访";
   }
 
   function compact(enabled) {
@@ -537,7 +553,7 @@
   }
 
   function renderAlbum(signature) {
-    $("garden-album").hidden = gardenView.gardens.length <= 1;
+    $("garden-album").hidden = gardenView.layout.total === 0;
     if (signature === albumSignature) {
       for (const card of $("garden-album").querySelectorAll("button")) {
         card.setAttribute("aria-pressed", String(Number(card.dataset.gardenPage) === gardenPage));
@@ -565,6 +581,8 @@
         }
       }
       scene.append(landscape);
+      const swing = $("garden-ambience").querySelector(".ambience-swing").cloneNode(true);
+      scene.append(swing);
       for (const { plant, x, y, z } of garden.plots) {
         const flower = el("span", "garden-flower");
         flower.style.left = `${x / 10}%`;
@@ -574,7 +592,7 @@
         scene.append(flower);
       }
       const caption = el("span", "garden-album-caption");
-      caption.append(el("span", "", `第 ${garden.page + 1} 座`), el("span", "subtle", `${garden.count} 株`));
+      caption.append(el("span", "", `${garden.count} 株`));
       card.append(scene, caption);
       card.addEventListener("click", () => {
         gardenPage = garden.page;
@@ -1020,6 +1038,13 @@
   $("garden-start").addEventListener("click", () => tab("current", true));
   $("garden-prev").addEventListener("click", () => changeGardenPage(-1));
   $("garden-next").addEventListener("click", () => changeGardenPage(1));
+  $("garden-motion").addEventListener("change", () => {
+    ambienceEnabled = $("garden-motion").checked;
+    try { localStorage.setItem("garden-ambience", String(ambienceEnabled)); } catch (_) { /* Local display preference only. */ }
+    updateAmbience();
+  });
+  document.addEventListener("visibilitychange", updateAmbience);
+  reducedMotion.addEventListener("change", updateAmbience);
   $("garden-album-prev").addEventListener("click", () => {
     if (gardenView) changeGardenPage((gardenView.albumPage - 1) * GardenLayout.ALBUM_SIZE - gardenPage);
   });
@@ -1144,6 +1169,7 @@
     }),
   );
   try {
+    ambienceEnabled = localStorage.getItem("garden-ambience") !== "false";
     compact(localStorage.getItem("garden-compact") === "true");
     const saved = JSON.parse(localStorage.getItem("garden-view") || "null");
     if (saved && typeof saved === "object") {
@@ -1154,6 +1180,7 @@
   } catch (_) {
     compact(false);
   }
+  updateAmbience();
   resetPlantForm();
   refreshCatalogs();
   poll();
