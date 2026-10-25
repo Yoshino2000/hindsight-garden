@@ -142,9 +142,16 @@
 
   function previewSpecies(id) {
     const item = species(id);
+    const guide = GardenPlantGuide[item.id];
     sprite($("species-preview-sprite"), item.id, 4);
     $("species-preview-name").textContent = item.name;
     $("species-preview-description").textContent = item.description;
+    $("species-preview-botanical").textContent = guide.botanical;
+    for (const field of ["origin", "story", "meaning"])
+      $("species-preview-" + field).textContent = guide[field];
+    $("species-preview-sources").textContent =
+      "资料：" + guide.sources.map((source) => source.label).join(" · ");
+    $("species-preview-sources").title = guide.sources.map((source) => source.url).join("\n");
   }
 
   function gardenArtwork(id) {
@@ -399,6 +406,9 @@
     $("start-plant").hidden = true;
     $("pause").hidden = !plant;
     $("notify").checked = state.notify;
+    const notificationSlot = $(plant ? "active-notification-slot" : "plant-notification-slot");
+    if ($("notification-settings").parentElement !== notificationSlot)
+      notificationSlot.append($("notification-settings"));
     $("connection").textContent = fresh
       ? "后台运行中 · 只累计符合规则的前台时间"
       : "等待后台连接或新的活动信息";

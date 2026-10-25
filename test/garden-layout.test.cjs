@@ -268,11 +268,11 @@ test("the scene exposes two water rings, one reflection and fixed prop shadows f
 
 test("the whole pond fits on the island without crossing into the flowerbed", () => {
   const svg = landscapeSource();
-  const translation = svg.match(
-    /data-scene-part="pond"[^>]*transform="translate\(0 ([-\d.]+)\)"/,
+  const matrix = svg.match(
+    /data-scene-part="pond"[^>]*transform="matrix\(([^)]+)\)"/,
   );
-  assert.ok(translation);
-  const dy = Number(translation[1]);
+  assert.ok(matrix);
+  const [a, b, c, d, tx, ty] = matrix[1].trim().split(/\s+/).map(Number);
   const { stepX, stepY, island, bed } = GEOMETRY;
   const distance = (x, y, area) =>
     Math.abs(x - area.x) / area.radius +
@@ -290,8 +290,10 @@ test("the whole pond fits on the island without crossing into the flowerbed", ()
     );
     for (let index = 0; index < 360; index++) {
       const angle = (index * Math.PI) / 180;
-      const x = values.cx + values.rx * Math.cos(angle);
-      const y = values.cy + dy + values.ry * Math.sin(angle);
+      const localX = values.cx + values.rx * Math.cos(angle);
+      const localY = values.cy + values.ry * Math.sin(angle);
+      const x = a * localX + c * localY + tx;
+      const y = b * localX + d * localY + ty;
       assert.ok(distance(x, y, island) <= 1, `${part} leaves the island`);
       assert.ok(distance(x, y, bed) >= 1, `${part} crosses the flowerbed`);
     }
@@ -416,6 +418,87 @@ test("all four actual atlas feet, moving seat bottom and their contact shadows r
   }
 });
 
+test("the compact seat shadow follows the real atlas plank and stays on the grass while moving or still", () => {
+  const { readFileSync } = require("node:fs");
+  const { join } = require("node:path");
+  const css = readFileSync(join(__dirname, "..", "ui", "style.css"), "utf8");
+  const swing = css.match(/\.ambience-swing\s*\{([^}]+)\}/)[1];
+  const shadow = css.match(/\.ambience-swing-shadow\s*\{([^}]+)\}/)[1];
+  const percent = (block, key) => Number(block.match(new RegExp(`\\b${key}:\\s*([\\d.]+)%`))[1]) / 100;
+  const size = percent(swing, "width") * GEOMETRY.width;
+  const width = percent(shadow, "width") * size;
+  const height = percent(shadow, "height") * size;
+  const left = percent(swing, "left") * GEOMETRY.width + percent(shadow, "left") * size;
+  const top = percent(swing, "top") * GEOMETRY.height + percent(shadow, "top") * size;
+  assert.ok(height <= size * .06, "The plank shadow must remain narrow");
+  const polygon = shadow.match(/clip-path:\s*polygon\(([^)]+)\)/);
+  assert.ok(polygon);
+  const points = polygon[1].split(",").map((pair) => {
+    const [x, y] = pair.trim().split(/\s+/).map((value) => Number(value.replace("%", "")) / 100);
+    return { x: x * width, y: y * height };
+  });
+  assert.equal(points.length, 4, "Use one small plank rather than a broad oval");
+  const frame = css.match(/@keyframes garden-swing-shadow\s*\{([\s\S]*?)\n\}/);
+  assert.ok(frame);
+  const transforms = Array.from(frame[1].matchAll(/transform:\s*([^;]+);/g), (match) => match[1]);
+  const staticTransform = shadow.match(/transform:\s*([^;]+);/);
+  assert.ok(staticTransform, "The static and reduced-motion plank needs a default ground direction");
+  transforms.push(staticTransform[1]);
+  const staticOverride = css.match(/\.garden-ambience\[data-enabled="false"\]\s+\.ambience-swing-shadow[^{}]*\{([^}]+)\}/);
+  if (staticOverride?.[1].match(/\btransform:/)) transforms.push(staticOverride[1].match(/transform:\s*([^;]+);/)[1]);
+  const atlas = atlasPixels();
+  const edge = [];
+  for (let x = 280; x <= 540; x += 20) {
+    for (let y = atlas.height - 1; y >= 500; y--) if (atlas.alpha(atlas.height + x, y) > 16) { edge.push({ x, y }); break; }
+  }
+  assert.equal(edge.length, 14);
+  const mean = edge.reduce((value, point) => ({ x: value.x + point.x / edge.length, y: value.y + point.y / edge.length }), { x: 0, y: 0 });
+  const atlasSlope = edge.reduce((sum, point) => sum + (point.x - mean.x) * (point.y - mean.y), 0) /
+    edge.reduce((sum, point) => sum + (point.x - mean.x) ** 2, 0);
+  const inside = roundedGround(landscapeSource());
+  for (const transform of transforms) {
+    const degrees = Number(transform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
+    const dx = Number(transform.match(/translateX\(([-\d.]+)%\)/)?.[1] || 0) * width / 100;
+    const scale = Number(transform.match(/scaleX\(([-\d.]+)\)/)?.[1] || 1);
+    const angle = degrees * Math.PI / 180;
+    const moved = points.map((point) => {
+      const x = (point.x - width / 2) * scale, y = point.y - height / 2;
+      return { x: left + width / 2 + x * Math.cos(angle) - y * Math.sin(angle) + dx,
+        y: top + height / 2 + x * Math.sin(angle) + y * Math.cos(angle) };
+    });
+    for (const point of moved) assert.ok(inside(point), "The whole seat shadow must stay on the actual rounded ground");
+    const slope = (moved[1].y - moved[0].y) / (moved[1].x - moved[0].x);
+    assert.ok(slope > 0 && Math.abs(slope - atlasSlope) < .05, `Shadow slope ${slope} disagrees with the actual plank ${atlasSlope}`);
+  }
+});
+
+test("the watering can has one small attached shadow and no old floating stones beside it", () => {
+  const svg = landscapeSource();
+  assert.doesNotMatch(svg, /cx="176" cy="389"|cx="191" cy="380"|cx="170" cy="393"|cx="180" cy="395"|cx="187" cy="385"/);
+  const inside = roundedGround(svg);
+  for (const [part, rootX, rootY] of [["watering-can", 164, 371], ["little-sign", 603, 298]]) {
+    const group = svg.match(new RegExp(`<g\\b(?=[^>]*data-scene-part="${part}")[^>]*>([\\s\\S]*?)<\\/g>`));
+    assert.ok(group);
+    const matrix = group[0].match(/transform="matrix\(([^)]+)\)"/);
+    const [a, b, c, d, tx, ty] = matrix[1].trim().split(/\s+/).map(Number);
+    assert.equal((group[1].match(/class="scene-shadow"/g) || []).length, 1);
+    const ellipse = group[1].match(/<ellipse\b[^>]*class="scene-shadow"[^>]*>/)[0];
+    const values = Object.fromEntries(["cx", "cy", "rx", "ry"].map((key) => [key, Number(ellipse.match(new RegExp(`\\b${key}="([-\\d.]+)"`))[1])]));
+    const dx = a * (values.cx - rootX) + c * (values.cy - rootY);
+    const dy = b * (values.cx - rootX) + d * (values.cy - rootY);
+    assert.ok(dx > 0 && dy > 0 && Math.abs(dy / dx - GEOMETRY.stepY / GEOMETRY.stepX) < 1e-10);
+    for (let index = 0; index < 36; index++) {
+      const x = values.cx + values.rx * Math.cos(index * Math.PI / 18);
+      const y = values.cy + values.ry * Math.sin(index * Math.PI / 18);
+      const point = { x: a * x + c * y + tx, y: b * x + d * y + ty };
+      assert.ok(inside(point));
+      assert.ok(Math.abs(point.x - GEOMETRY.bed.x) / GEOMETRY.bed.radius +
+        Math.abs(point.y - GEOMETRY.bed.y) / (GEOMETRY.bed.radius * GEOMETRY.stepY / GEOMETRY.stepX) >= 1);
+    }
+    if (part === "watering-can") assert.ok(values.rx * a <= 15 && values.ry * d <= 3.5);
+  }
+});
+
 test("empty and non-array gardens are safe and retain one empty page", () => {
   for (const value of [[], null, undefined, {}, "flowers", 25]) {
     assert.deepEqual(createLayout(value, 100), {
@@ -434,8 +517,8 @@ test("a full page has 25 distinct plot coordinates inside the agreed scene", () 
   assert.equal(layout.pageCount, 1);
   assert.equal(new Set(layout.plots.map(({ x, y }) => `${x},${y}`)).size, 25);
   for (const plot of layout.plots) {
-    assert.ok(plot.x >= 220 && plot.x <= 780);
-    assert.ok(plot.y >= 308 && plot.y <= 628);
+    assert.ok(plot.x >= 185 && plot.x <= 815);
+    assert.ok(plot.y >= 270 && plot.y <= 630);
     assert.equal(plot.rotation, 0);
   }
   for (const first of layout.plots) {
@@ -453,21 +536,21 @@ test("a small garden grows out from the center without inventing any extra flowe
   const single = createLayout(flowers(1));
   assert.equal(single.plots.length, 1);
   assert.equal(single.plots[0].x, 500);
-  assert.equal(single.plots[0].y, 468);
+  assert.equal(single.plots[0].y, 450);
   assert.equal(single.plots[0].z, 4);
   const small = createLayout(flowers(8));
   assert.equal(small.plots.length, 8);
   assert.deepEqual(
     small.plots.map(({ x, y }) => [x, y]),
     [
-      [500, 468],
-      [570, 428],
-      [430, 428],
-      [570, 508],
-      [430, 508],
-      [640, 388],
-      [500, 388],
-      [360, 388],
+      [500, 450],
+      [578.75, 405],
+      [421.25, 405],
+      [578.75, 495],
+      [421.25, 495],
+      [657.5, 360],
+      [500, 360],
+      [342.5, 360],
     ],
   );
   assert.deepEqual(positions(small).slice(0, 1), positions(single));

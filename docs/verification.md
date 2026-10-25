@@ -1,10 +1,19 @@
 # Verification
 
-Version: **0.7.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.8.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified on 2026-10-25 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.7.0 results
+## Current 0.8.0 results
+
+- **95 automated tests pass, with no skips.** Two additional geometry regressions check the original PNG seat-edge direction against the complete small shadow polygon (moving, static and motion-off), and the watering can's single base shadow plus removal of the old grey patches. Actual feet, seat contours, pond, ground clip and 4/7 projection remain covered. Growth and SQLite archive logic are unchanged.
+- The flowerbed radius increases from 315 to 350, about **23.5% more area**, while the island stays unchanged. Its plant lattice uses 78.75/45 projected axes. Peripheral swing/pond/sign/fence/can artwork scales to 80%; flowers are slightly larger. Connected Chrome visually reviewed both a full 25-flower garden and a sparse garden. The main scene has one close-fitting watering-can base shadow. The small swing-seat shadow follows the source atlas edge, and Chrome confirmed the same direction with motion disabled and in static miniatures.
+- All eight guide selections were read in Chrome, with populated botanical/origin/story/meaning fields and 150-pixel artwork rather than the former 300-pixel display. The final expanded guide spans the 772-pixel form, using three text columns in a wide window. A sticky catalogue overlap found during inspection was removed; its lower edge is now above the guide. The new source module and [source notes](plant-guide-sources.md) distinguish factual plant history, named nineteenth-century flower language and explicitly garden-created meanings. Reading the guide needs no network calls.
+- The one notification control lives in the right planting-plan column. Planting moves that same node into the active pot's agreement card; removing the synthetic pot restores it to the plan. Chrome confirmed one control throughout, on/off saving, and reload persistence after saving completes. No separate bottom settings card remains.
+- The narrow body measured 354 CSS pixels with no horizontal overflow; its guide measured 292 pixels and uses stacked text, while the notification control remains inside the plan. The temporary viewport override was reset and ambient motion restored on. Final browser warnings/errors are empty.
+- Tests and Chrome checks use isolated synthetic SQLite. No personal Hindsight database was opened or changed. The seven permissions, 64 MB allowance and archive schema 2 remain unchanged; no additional migration is introduced. Original PNG bytes are unchanged. The final ZIP has not been installed into native Hindsight in this run. Truly hidden-document behavior and broader native/long-duration cases retain the limits below.
+
+## Previous 0.7.0 results
 
 - **93 automated tests pass, with no skips.** The growth and SQLite archive implementation is unchanged. New checks cover visitor intervals/species/pause cancellation and the actual SVG projection. A dependency-free PNG alpha decoder checks all four real swing foot contacts, the swinging seat's lower contour and fixed foot shadows against the actual rounded grass surface.
 - Connected Chrome ran the original page/worker with the real host bridges, restrictive CSP and isolated temporary SQLite. The default empty-pot view directly exposes eight compact species choices and the plan; wide windows use two columns. Typed name/target/category survived polling and a garden-tab visit. Direct planting showed target/mode/rules, including compact mode. A one-minute category-matched plant matured from the 122-plant synthetic collection into plant 123; the next planting form appeared automatically. Reset kept the form available.
@@ -76,7 +85,7 @@ Use the isolated preview with the actual Hindsight bridge, restrictive CSP and s
 
 ## Native checks
 
-**A native installation of the final 0.7.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.7.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
+**A native installation of the final 0.8.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.8.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
 
 macOS/Linux, long-duration use, sleep/resume, multiple monitors, clock changes under a real host and every notification configuration require separate verification. Market installation is subject to a published release and maintainer review. No public-market listing is implied by a local package.
 

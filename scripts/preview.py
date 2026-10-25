@@ -20,7 +20,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 HINDSIGHT_SOURCE = PLUGIN_ROOT.parent / "Hindsight" / "src-tauri" / "src" / "plugins" / "file_reader.rs"
 FILES = {
     "manifest.json", "background.js", "core.js", "store.js", "garden-layout.js",
-    "ui/index.html", "ui/style.css", "ui/main.js", "ui/ambience.js",
+    "ui/index.html", "ui/style.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js",
     "icon.png", "assets/sunflower.png", "assets/hydrangea.png",
     "assets/tulip.png", "assets/daisy.png",
     "assets/rose.png", "assets/lavender.png", "assets/cosmos.png", "assets/lily.png",

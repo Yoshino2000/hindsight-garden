@@ -134,6 +134,7 @@
               移除盆栽
             </button>
           </div>
+          <div id="active-notification-slot"></div>
         </section>
 
         <section
@@ -202,20 +203,6 @@
             <fieldset>
               <legend>挑一株喜欢的植物</legend>
               <div id="species-options" class="species-options"></div>
-              <details class="plant-artwork-details">
-                <summary>查看植物大图与介绍</summary>
-                <section class="species-preview" aria-label="植物高清预览">
-                  <div class="species-preview-art" aria-hidden="true">
-                    <div id="species-preview-sprite" class="plant-sprite"></div>
-                  </div>
-                  <div class="species-preview-copy">
-                    <p class="eyebrow">花园植物图鉴</p>
-                    <h3 id="species-preview-name">向日葵</h3>
-                    <p id="species-preview-description" class="hint"></p>
-                    <span class="preview-tag">高清原画 · 五阶段生长</span>
-                  </div>
-                </section>
-              </details>
             </fieldset>
             </section>
             <section class="plant-plan" aria-label="设置生长计划">
@@ -312,6 +299,14 @@
                 </p>
               </div>
             </fieldset>
+            <div id="plant-notification-slot">
+              <div id="notification-settings" class="notification-settings">
+                <label class="check-row" for="notify">
+                  <input id="notify" type="checkbox" checked />
+                  <span>花开时告诉我<span class="subtle block">发送一条无声的系统通知。</span></span>
+                </label>
+              </div>
+            </div>
             <button
               id="confirm-plant"
               class="button primary wide"
@@ -320,22 +315,34 @@
               种下这颗种子
             </button>
             </section>
+            <details class="plant-artwork-details">
+              <summary>查看植物大图与介绍</summary>
+              <section class="species-preview" aria-label="植物高清预览">
+                <div class="species-preview-art" aria-hidden="true">
+                  <div id="species-preview-sprite" class="plant-sprite"></div>
+                </div>
+                <div class="species-preview-copy">
+                  <p class="eyebrow">花园植物图鉴</p>
+                  <h3 id="species-preview-name">向日葵</h3>
+                  <p id="species-preview-botanical" class="species-botanical"></p>
+                  <p id="species-preview-description" class="hint"></p>
+                </div>
+                <dl class="species-guide">
+                  <div><dt>从哪里来</dt><dd id="species-preview-origin"></dd></div>
+                  <div><dt>一段小故事</dt><dd id="species-preview-story"></dd></div>
+                  <div><dt>花语与寓意</dt><dd id="species-preview-meaning"></dd></div>
+                </dl>
+                <p id="species-preview-sources" class="species-sources"></p>
+                <p class="species-guide-note">花语随时代与文化而异；「本花园寓意」为本园创作。学名介绍采用常见代表种或属。</p>
+              </section>
+            </details>
           </form>
         </section>
 
-        <section class="card settings-card">
-          <label class="check-row" for="notify"
-            ><input id="notify" type="checkbox" checked /><span
-              >花开时告诉我<span class="subtle block"
-                >发送一条无声的系统通知。</span
-              ></span
-            ></label
-          >
-          <p class="hint window-hint">
-            在 Hindsight「设置 →
-            插件」中可选择独立窗口。紧凑模式会收起其他内容，留下一盆花。
-          </p>
-        </section>
+        <p class="hint current-window-hint">
+          在 Hindsight「设置 →
+          插件」中可选择独立窗口。紧凑模式会收起其他内容，留下一盆花。
+        </p>
       </section>
 
       <section
@@ -357,8 +364,8 @@
             <svg
               class="garden-landscape"
               viewBox="0 0 1000 760"
-              data-projection-x="70"
-              data-projection-y="40"
+              data-projection-x="78.75"
+              data-projection-y="45"
               aria-hidden="true"
               focusable="false"
             >
@@ -380,7 +387,7 @@
                   <stop offset="1" stop-color="#8fc8c5" />
                 </linearGradient>
                 <clipPath id="flowerbed-grid-clip">
-                  <path d="M500 293 806.25 468 500 643 193.75 468Z" />
+                  <path d="M500 255 841.25 450 500 645 158.75 450Z" />
                 </clipPath>
                 <clipPath id="ground-shadow-clip">
                   <path d="M482.5 140Q500 130 517.5 140L955 390Q972.5 400 955 410L517.5 660Q500 670 482.5 660L45 410Q27.5 400 45 390Z" />
@@ -422,11 +429,11 @@
                 stroke-linecap="round"
                 opacity=".55"
               />
-              <!-- The island, flowerbed and plots share GardenLayout.GEOMETRY (40 / 70).
+              <!-- The island, flowerbed and plots share GardenLayout.GEOMETRY (45 / 78.75).
                    The wooden border stands alone: no path passes beneath its front tip. -->
               <path
                 data-scene-part="flowerbed-border"
-                d="M500 288 815 468 500 648 185 468Z"
+                d="M500 250 850 450 500 650 150 450Z"
                 fill="#c9b68d"
                 stroke="#b4a17b"
                 stroke-width="2"
@@ -434,7 +441,7 @@
               />
               <path
                 data-scene-part="flowerbed-soil"
-                d="M500 293 806.25 468 500 643 193.75 468Z"
+                d="M500 255 841.25 450 500 645 158.75 450Z"
                 fill="#bfd19d"
                 stroke="#e2dfbb"
                 stroke-width="2"
@@ -442,7 +449,7 @@
               />
               <path
                 data-scene-part="flowerbed-grid"
-                d="M548.125 320.5 241.875 495.5M618.125 360.5 311.875 535.5M688.125 400.5 381.875 575.5M758.125 440.5 451.875 615.5M451.875 320.5 758.125 495.5M381.875 360.5 688.125 535.5M311.875 400.5 618.125 575.5M241.875 440.5 548.125 615.5"
+                d="M552.5 285 211.25 480M631.25 330 290 525M710 375 368.75 570M788.75 420 447.5 615M447.5 285 788.75 480M368.75 330 710 525M290 375 631.25 570M211.25 420 552.5 615"
                 fill="none"
                 stroke="#aec58d"
                 stroke-width="1.5"
@@ -450,12 +457,12 @@
                 clip-path="url(#flowerbed-grid-clip)"
               />
               <g data-scene-part="swing-frame-shadow" class="scene-shadow" fill="#607956" clip-path="url(#ground-shadow-clip)">
-                <ellipse data-foot="left-front" cx="185.699" cy="336.922" rx="7.5" ry="2.6" opacity=".18" />
-                <ellipse data-foot="left-back" cx="225.575" cy="316.223" rx="7" ry="2.6" opacity=".18" />
-                <ellipse data-foot="right-front" cx="296.804" cy="352.142" rx="7" ry="2.6" opacity=".18" />
-                <ellipse data-foot="right-back" cx="336.680" cy="327.790" rx="7" ry="2.6" opacity=".18" />
+                <ellipse data-foot="left-front" cx="166.559" cy="330.338" rx="6" ry="2.1" opacity=".16" />
+                <ellipse data-foot="left-back" cx="198.460" cy="313.779" rx="5.6" ry="2.1" opacity=".16" />
+                <ellipse data-foot="right-front" cx="255.443" cy="342.514" rx="5.6" ry="2.1" opacity=".16" />
+                <ellipse data-foot="right-back" cx="287.344" cy="323.032" rx="5.6" ry="2.1" opacity=".16" />
               </g>
-              <g data-scene-part="pond" transform="translate(0 41)">
+              <g data-scene-part="pond" transform="matrix(.8 0 0 .8 165.8 65.8)">
               <ellipse data-scene-part="pond-shadow" class="scene-shadow" cx="749" cy="330" rx="78" ry="34" fill="#7f9c80" opacity=".22" />
               <ellipse data-scene-part="pond-rim" cx="749" cy="325" rx="70" ry="29" fill="#e5e9d4" />
               <ellipse
@@ -488,10 +495,11 @@
               <ellipse cx="702" cy="349" rx="15" ry="8" fill="#b7c1a8" />
               <ellipse cx="799" cy="319" rx="19" ry="10" fill="#b8c3ae" />
               <ellipse cx="808" cy="340" rx="12" ry="7" fill="#ced4bf" />
+              <g fill="#86a274"><ellipse cx="798" cy="316" rx="6" ry="3" /><ellipse cx="807" cy="338" rx="4" ry="2" /></g>
               </g>
               <g
                 data-scene-part="back-fence"
-                transform="matrix(1 -0.5714285714285714 0 1 389 251)"
+                transform="matrix(.8 -0.45714285714285713 0 .8 355 245)"
                 fill="#f5f0db"
                 stroke="#c3c8a6"
                 stroke-width="2"
@@ -504,26 +512,21 @@
                   d="M0-34H98V-26H0ZM0-15H98V-7H0Z"
                 />
               </g>
-              <g fill="#a7b99a">
-                <ellipse cx="176" cy="389" rx="18" ry="10" />
-                <ellipse cx="191" cy="380" rx="12" ry="7" />
-                <ellipse cx="778" cy="490" rx="14" ry="8" />
-              </g>
               <g stroke="#92ae77" stroke-width="4" stroke-linecap="round">
                 <path
                   d="m143 424-4-12m4 12 7-9M574 640l-1-13m1 13 7-10M872 397l-3-11m3 11 6-8M352 579l-3-10m3 10 5-8"
                 />
               </g>
               <g data-scene-part="side-stepping-stones" stroke="#d6c9a8" stroke-width="1.5">
-                <ellipse cx="132" cy="402" rx="11" ry="5" fill="#f7edcf" transform="rotate(25 132 402)" />
-                <ellipse cx="149" cy="416" rx="12" ry="5" fill="#ece3c5" transform="rotate(25 149 416)" />
-                <ellipse cx="166" cy="430" rx="11" ry="5" fill="#f7edcf" transform="rotate(25 166 430)" />
-                <ellipse cx="868" cy="402" rx="11" ry="5" fill="#f7edcf" transform="rotate(-25 868 402)" />
-                <ellipse cx="851" cy="416" rx="12" ry="5" fill="#ece3c5" transform="rotate(-25 851 416)" />
-                <ellipse cx="834" cy="430" rx="11" ry="5" fill="#f7edcf" transform="rotate(-25 834 430)" />
+                <ellipse cx="132" cy="402" rx="8.8" ry="4" fill="#f7edcf" transform="rotate(25 132 402)" />
+                <ellipse cx="149" cy="416" rx="9.6" ry="4" fill="#ece3c5" transform="rotate(25 149 416)" />
+                <ellipse cx="166" cy="430" rx="8.8" ry="4" fill="#f7edcf" transform="rotate(25 166 430)" />
+                <ellipse cx="868" cy="402" rx="8.8" ry="4" fill="#f7edcf" transform="rotate(-25 868 402)" />
+                <ellipse cx="851" cy="416" rx="9.6" ry="4" fill="#ece3c5" transform="rotate(-25 851 416)" />
+                <ellipse cx="834" cy="430" rx="8.8" ry="4" fill="#f7edcf" transform="rotate(-25 834 430)" />
               </g>
-              <g data-scene-part="watering-can" transform="translate(0 8)" stroke="#8ea99c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
-                <ellipse data-scene-part="watering-can-shadow" class="scene-shadow" cx="177" cy="374" rx="26" ry="7" fill="#607956" opacity=".15" stroke="none" />
+              <g data-scene-part="watering-can" transform="matrix(.8 0 0 .8 -3.2 75.2)" stroke="#8ea99c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+                <ellipse data-scene-part="watering-can-shadow" class="scene-shadow" cx="171" cy="375" rx="18" ry="4" fill="#607956" opacity=".13" stroke="none" />
                 <path d="M152 345C139 332 139 356 150 362" fill="none" stroke="#96b9ae" stroke-width="6" />
                 <path d="M173 349 187 337 192 341 177 361Z" fill="#bad5c7" />
                 <ellipse cx="190" cy="338" rx="6" ry="3" fill="#d2e3d1" transform="rotate(-34 190 338)" />
@@ -532,7 +535,7 @@
                 <ellipse cx="163" cy="343" rx="8" ry="2.5" fill="#99b8a7" stroke="none" />
                 <path d="M157 355Q163 350 169 355M159 362Q164 365 169 361" fill="none" stroke="#e3eee0" stroke-width="2" />
               </g>
-              <g data-scene-part="little-sign" transform="translate(80 26)" stroke-linejoin="round" stroke-linecap="round">
+              <g data-scene-part="little-sign" transform="matrix(.8 0 0 .8 142.6 11.6)" stroke-linejoin="round" stroke-linecap="round">
                 <ellipse data-scene-part="little-sign-shadow" class="scene-shadow" cx="617" cy="306" rx="27" ry="7" fill="#607956" opacity=".15" />
                 <path d="M603 259 603 298" stroke="#b49a72" stroke-width="7" />
                 <path d="M572 230 631 237 631 265 572 258Z" fill="#d7bf91" stroke="#b7a078" stroke-width="2" />
@@ -540,7 +543,6 @@
                 <path d="M600 253Q586 242 592 240Q601 236 604 250M601 253Q610 237 617 245Q620 251 603 253" fill="#a5b481" stroke="#9ca877" stroke-width="1" />
               </g>
               <g data-scene-part="moss-and-grass" stroke-linecap="round">
-                <g fill="#86a274"><ellipse cx="170" cy="393" rx="5" ry="2.5" /><ellipse cx="180" cy="395" rx="4" ry="2" /><ellipse cx="187" cy="385" rx="3.5" ry="2" /><ellipse cx="798" cy="357" rx="6" ry="3" /><ellipse cx="807" cy="379" rx="4" ry="2" /></g>
                 <path d="M120 420q-3-11-8-13m8 13 2-15m-2 15 7-8M566 624q-2-11-6-13m6 13 4-16m-4 16 9-9M849 426q-2-12-8-16m8 16 1-17m-1 17 8-9M643 296q-2-10-7-13m7 13 3-13" fill="none" stroke="#91ac78" stroke-width="3" />
                 <g fill="#dce8bd"><ellipse cx="133" cy="423" rx="2.5" ry="1.5" /><ellipse cx="572" cy="625" rx="3" ry="1.5" /><ellipse cx="835" cy="422" rx="2.5" ry="1.5" /></g>
               </g>
@@ -685,6 +687,7 @@
     <script src="../store.js"></script>
     <script src="../garden-layout.js"></script>
     <script src="ambience.js"></script>
+    <script src="plant-guide.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

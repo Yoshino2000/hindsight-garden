@@ -9,8 +9,8 @@
   const GEOMETRY = Object.freeze({
     width: 1000,
     height: 760,
-    stepX: 70,
-    stepY: 40,
+    stepX: 78.75,
+    stepY: 45,
     island: Object.freeze({
       x: 500,
       y: 400,
@@ -18,7 +18,7 @@
       cornerCut: 17.5,
       depth: 25,
     }),
-    bed: Object.freeze({ x: 500, y: 468, radius: 315, innerRadius: 306.25 }),
+    bed: Object.freeze({ x: 500, y: 450, radius: 350, innerRadius: 341.25 }),
   });
   const SLOTS = Array.from({ length: PAGE_SIZE }, (_, index) => ({
     row: Math.floor(index / 5),

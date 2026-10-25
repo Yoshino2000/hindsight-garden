@@ -1,7 +1,7 @@
 {
   "id": "hindsight-garden",
   "name": "时光花园",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "permissions": [
     "focus.changed",
     "focus.app",

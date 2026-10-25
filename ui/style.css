@@ -436,24 +436,59 @@ legend {
 }
 .species-preview {
   margin-bottom: 16px;
-  padding: 15px 18px 20px;
+  padding: 14px;
   text-align: center;
   border: 1px solid #e5ead9;
   border-radius: 20px;
   background: radial-gradient(ellipse at 50% 35%, #eff3dc, #f9faef 65%);
 }
 .species-preview-art {
-  height: 300px;
+  height: 150px;
   width: 100%;
   margin: 0 auto 10px;
 }
 .species-preview-art .plant-sprite {
-  width: calc(300px * var(--sprite-ratio, 0.5));
+  width: calc(150px * var(--sprite-ratio, 0.5));
   max-width: 100%;
 }
 .species-preview-copy h3 {
   margin-bottom: 7px;
-  font-size: 21px;
+  font-size: 18px;
+}
+.species-botanical {
+  color: #7d8d70;
+  font-size: 11px;
+  line-height: 1.6;
+  margin-bottom: 7px;
+  overflow-wrap: anywhere;
+}
+.species-guide {
+  margin: 16px 0 0;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.species-guide dt {
+  color: #58744b;
+  font-weight: 600;
+  margin-top: 13px;
+}
+.species-guide dd { margin: 4px 0 0; color: #77846c; }
+.species-sources {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8d7;
+  font-size: 10px;
+  line-height: 1.7;
+  text-align: left;
+  color: #939d87;
+}
+.species-guide-note {
+  margin-top: 8px;
+  color: #939d87;
+  font-size: 10px;
+  line-height: 1.7;
+  text-align: left;
 }
 .preview-tag {
   display: inline-block;
@@ -533,12 +568,19 @@ legend {
 .field-pair .field {
   margin-bottom: 9px;
 }
-.settings-card .window-hint {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid #edf0e6;
+.current-window-hint {
+  text-align: center;
+  margin: 0 12px 16px;
   font-size: 11px;
 }
+.notification-settings {
+  padding: 13px 14px;
+  margin: -5px 0 17px;
+  background: #f4f7ed;
+  border: 1px solid #e6ebdd;
+  border-radius: 12px;
+}
+#active-notification-slot .notification-settings { margin: 14px 0 0; }
 .garden-browser-heading {
   display: flex;
   align-items: center;
@@ -675,9 +717,9 @@ legend {
 }
 .ambience-swing {
   position: absolute;
-  left: 16.5%;
-  top: 25%;
-  width: 18%;
+  left: 15%;
+  top: 28%;
+  width: 14.4%;
   aspect-ratio: 1;
   pointer-events: none;
 }
@@ -699,13 +741,14 @@ legend {
 }
 .ambience-swing-shadow {
   position: absolute;
-  left: 39%;
+  left: 32%;
   top: 88%;
-  width: 41%;
-  height: 8%;
-  border-radius: 50%;
+  width: 42%;
+  height: 5%;
+  clip-path: polygon(0 25%, 70% 0, 100% 70%, 30% 100%);
   background: #657946;
-  opacity: .18;
+  opacity: .11;
+  transform: rotate(12.5deg);
   animation: garden-swing-shadow 8.5s ease-in-out infinite;
 }
 .ambience-bird,
@@ -774,11 +817,14 @@ legend {
   animation-play-state: paused !important;
 }
 .garden-ambience[data-enabled="false"] .ambience-swing-seat,
-.garden-miniature .ambience-swing-seat,
+.garden-miniature .ambience-swing-seat {
+  animation: none;
+  transform: none;
+}
 .garden-ambience[data-enabled="false"] .ambience-swing-shadow,
 .garden-miniature .ambience-swing-shadow {
   animation: none;
-  transform: none;
+  transform: rotate(12.5deg);
 }
 .garden-ambience[data-enabled="false"] .ambience-bird,
 .garden-ambience[data-enabled="false"] .ambience-butterfly {
@@ -808,8 +854,8 @@ legend {
   50% { transform: rotate(4deg); }
 }
 @keyframes garden-swing-shadow {
-  0%, 100% { transform: translateX(-6%) scaleX(.95); opacity: .16; }
-  50% { transform: translateX(6%) scaleX(1.05); opacity: .2; }
+  0%, 100% { transform: translateX(-5%) rotate(12.5deg) scaleX(.96); opacity: .09; }
+  50% { transform: translateX(5%) rotate(12.5deg) scaleX(1.04); opacity: .13; }
 }
 @keyframes bird-wings {
   0%, 100% { background-position: 0 0; }
@@ -867,7 +913,7 @@ legend {
   text-align: left;
 }
 .current-plan .hint { margin: 3px 0; font-size: 11px; }
-.plant-artwork-details { margin-top: 10px; }
+.plant-artwork-details { margin-top: 0; grid-column: 1 / -1; }
 .plant-artwork-details > summary { cursor: pointer; color: var(--muted); font-size: 12px; }
 .plant-artwork-details .species-preview { margin-top: 12px; }
 .form-card .species-option .plant-sprite {
@@ -881,15 +927,24 @@ legend {
 @media (min-width: 680px) {
   .plant-form-grid { grid-template-columns: minmax(0, 35fr) minmax(0, 65fr); align-items: start; }
   .form-card .species-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .plant-catalog { position: sticky; top: 12px; }
-  .plant-artwork-details .species-preview { display: block; }
+  .plant-artwork-details .species-preview {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 4px 18px;
+    text-align: left;
+  }
+  .plant-artwork-details .species-preview-art { margin: 0; }
+  .plant-artwork-details .species-preview-copy { align-self: center; }
+  .species-guide { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .species-guide dt { margin-top: 0; }
+  .species-sources, .species-guide-note { grid-column: 1 / -1; }
 }
 .ambience-bird:not([data-visiting="true"]) .visitor-art,
 .ambience-butterfly:not([data-visiting="true"]) .visitor-art { animation-play-state: paused; }
 .garden-flower {
   position: absolute;
-  width: 6.4%;
-  height: 8.4%;
+  width: 7.4%;
+  height: 10%;
   margin: 0;
   padding: 0;
   border: 0;
@@ -1029,6 +1084,8 @@ body.compact .eyebrow,
 body.compact .tabs,
 body.compact #active-details,
 body.compact .settings-card,
+body.compact .notification-settings,
+body.compact .current-window-hint,
 body.compact .app-footer,
 body.compact #view-garden {
   display: none !important;
