@@ -3,7 +3,6 @@
   "use strict";
 
   const MAX_GAP_MS = 10000;
-  const MAX_GARDEN = 200;
   const SPECIES = [
     {
       id: "sunflower",
@@ -228,7 +227,7 @@
 
   function initialState() {
     return {
-      schema: 1,
+      schema: 2,
       paused: false,
       notify: true,
       active: null,
@@ -339,11 +338,11 @@
     if (
       typeof value !== "object" ||
       Array.isArray(value) ||
-      value.schema !== 1
+      ![1, 2].includes(value.schema)
     ) {
       throw new Error("花园数据格式或版本不支持，请保留数据，勿覆盖。");
     }
-    if (!Array.isArray(value.garden) || value.garden.length > MAX_GARDEN) {
+    if (!Array.isArray(value.garden)) {
       throw new Error("已保存的花园格式不正确。");
     }
     const state = initialState();
@@ -356,11 +355,8 @@
       ...state.garden.map((plant) => plant.id),
       ...(state.active ? [state.active.id] : []),
     ];
-    if (
-      new Set(ids).size !== ids.length ||
-      (state.active && state.garden.length >= MAX_GARDEN)
-    ) {
-      throw new Error("花园植物标识重复或收藏数量已超限。");
+    if (new Set(ids).size !== ids.length) {
+      throw new Error("花园植物标识重复。");
     }
     state.focus = cleanFocus(value.focus);
     state.lastAt = value.lastAt == null ? null : timestamp(value.lastAt);
@@ -533,8 +529,6 @@
       case "plant": {
         if (state.active)
           throw new Error("已有一株正在生长的植物，请先等待开花或移除它。");
-        if (state.garden.length >= MAX_GARDEN)
-          throw new Error("花园已满 200 株，请先移除一株收藏。");
         const id = validId(input.id);
         if (state.garden.some((plant) => plant.id === id))
           throw new Error("植物标识重复。");
@@ -606,9 +600,9 @@
   const api = {
     SPECIES,
     MAX_GAP_MS,
-    MAX_GARDEN,
     initialState,
     normalizeState,
+    normalizeFlower: (value) => savedPlant(value, true),
     normalizeHost,
     normalizeApp,
     validateRules,

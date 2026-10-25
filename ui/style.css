@@ -598,6 +598,19 @@ legend {
 .garden-miniature {
   pointer-events: none;
 }
+.garden-album-navigation,
+.garden-jump {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.garden-jump input {
+  width: 80px;
+  padding: 8px;
+}
 .garden-browser .button:disabled {
   cursor: default;
 }

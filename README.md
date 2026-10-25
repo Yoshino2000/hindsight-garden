@@ -7,14 +7,14 @@ Grow a small garden while you use your computer. A third-party plugin for [Hinds
 ## Features
 
 - **Eight plants**: sunflower, hydrangea, tulip, daisy, rose, lavender, cosmos and lily, each with five growth stages.
-- **A complete garden scene**: finished flowers grow on an isometric garden island with paths, pond, fence and bench. Names and records stay hidden until you choose a flower; close its details to return to the whole garden.
-- **A garden album**: choose a garden from its own scene thumbnail. Switch between the whole collection and weekly gardens, with a week selector, earlier/later navigation and a return-to-this-week action.
+- **A complete garden scene**: finished flowers grow on an isometric garden island with aligned edges, paths, pond, fence and bench. Water plants, lily pads, pebbles, a watering can, a wooden sign, birds, butterflies, bees and mossy grass add scenery. Names and records stay hidden until you choose a flower; close its details to return to the whole garden.
+- **A garden album**: choose a garden from its own scene thumbnail. The album shows at most 12 gardens per group, with previous/next groups and a direct garden-number jump. Switch between the whole collection and weekly gardens, with a week selector, earlier/later navigation and a return-to-this-week action.
 - **Two illustration roles**: the planting picker uses high-definition potted plant artwork and a large selected-plant preview. The garden uses separately generated, simplified ground-planted flower sprites, without pots or permanent labels.
 - **Use your Hindsight categories**: pick an existing category or super-category from a dropdown. No need to re-enter the apps and websites assigned to it. App/domain rules remain available, and any matching rule grows the current plant without multiplying time.
 - **Change rules while growing**: edit the active pot's rules without resetting its progress, target or penalty settings.
 - **Cumulative growth**: collect time across visits and days. Switching away pauses growth by default.
 - **Optional interruption penalty**: after a grace period, subtract either a percentage of the current progress or a fixed number of minutes. Each uninterrupted visit to other apps applies at most one deduction. Progress never goes below zero.
-- **A lasting garden**: completed plants remain in your collection, with names and planting/bloom dates. One plant grows at a time.
+- **A lasting garden**: completed plants remain in your collection, with names and planting/bloom dates. The fixed 200-plant limit is removed; one plant grows at a time, and old flowers are never automatically deleted.
 - **A little window**: compact view shows just the current pot. Bloom notifications are optional and silent.
 
 Manual pause, an away event, background restart and an unobserved clock gap do not cause a penalty. Closing the plugin page does not stop its background worker while Hindsight is running.
@@ -25,22 +25,24 @@ Preview with synthetic test data. Scenery is original; plant art was created for
 
 ## Install
 
-Requires Hindsight **0.10.0 or later**. This is an experimental personal plugin, not an official Hindsight plugin. Basic functionality is usable, and development and iteration are ongoing. It has not been exhaustively tested and may contain problems or risks.
+Requires Hindsight **0.10.0 or later**. Version 0.5.0 is a prerelease of an experimental personal plugin, not an official Hindsight plugin. Basic functionality is usable, and development and iteration are ongoing. It has not been exhaustively tested and may contain problems or risks.
 
-1. Download `hindsight-garden-0.4.0.zip` from [Releases](https://github.com/Yoshino2000/hindsight-garden/releases), or build it below.
+1. Download the prerelease `hindsight-garden-0.5.0.zip` from [Releases](https://github.com/Yoshino2000/hindsight-garden/releases), or build it below.
 2. In Hindsight, open **Settings → Plugins** and choose the local ZIP installation option.
-3. Review the seven permissions and the 4 MB database allowance, then install.
+3. Review the seven permissions and the 64 MB database allowance, then install.
 4. Open **时光花园**, pick a plant, give it a name and select a Hindsight category or group. App/domain rules are optional.
 
-To upgrade, install this ZIP as an update to the same plugin rather than deleting its data. Existing plants, growth and rules remain. Version 0.4.0 keeps the same seven permissions, 4 MB storage allowance and database schema as 0.3.0; no migration or rewriting of old plants is needed. An upgrade from 0.1.0 also adds the three category permissions introduced in 0.2.0. An existing pot's **修改规则** action lets it use categories without planting again.
+**Back up the plugin database before upgrading.** Make the backup while Hindsight is stopped, or use SQLite's online backup facility for a consistent backup while it runs. Install this ZIP as an update to the same plugin rather than deleting its data. Version 0.5.0 increases the database allowance from 4 MB to 64 MB; Hindsight shows the storage change during its normal update authorization. The seven API permissions are unchanged from 0.4.0. An upgrade from 0.1.0 also includes the three category permissions introduced in 0.2.0.
 
-Each garden shows up to 25 real completed flowers, filling from the center outward. When a week has more than 25 flowers, a second garden, then a third, holds the rest. The total collection limit stays 200 plants: when full, new planting is refused until you remove a completed plant; nothing is automatically deleted. In the whole-collection view, plants use a stable planting-date/ID order. The scenery is decorative; it does not add fake flowers or completed time.
+The upgrade atomically migrates schema-1 gardens to schema 2, keeping completed plants in individual SQLite archive rows and retaining the active plant, progress and settings. If archiving fails, the migration transaction rolls back and the old records remain. Older plugin versions cannot read schema 2: do not directly downgrade; to return to an older version, restore the backup made before upgrading. An existing pot's **修改规则** action still lets it use categories without planting again.
+
+Each garden shows up to 25 real completed flowers, filling from the center outward. When a week has more than 25 flowers, a second garden, then a third, holds the rest. The fixed plant-count cap is removed, but the 64 MB database allowance, host limits and available disk space still apply. When storage is full, old records are retained and the plugin reports insufficient space; it does not silently delete flowers. In the whole-collection view, plants use a stable planting-date/ID order. The scenery is decorative; it does not add fake flowers or completed time.
 
 Weekly gardens use each plant's **bloom date**, not its planting date. A week runs from local Monday at 00:00 to the next Monday at 00:00, excluding that final instant. The selector includes this week, historical weeks with flowers and a selected empty week. Earlier/later navigation skips unlisted empty weeks; return to this week with **回本周**. These views group the existing collection without changing its records.
 
 Selecting a flower opens its dates and controls. Closing details or changing the view mode, week or garden hides the record; background refresh does not open it automatically. The garden view remembers only its display mode, selected week and garden page in local storage, separately from the saved collection and the existing compact-view preference.
 
-The final 0.4.0 ZIP has not yet been installed in a native Hindsight instance in this round. See [verification](docs/verification.md) for the actual checks and their limits.
+The final 0.5.0 ZIP has not yet been installed in a native Hindsight instance in this round. Earlier-version checks do not establish native verification of 0.5.0. See [verification](docs/verification.md) for the actual checks and their limits.
 
 The default opens in a separate **ordinary window**. Its title bar, background and overlap with other windows are controlled by Hindsight. Transparent desktop overlays, always-on-top, click-through and autonomous window movement are not supported. Use Hindsight's plugin settings to change where the page opens; compact view only changes this plugin's layout.
 
@@ -65,7 +67,7 @@ Time means observed, matching **foreground use**, not proof of attention or comp
 | `categories.read` | List existing Hindsight categories for the dropdown |
 | `super_categories.read` | List existing Hindsight super-categories for the dropdown |
 | `notifications` | Send an optional bloom notification |
-| `storage_mb: 4` | Store the current plant, preferences and collection in this plugin's SQLite database |
+| `storage_mb: 64` | Store the current plant, preferences and individual completed-plant archives in this plugin's SQLite database |
 
 No history/statistics, screenshot, file-system or program-launch permission is requested. The runtime makes no network requests. It does not keep window titles or an activity history. Rule text, selected category IDs/names, plant metadata and the latest observed app/domain/category are local to the plugin. Hindsight does not sync plugin databases across devices. Uninstalling can delete the garden if you choose to remove plugin data.
 
@@ -79,6 +81,6 @@ python scripts/package.py
 python scripts/preview.py --port 8766
 ```
 
-Tests need Node 22.13 or later. Packaging and preview use Python 3 standard-library modules. The preview also needs a sibling `Hindsight` source checkout to extract its actual page/worker bridges. Visit `http://127.0.0.1:8766`; its focus events and notifications are simulated, and its SQLite database is temporary. Preview tools and test data are excluded from the installable ZIP.
+Tests need Node 22.13 or later and Python 3.11 or later for the SQLite host-limit checks. On Windows, tests use `py -3`; on other platforms they use the `PYTHON` executable path, if set, or `python3`. Tests use bundled frozen 0.4.0 fixtures and do not need Git history or network access. Packaging and preview use Python 3 standard-library modules. The preview also needs a sibling `Hindsight` source checkout to extract its actual page/worker bridges. Visit `http://127.0.0.1:8766`; its focus events and notifications are simulated, and its SQLite database is temporary. Preview tools and test data are excluded from the installable ZIP.
 
 Code is under the [MIT license](LICENSE). Plant art was created with the built-in image-generation tool; its prompts and provenance are documented separately. Public-market listing requires a maintainer-reviewed pull request and is not implied by a local build.

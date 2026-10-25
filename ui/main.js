@@ -444,7 +444,7 @@
     gardenWeek = gardenView.week;
     gardenPage = layout.page;
     $("garden-count").textContent = String(gardenView.total);
-    $("garden-collection-total").textContent = `已收藏 ${gardenView.total} / ${C.MAX_GARDEN} 株`;
+    $("garden-collection-total").textContent = `已收藏 ${gardenView.total} 株`;
     $("garden-total").textContent = `${layout.plots.length} 株已开花`;
     $("garden-scene-title").textContent =
       layout.total ? `${gardenMode === "week" ? "这一周的" : "我的"}第 ${layout.page + 1} 座花园`
@@ -492,7 +492,14 @@
       mode: gardenMode,
       week: gardenWeek,
     });
-    renderAlbum(JSON.stringify({ plants: state.garden, mode: gardenMode, week: gardenWeek }));
+    $("garden-album-navigation").hidden = gardenView.albumPageCount <= 1;
+    $("garden-album-prev").disabled = gardenView.albumPage === 0;
+    $("garden-album-next").disabled = gardenView.albumPage + 1 >= gardenView.albumPageCount;
+    $("garden-album-range").textContent = `第 ${gardenView.albumStart + 1}—${gardenView.albumStart + gardenView.gardens.length} 座 / 共 ${layout.pageCount} 座`;
+    $("garden-jump-control").hidden = layout.pageCount <= 1;
+    $("garden-jump").max = String(layout.pageCount);
+    if (!$("garden-jump").matches(":focus")) $("garden-jump").value = String(layout.page + 1);
+    renderAlbum(JSON.stringify({ plants: gardenView.gardens.map((garden) => garden.plots.map(({ plant }) => plant)), mode: gardenMode, week: gardenWeek, start: gardenView.albumStart }));
     if (signature === gardenSignature) return;
     gardenSignature = signature;
     if (!layout.plots.some((plot) => plot.plant.id === selectedFlower))
@@ -701,7 +708,7 @@
     $("error").hidden = true;
     try {
       const result = await store.apply(input);
-      state = result.state;
+      state = result.partial ? await store.load() : result.state;
       if (success) success();
       render();
       return true;
@@ -863,10 +870,6 @@
 
   function openPlant() {
     if (!state || state.active) return;
-    if (state.garden.length >= 200) {
-      notice("花园已收藏 200 株植物，请先移除一株再播种。");
-      return;
-    }
     tab("current");
     resetPlantForm();
     $("plant-form-panel").hidden = false;
@@ -1017,6 +1020,24 @@
   $("garden-start").addEventListener("click", () => tab("current", true));
   $("garden-prev").addEventListener("click", () => changeGardenPage(-1));
   $("garden-next").addEventListener("click", () => changeGardenPage(1));
+  $("garden-album-prev").addEventListener("click", () => {
+    if (gardenView) changeGardenPage((gardenView.albumPage - 1) * GardenLayout.ALBUM_SIZE - gardenPage);
+  });
+  $("garden-album-next").addEventListener("click", () => {
+    if (gardenView) changeGardenPage((gardenView.albumPage + 1) * GardenLayout.ALBUM_SIZE - gardenPage);
+  });
+  function jumpToGarden() {
+    if (!gardenView || !$("garden-jump").reportValidity()) return;
+    const page = Number($("garden-jump").value) - 1;
+    if (Number.isSafeInteger(page)) changeGardenPage(page - gardenPage);
+  }
+  $("garden-jump-confirm").addEventListener("click", jumpToGarden);
+  $("garden-jump").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      jumpToGarden();
+    }
+  });
   $("garden-view-mode").addEventListener("change", () => changeGardenScope($("garden-view-mode").value));
   $("garden-week").addEventListener("change", () => changeGardenScope("week", $("garden-week").value));
   $("garden-this-week").addEventListener("click", () => changeGardenScope("week", ""));

@@ -165,14 +165,14 @@ test("malformed records and duplicate IDs cannot create broken or duplicate plot
   }
 });
 
-test("oversized foreign input is capped at 200 unique flowers and eight pages", () => {
+test("collections retain every valid flower beyond the old 200-plant limit", () => {
   const layout = createLayout(flowers(250).reverse(), 100);
-  assert.equal(layout.total, 200);
-  assert.equal(layout.pageCount, 8);
-  assert.equal(layout.page, 7);
+  assert.equal(layout.total, 250);
+  assert.equal(layout.pageCount, 10);
+  assert.equal(layout.page, 9);
   assert.equal(layout.plots.length, 25);
-  assert.equal(layout.plots[0].plant.id, "plant-175");
-  assert.equal(layout.plots[24].plant.id, "plant-199");
+  assert.equal(layout.plots[0].plant.id, "plant-225");
+  assert.equal(layout.plots[24].plant.id, "plant-249");
 });
 
 function localAt(year, month, day, hours = 12, minutes = 0, seconds = 0, milliseconds = 0) {
@@ -299,20 +299,49 @@ test("weekly pagination exposes every garden and clamps the current page indepen
   assert.deepEqual(all.gardens.map(({ count }) => count), [25, 25, 10]);
 });
 
-test("view deduplicates and caps globally before grouping, without mutating the source", () => {
+test("view deduplicates globally without truncating flowers or mutating the source", () => {
   const now = localAt(2026, 10, 21);
   const plants = flowers(205).map((plant) => ({ ...plant, bloomAt: now }));
   plants.unshift({ ...plants[0], name: "duplicate", createdAt: 1000000, bloomAt: localAt(2026, 10, 7) });
   plants.push({ id: "bad", createdAt: -1, bloomAt: now });
   const snapshot = structuredClone(plants);
   const view = createView(plants, { mode: "week", now, page: 99 });
-  assert.equal(view.total, 200);
-  assert.equal(view.layout.total, 200);
-  assert.equal(view.gardens.length, 8);
+  assert.equal(view.total, 205);
+  assert.equal(view.layout.total, 205);
+  assert.equal(view.gardens.length, 9);
   assert.equal(view.weeks.length, 1);
-  assert.equal(view.weeks[0].count, 200);
+  assert.equal(view.weeks[0].count, 205);
   assert.equal(view.gardens[0].plots[0].plant.name, "小花0");
   assert.deepEqual(plants, snapshot);
+});
+
+test("large collections only build twelve album previews at a time without hiding any garden", () => {
+  const now = localAt(2026, 10, 21);
+  const plants = flowers(5001).map((plant) => ({ ...plant, bloomAt: now }));
+  const first = createView(plants, { now });
+  assert.equal(first.total, 5001);
+  assert.equal(first.layout.pageCount, 201);
+  assert.equal(first.gardens.length, 12);
+  assert.equal(first.albumPageCount, 17);
+  assert.equal(first.albumStart, 0);
+  const next = createView(plants, { now, page: 12 });
+  assert.equal(next.albumStart, 12);
+  assert.equal(next.gardens[0].page, 12);
+  assert.equal(next.gardens[0].plots[0].plant.id, "plant-300");
+  const last = createView(plants, { now, page: 99999 });
+  assert.equal(last.layout.page, 200);
+  assert.equal(last.layout.plots.length, 1);
+  assert.equal(last.layout.plots[0].plant.id, "plant-5000");
+  assert.equal(last.albumPage, 16);
+  assert.equal(last.albumStart, 192);
+  assert.equal(last.gardens.length, 9);
+  const seen = new Set();
+  for (let page = 0; page < 201; page += 12) {
+    for (const garden of createView(plants, { now, page }).gardens) {
+      for (const { plant } of garden.plots) seen.add(plant.id);
+    }
+  }
+  assert.equal(seen.size, 5001);
 });
 
 test("distant historical blooms add only their own week rather than traversing empty decades", () => {

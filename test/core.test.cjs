@@ -567,7 +567,7 @@ test("0.1.0 saved flowers, app rules, and progress load without a category field
   ];
   const raw = JSON.stringify(legacy);
   const loaded = core.normalizeState(JSON.parse(raw));
-  assert.equal(loaded.schema, 1);
+  assert.equal(loaded.schema, 2);
   assert.equal(loaded.focus.category, null);
   assert.deepEqual(loaded.active, legacy.active);
   assert.deepEqual(loaded.garden, legacy.garden);
@@ -603,17 +603,17 @@ test("malformed or missing category identities are unknown, never accidental mat
 });
 
 test("saved state validation rejects unknown schema and corrupted progress", () => {
-  assert.throws(() => core.normalizeState({ schema: 2, garden: [] }));
+  assert.throws(() => core.normalizeState({ schema: 3, garden: [] }));
   const state = planted();
   state.active.progressMs = -1;
   assert.throws(() => core.normalizeState(state));
-  assert.equal(core.normalizeState(null).schema, 1);
+  assert.equal(core.normalizeState(null).schema, 2);
   assert.deepEqual(core.normalizeState(planted()), planted());
 });
 
-test("collection limit is explicit and never silently discards an existing flower", () => {
+test("large collections keep every flower and permit a new plant to mature without a count cap", () => {
   const state = core.initialState();
-  state.garden = Array.from({ length: 200 }, (_, index) => ({
+  state.garden = Array.from({ length: 5000 }, (_, index) => ({
     id: "mature-" + index,
     name: "花",
     species: "daisy",
@@ -622,11 +622,15 @@ test("collection limit is explicit and never silently discards an existing flowe
     createdAt: 0,
     bloomAt: 100,
   }));
-  assert.throws(
-    () => change(state, { type: "plant", id: "next", plant: settings() }, 100),
-    /200/,
-  );
-  assert.equal(state.garden.length, 200);
+  let next = change(state, { type: "plant", id: "next", plant: settings() }, 100);
+  next = change(next, { type: "boot", sessionId: SID }, 100);
+  next = focus(next, "reader", 100);
+  for (let now = 10100; now <= 60100; now += 10000) next = tick(next, now);
+  assert.equal(next.active, null);
+  assert.equal(next.garden.length, 5001);
+  assert.equal(next.garden[0].id, "next");
+  assert.equal(state.garden.length, 5000);
+  assert.equal(core.normalizeState(next).garden.length, 5001);
 });
 
 test("five stages include seed and mature, with safe boundary clamps", () => {

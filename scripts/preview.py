@@ -98,7 +98,9 @@ def database_call(server, method, params):
             for limit, value in [(sqlite3.SQLITE_LIMIT_LENGTH, 256000),
                                  (sqlite3.SQLITE_LIMIT_SQL_LENGTH, 100000),
                                  (sqlite3.SQLITE_LIMIT_COLUMN, 100),
+                                 (sqlite3.SQLITE_LIMIT_FUNCTION_ARG, 8),
                                  (sqlite3.SQLITE_LIMIT_ATTACHED, 0),
+                                 (sqlite3.SQLITE_LIMIT_TRIGGER_DEPTH, 10),
                                  (sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, 1000)]:
                 connection.setlimit(limit, value)
         connection.set_authorizer(authorize)
@@ -122,7 +124,7 @@ def database_call(server, method, params):
 def seed_garden(server, params):
     """Explicit synthetic scene fixtures, available only in the development host."""
     count = params.get("count") if isinstance(params, dict) else None
-    if type(count) is not int or count not in (0, 1, 8, 26, 56, 200):
+    if type(count) is not int or count not in (0, 1, 8, 26, 56, 200, 1000, 5001):
         raise ValueError("Choose a supported synthetic garden size")
     names = [("sunflower", "向日葵"), ("hydrangea", "绣球"), ("tulip", "郁金香"), ("daisy", "雏菊"),
              ("rose", "玫瑰"), ("lavender", "薰衣草"), ("cosmos", "波斯菊"), ("lily", "百合")]
@@ -142,11 +144,24 @@ def seed_garden(server, params):
     state = {"schema": 1, "paused": False, "notify": False, "active": None, "garden": garden,
              "focus": None, "lastAt": None, "sessionId": None, "interruption": None,
              "heartbeatAt": None, "lastPenalty": None, "lastBloom": None, "lastError": None}
-    database_call(server, "db.execute", {
-        "sql": "CREATE TABLE IF NOT EXISTS garden_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, version INTEGER NOT NULL)", "params": []})
-    database_call(server, "db.execute", {
-        "sql": "INSERT INTO garden_store (key, value, version) VALUES (?, ?, 0) ON CONFLICT(key) DO UPDATE SET value=excluded.value, version=version+1",
-        "params": ["state", json.dumps(state, ensure_ascii=False)]})
+    # Explicit disposable fixtures only. Large fixtures are written as individual rows rather
+    # than forging a giant legacy state that the real host would correctly reject.
+    assert Path(server.db_path).parent.name.startswith("hindsight-garden-preview-")
+    with server.db_lock, closing(sqlite3.connect(server.db_path, timeout=5)) as connection, connection:
+        connection.execute("BEGIN IMMEDIATE")
+        tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if not {"garden_store", "garden_plants", "garden_archive_meta"}.issubset(tables):
+            raise ValueError("Wait until the background store is ready before loading a fixture")
+        previous = connection.execute("SELECT version FROM garden_store WHERE key='state'").fetchone()
+        version = (previous[0] + 1) if previous else 0
+        connection.execute("DELETE FROM garden_store WHERE key='state'")
+        connection.execute("DELETE FROM garden_plants")
+        if count > 200:
+            state.update(schema=2, garden=[])
+            connection.executemany("INSERT INTO garden_plants (id, value) VALUES (?, ?)",
+                                   [(plant["id"], json.dumps(plant, ensure_ascii=False)) for plant in garden])
+        connection.execute("INSERT INTO garden_store (key,value,version) VALUES (?,?,?)",
+                           ("state", json.dumps(state, ensure_ascii=False), version))
     return {"synthetic": True, "count": count}
 
 

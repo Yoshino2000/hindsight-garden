@@ -36,7 +36,7 @@ def main():
     assert metadata["version"] == manifest["version"], "Version mismatch"
     assert manifest["permissions"] == ["focus.changed", "focus.app", "focus.title", "focus.category",
                                        "categories.read", "super_categories.read", "notifications"]
-    assert manifest["storage_mb"] == 4 and manifest["runs_in_background"] is True
+    assert manifest["storage_mb"] == 64 and manifest["runs_in_background"] is True
     assert manifest["opens_in"] == "window"
     for name in FILES:
         assert (ROOT / name).is_file(), f"Missing package file: {name}"

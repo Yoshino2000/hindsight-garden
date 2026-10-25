@@ -3,7 +3,7 @@
   "use strict";
 
   const PAGE_SIZE = 25;
-  const MAX_PLANTS = 200;
+  const ALBUM_SIZE = 12;
   const SLOTS = Array.from({ length: PAGE_SIZE }, (_, index) => ({
     row: Math.floor(index / 5),
     col: index % 5,
@@ -46,13 +46,15 @@
       if (ids.has(plant.id)) continue;
       ids.add(plant.id);
       unique.push(plant);
-      if (unique.length === MAX_PLANTS) break;
     }
     return unique;
   }
 
   function createLayout(plants, page = 0) {
-    const unique = collect(plants);
+    return layoutFromOrdered(collect(plants), page);
+  }
+
+  function layoutFromOrdered(unique, page = 0) {
     const total = unique.length;
     const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
     const requested =
@@ -132,7 +134,7 @@
     const requested = readWeek(settings.week);
     const week = requested ? requested.key : current.key;
     const mode = settings.mode === "week" ? "week" : "all";
-    // Reject ungroupable dates before the 200-flower cap, rather than hiding later valid data.
+    // Ignore unusable foreign dates without truncating any valid collection records.
     const unique = collect(Array.isArray(plants)
       ? plants.filter((plant) => usable(plant) && bloomTime(plant) !== null)
       : []);
@@ -153,15 +155,19 @@
     const weeks = [...weeksByKey.values()].sort((first, second) =>
       first.key < second.key ? 1 : first.key > second.key ? -1 : 0,
     );
-    const layout = createLayout(selected, settings.page);
-    const gardens = Array.from({ length: layout.pageCount }, (_, page) => {
-      const garden = createLayout(selected, page);
+    const layout = layoutFromOrdered(selected, settings.page);
+    const albumPage = Math.floor(layout.page / ALBUM_SIZE);
+    const albumStart = albumPage * ALBUM_SIZE;
+    // Only build the visible album window, even after years of collected flowers.
+    const gardens = Array.from({ length: Math.min(ALBUM_SIZE, layout.pageCount - albumStart) }, (_, index) => {
+      const garden = layoutFromOrdered(selected, albumStart + index);
       return { ...garden, count: garden.plots.length };
     });
-    return { mode, week, weeks, gardens, layout, total: unique.length };
+    return { mode, week, weeks, gardens, layout, total: unique.length,
+      albumPage, albumPageCount: Math.ceil(layout.pageCount / ALBUM_SIZE), albumStart };
   }
 
-  const api = { PAGE_SIZE, MAX_PLANTS, createLayout, createView };
+  const api = { PAGE_SIZE, ALBUM_SIZE, createLayout, createView };
   root.GardenLayout = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : self);

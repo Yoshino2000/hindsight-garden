@@ -1,112 +1,202 @@
-// The page and worker share one garden. A version check keeps simultaneous writes from replacing
-// one another. Rules run again on conflict; notifications are returned only after a successful save.
+// Hot state is one small CAS row. Mature flowers live in their own rows; a persistent trigger
+// applies their deltas in the SAME SQLite statement as the state update, including old-data migration.
 (function (root) {
   "use strict";
 
+  const ROW_BYTES = 220000;
+  const PAGE_ROWS = 200;
+  const RESULT_BYTES = 4000000;
+  const ARCHIVE_PAGE = "WITH batch AS (SELECT id, value FROM garden_plants WHERE id > ? ORDER BY id LIMIT ?), sized AS (SELECT id, value, SUM(length(CAST(value AS BLOB)) + length(CAST(id AS BLOB)) + 128) OVER (ORDER BY id) AS bytes, ROW_NUMBER() OVER (ORDER BY id) AS item FROM batch) SELECT id, value FROM sized WHERE bytes <= ? OR item = 1 ORDER BY id";
+  const TABLES = [
+    "CREATE TABLE IF NOT EXISTS garden_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, version INTEGER NOT NULL)",
+    "CREATE TABLE IF NOT EXISTS garden_plants (id TEXT PRIMARY KEY, value TEXT NOT NULL)",
+    "CREATE TABLE IF NOT EXISTS garden_archive_meta (key TEXT PRIMARY KEY, version INTEGER NOT NULL)",
+    "INSERT OR IGNORE INTO garden_archive_meta (key, version) VALUES ('archive', 0)",
+    ...["INSERT", "UPDATE", "DELETE"].map((action) =>
+      "CREATE TRIGGER IF NOT EXISTS garden_archive_" + action.toLowerCase() + " AFTER " + action + " ON garden_plants BEGIN UPDATE garden_archive_meta SET version = version + 1 WHERE key = 'archive'; END",
+    ),
+    // These are ordinary main-database triggers, allowed by Hindsight's SQLite authorizer.
+    // json_each reads the old garden directly: migration never binds a second giant state string.
+    "CREATE TRIGGER IF NOT EXISTS garden_commit_v2 AFTER UPDATE OF value ON garden_store WHEN NEW.key = 'state' AND json_extract(NEW.value, '$.schema') = 2 AND (json_extract(OLD.value, '$.schema') = 1 OR json_type(NEW.value, '$._archive') = 'object') BEGIN INSERT INTO garden_plants (id, value) SELECT json_extract(value, '$.id'), value FROM json_each(OLD.value, '$.garden') WHERE json_extract(OLD.value, '$.schema') = 1; INSERT INTO garden_plants (id, value) SELECT json_extract(value, '$.id'), value FROM json_each(NEW.value, '$._archive.upserts') WHERE 1 ON CONFLICT(id) DO UPDATE SET value = excluded.value; DELETE FROM garden_plants WHERE id IN (SELECT value FROM json_each(NEW.value, '$._archive.deleted')); UPDATE garden_store SET value = json_remove(NEW.value, '$._archive') WHERE key = NEW.key AND version = NEW.version; END",
+  ];
+
+  function clone(value) { return JSON.parse(JSON.stringify(value)); }
+  function bytes(value) { return new TextEncoder().encode(value).length; }
+
   function createStore(hostCall, options = {}) {
-    if (typeof hostCall !== "function")
-      throw new Error("请在 Hindsight 中打开时光花园。");
+    if (typeof hostCall !== "function") throw new Error("请在 Hindsight 中打开时光花园。");
     const timeoutMs = options.timeoutMs || 8000;
     let readyPromise;
+    let archiveCache = null;
 
     function call(method, params) {
       return new Promise((resolve, reject) => {
-        const timer = setTimeout(
-          () =>
-            reject(
-              new Error(
-                "连接 Hindsight 超时，已暂停计时；请重新打开插件检查。",
-              ),
-            ),
-          timeoutMs,
+        const timer = setTimeout(() => reject(new Error("连接 Hindsight 超时，已暂停计时；请重新打开插件检查。")), timeoutMs);
+        Promise.resolve().then(() => hostCall(method, params)).then(
+          (value) => { clearTimeout(timer); resolve(value); },
+          (error) => {
+            clearTimeout(timer);
+            const message = String(error?.message || error);
+            if (/database or disk is full|SQLITE_FULL/i.test(message + " " + String(error?.code || ""))) {
+              reject(new Error("花园存储空间不足，已有记录已保留，本次操作未完成。"));
+            } else {
+              reject(error instanceof Error ? error : new Error(message));
+            }
+          },
         );
-        Promise.resolve()
-          .then(() => hostCall(method, params))
-          .then(
-            (value) => {
-              clearTimeout(timer);
-              resolve(value);
-            },
-            (error) => {
-              clearTimeout(timer);
-              reject(error instanceof Error ? error : new Error(String(error)));
-            },
-          );
       });
     }
 
     function ready() {
       if (!readyPromise) {
-        readyPromise = call("db.execute", {
-          sql: "CREATE TABLE IF NOT EXISTS garden_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, version INTEGER NOT NULL)",
-          params: [],
-        }).catch((error) => {
-          readyPromise = null;
-          throw error;
-        });
+        readyPromise = (async () => {
+          for (const sql of TABLES) await call("db.execute", { sql, params: [] });
+        })().catch((error) => { readyPromise = null; throw error; });
       }
       return readyPromise;
     }
 
-    async function read() {
-      await ready();
-      const rows = await call("db.query", {
-        sql: "SELECT value, version FROM garden_store WHERE key = ?",
-        params: ["state"],
-      });
-      if (!Array.isArray(rows))
-        throw new Error("花园存储返回了无法识别的数据，已停止写入。");
-      if (!rows.length)
-        return { state: root.GardenCore.initialState(), version: null };
-      if (
-        rows.length !== 1 ||
-        !Number.isSafeInteger(rows[0].version) ||
-        rows[0].version < 0
-      )
-        throw new Error("花园存储版本损坏，请保留数据并检查。");
-      let value;
-      try {
-        value = JSON.parse(rows[0].value);
-      } catch (_) {
-        throw new Error("花园数据损坏，已停止写入以保留原数据。");
-      }
-      return {
-        state: root.GardenCore.normalizeState(value),
-        version: rows[0].version,
-      };
+    function rows(value) {
+      if (!Array.isArray(value)) throw new Error("花园存储返回了无法识别的数据，已停止写入。");
+      return value;
     }
 
-    async function write(state, version) {
-      const json = JSON.stringify(state);
-      if (new TextEncoder().encode(json).length > 220000)
-        throw new Error("花园记录已接近容量限制，请删除部分收藏后重试。");
-      const result =
-        version === null
-          ? await call("db.execute", {
-              sql: "INSERT OR IGNORE INTO garden_store (key, value, version) VALUES (?, ?, 0)",
-              params: ["state", json],
-            })
-          : await call("db.execute", {
-              sql: "UPDATE garden_store SET value = ?, version = version + 1 WHERE key = ? AND version = ?",
-              params: [json, "state", version],
-            });
+    async function readStored() {
+      await ready();
+      const result = rows(await call("db.query", {
+        sql: "SELECT s.value, s.version, m.version AS archiveVersion FROM garden_archive_meta AS m LEFT JOIN garden_store AS s ON s.key = ? WHERE m.key = ?",
+        params: ["state", "archive"],
+      }));
+      if (result.length !== 1 || !Number.isSafeInteger(result[0].archiveVersion) || result[0].archiveVersion < 0)
+        throw new Error("花园归档版本损坏，请保留数据并检查。");
+      const row = result[0];
+      if (row.value === null && row.version === null) {
+        return { state: root.GardenCore.initialState(), version: null, archiveVersion: row.archiveVersion, legacy: false };
+      }
+      if (!Number.isSafeInteger(row.version) || row.version < 0)
+        throw new Error("花园存储版本损坏，请保留数据并检查。");
+      let value;
+      try { value = JSON.parse(row.value); }
+      catch (_) { throw new Error("花园数据损坏，已停止写入以保留原数据。"); }
+      if (!value || ![1, 2].includes(value.schema) || !Array.isArray(value.garden))
+        throw new Error("花园数据格式或版本不支持，请保留数据，勿覆盖。");
+      if (value.schema === 2 && (value.garden.length || Object.hasOwn(value, "_archive")))
+        throw new Error("花园归档状态不完整，请保留数据并检查。");
+      return { state: root.GardenCore.normalizeState(value), version: row.version,
+        archiveVersion: row.archiveVersion, legacy: value.schema === 1 };
+    }
+
+    async function commit(state, saved, delta = { upserts: [], deleted: [] }) {
+      const hot = { ...state, schema: 2, garden: [] };
+      if (delta.upserts.length || delta.deleted.length) hot._archive = delta;
+      const json = JSON.stringify(hot);
+      if (bytes(json) > ROW_BYTES) throw new Error("单条花园状态超出存储接口限制，已保留原数据。");
+      const result = saved.version === null
+        ? await call("db.execute", {
+            sql: "INSERT OR IGNORE INTO garden_store (key, value, version) SELECT ?, ?, 0 WHERE (SELECT version FROM garden_archive_meta WHERE key = 'archive') = ?",
+            params: ["state", json, saved.archiveVersion],
+          })
+        : await call("db.execute", {
+            sql: "UPDATE garden_store SET value = ?, version = version + 1 WHERE key = ? AND version = ? AND (SELECT version FROM garden_archive_meta WHERE key = 'archive') = ?",
+            params: [json, "state", saved.version, saved.archiveVersion],
+          });
       return result.changes === 1;
     }
 
-    return {
-      async load() {
-        return (await read()).state;
-      },
-      async apply(input, now = Date.now()) {
-        // Keep `now` stable through retries: a conflicting write must not invent extra elapsed time.
-        for (let attempt = 0; attempt < 8; attempt++) {
-          const saved = await read();
-          const result = root.GardenCore.reduce(saved.state, input, now);
-          if (await write(result.state, saved.version)) return result;
+    async function readHot() {
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const saved = await readStored();
+        if (saved.version === null) {
+          // Establish the hot row before any delta: archive changes always use the UPDATE trigger.
+          await commit(saved.state, saved);
+          continue;
         }
-        throw new Error("花园正被其他窗口更新，请稍后重试。");
-      },
-    };
+        if (!saved.legacy) return saved;
+        // CAS + trigger is an atomic migration. A failure leaves the entire schema-1 row intact.
+        await commit({ ...saved.state, garden: [] }, saved);
+      }
+      throw new Error("花园升级正遇到并发更新，请稍后重试。");
+    }
+
+    function readFlower(row) {
+      if (!row || typeof row.id !== "string" || typeof row.value !== "string" || bytes(row.value) > ROW_BYTES)
+        throw new Error("花园中有无法读取的收藏记录，请保留原数据。");
+      let value;
+      try { value = JSON.parse(row.value); }
+      catch (_) { throw new Error("花园收藏数据损坏，已停止写入。"); }
+      const valid = root.GardenCore.normalizeFlower(value);
+      if (valid.id !== row.id) throw new Error("花园收藏标识不一致，请保留原数据。");
+      // Preserve any older extra metadata; validation never turns migration into data pruning.
+      return { ...value, ...valid };
+    }
+
+    async function findFlower(id) {
+      const result = rows(await call("db.query", {
+        sql: "SELECT id, value FROM garden_plants WHERE id = ?", params: [id],
+      }));
+      if (result.length > 1) throw new Error("花园收藏标识重复。");
+      return result.length ? readFlower(result[0]) : null;
+    }
+
+    async function load() {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const first = await readHot();
+        if (archiveCache && archiveCache.revision === first.archiveVersion) {
+          if (first.state.active && archiveCache.ids.has(first.state.active.id)) throw new Error("花园植物标识重复。");
+          return { ...first.state, garden: clone(archiveCache.plants) };
+        }
+        const plants = [];
+        const ids = new Set();
+        let cursor = "";
+        while (true) {
+          // Bound both rows and approximate encoded JSON bytes; even unusually large legacy
+          // metadata cannot make a page exceed Hindsight's 10 MB response limit.
+          const batch = rows(await call("db.query", {
+            sql: ARCHIVE_PAGE, params: [cursor, PAGE_ROWS, RESULT_BYTES],
+          }));
+          if (!batch.length) break;
+          for (const row of batch) {
+            const plant = readFlower(row);
+            if (ids.has(plant.id)) throw new Error("花园收藏分页返回了重复记录。");
+            ids.add(plant.id);
+            plants.push(plant);
+          }
+          cursor = batch[batch.length - 1].id;
+        }
+        const latest = await readHot();
+        if (latest.archiveVersion !== first.archiveVersion) continue;
+        if (latest.state.active && ids.has(latest.state.active.id)) throw new Error("花园植物标识重复。");
+        archiveCache = { revision: latest.archiveVersion, plants, ids };
+        return { ...latest.state, garden: clone(plants) };
+      }
+      throw new Error("花园收藏正在频繁变化，请稍后重试。");
+    }
+
+    async function apply(input, now = Date.now()) {
+      // Retry the same instant. Background ticks only read the small hot state; page edits read
+      // at most the one flower they change. Successful results are intentionally partial.
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const saved = await readHot();
+        const state = saved.state;
+        let existing = null;
+        if (["rename", "delete"].includes(input?.type) && state.active?.id !== input.id) {
+          existing = await findFlower(input.id);
+          if (existing) state.garden = [existing];
+        }
+        const result = root.GardenCore.reduce(state, input, now);
+        if (input.type === "plant" && await findFlower(result.state.active.id)) throw new Error("植物标识重复。");
+        const upserts = result.state.garden.map((plant) => existing?.id === plant.id ? { ...existing, ...plant } : plant)
+          .filter((plant) => !existing || JSON.stringify(plant) !== JSON.stringify(existing));
+        const deleted = existing && !result.state.garden.some((plant) => plant.id === existing.id) ? [existing.id] : [];
+        for (const plant of upserts) {
+          if (bytes(JSON.stringify(plant)) > ROW_BYTES) throw new Error("单株收藏记录超出存储接口限制，已保留原数据。");
+        }
+        if (await commit(result.state, saved, { upserts, deleted })) return { ...result, partial: true };
+      }
+      throw new Error("花园正被其他窗口更新，请稍后重试。");
+    }
+
+    return { load, apply };
   }
 
   const api = { createStore };

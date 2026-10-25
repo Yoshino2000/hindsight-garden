@@ -354,6 +354,17 @@
           </div>
           <p id="garden-period-summary" class="subtle" aria-live="polite"></p>
           <div id="garden-album" class="garden-album" role="group" aria-label="不同花园，选择后查看全景" hidden></div>
+          <nav id="garden-album-navigation" class="garden-album-navigation" aria-label="更多花园" hidden>
+            <button id="garden-album-prev" class="button quiet small" type="button">前一组</button>
+            <span id="garden-album-range" class="subtle"></span>
+            <button id="garden-album-next" class="button quiet small" type="button">后一组</button>
+          </nav>
+          <div id="garden-jump-control" class="garden-jump" hidden>
+            <label for="garden-jump">前往第</label>
+            <input id="garden-jump" type="number" min="1" step="1" inputmode="numeric" aria-label="花园序号" required>
+            <span>座</span>
+            <button id="garden-jump-confirm" class="button quiet small" type="button">查看</button>
+          </div>
           <p class="garden-capacity-hint">每座花园最多 25 株，种满后自动分园。按开花日期归入每周，本地时间周一至周日。</p>
         </section>
         <section class="garden-island-card" aria-label="时光花园全景">
@@ -376,9 +387,13 @@
                   <stop stop-color="#d8e6b7" />
                   <stop offset="1" stop-color="#b5ce93" />
                 </linearGradient>
-                <linearGradient id="island-side" x1="0" y1="0" x2="0" y2="1">
-                  <stop stop-color="#87ab75" />
-                  <stop offset="1" stop-color="#6b9466" />
+                <linearGradient id="island-left" x1="0" y1="0" x2="0" y2="1">
+                  <stop stop-color="#a0bb88" />
+                  <stop offset="1" stop-color="#82a578" />
+                </linearGradient>
+                <linearGradient id="island-right" x1="0" y1="0" x2="0" y2="1">
+                  <stop stop-color="#8ca875" />
+                  <stop offset="1" stop-color="#719465" />
                 </linearGradient>
                 <linearGradient id="pond-water" x1="0" y1="0" x2="1" y2="1">
                   <stop stop-color="#badfda" />
@@ -387,28 +402,39 @@
               </defs>
               <ellipse
                 cx="500"
-                cy="662"
-                rx="363"
-                ry="54"
+                cy="682"
+                rx="350"
+                ry="42"
                 fill="#506d3a"
-                opacity=".07"
+                opacity=".06"
+              />
+              <!-- The two front faces share the exact grass-edge curves. Their lower
+                   edges repeat those curves translated down by 25 scene units. -->
+              <path
+                data-scene-part="island-left-face"
+                d="M62.5 399.25Q62.5 404.5 71 410L482 676Q491 682.5 500 682.5L500 707.5Q491 707.5 482 701L71 435Q62.5 429.5 62.5 424.25Z"
+                fill="url(#island-left)"
               />
               <path
-                d="M65 398 500 151 935 398 935 430 518 702Q500 715 482 702L65 430Z"
-                fill="url(#island-side)"
+                data-scene-part="island-right-face"
+                d="M500 682.5Q509 682.5 518 676L929 410Q937.5 404.5 937.5 399.25L937.5 424.25Q937.5 429.5 929 435L518 701Q509 707.5 500 707.5Z"
+                fill="url(#island-right)"
               />
               <path
+                data-scene-part="grass-surface"
                 d="M482 153Q500 141 518 153L929 389Q946 399 929 410L518 676Q500 689 482 676L71 410Q54 399 71 389Z"
                 fill="url(#grass-top)"
                 stroke="#adc58c"
                 stroke-width="3"
               />
               <path
-                d="M500 166 918 402 500 672 82 402Z"
+                data-scene-part="grass-back-rim"
+                d="M83 397 490 165Q500 158 510 165L917 397"
                 fill="none"
                 stroke="#e9f0d4"
-                stroke-width="4"
-                opacity=".65"
+                stroke-width="3"
+                stroke-linecap="round"
+                opacity=".55"
               />
               <path
                 d="M180 430 500 631 835 429"
@@ -471,6 +497,14 @@
                 stroke-linecap="round"
                 opacity=".8"
               />
+              <g data-scene-part="pond-leaves" stroke-linejoin="round">
+                <path d="M720 327C706 317 705 311 716 308C727 305 741 312 740 318L725 317Z" fill="#90b58b" stroke="#7fa680" stroke-width="1.5" />
+                <path d="M771 324C759 316 761 310 773 310C786 309 795 315 788 322L777 317Z" fill="#a1c597" stroke="#88af84" stroke-width="1.5" />
+                <path d="M716 312 730 316M770 314 783 317" fill="none" stroke="#c5ddad" stroke-width="2" stroke-linecap="round" />
+                <path d="M816 317Q810 301 817 286M816 317Q821 298 827 296M816 317Q806 307 804 296" fill="none" stroke="#89ab7e" stroke-width="3" stroke-linecap="round" />
+                <ellipse cx="819" cy="291" rx="3" ry="8" fill="#b9bd82" transform="rotate(12 819 291)" />
+                <path d="M691 310Q688 299 693 292M691 310Q699 302 701 297" fill="none" stroke="#91b18b" stroke-width="2.5" stroke-linecap="round" />
+              </g>
               <ellipse cx="702" cy="352" rx="15" ry="8" fill="#b7c1a8" />
               <ellipse cx="799" cy="300" rx="19" ry="10" fill="#b8c3ae" />
               <ellipse cx="808" cy="340" rx="12" ry="7" fill="#ced4bf" />
@@ -525,6 +559,53 @@
                 <path
                   d="m143 424-4-12m4 12 7-9M574 640l-1-13m1 13 7-10M872 397l-3-11m3 11 6-8M352 579l-3-10m3 10 5-8"
                 />
+              </g>
+              <g data-scene-part="path-pebbles" stroke="#d6c9a8" stroke-width="1.5">
+                <ellipse cx="195" cy="436" rx="10" ry="4" fill="#f7edcf" transform="rotate(29 195 436)" />
+                <ellipse cx="462" cy="608" rx="9" ry="4" fill="#e4d9b8" transform="rotate(29 462 608)" />
+                <ellipse cx="488" cy="622" rx="12" ry="4.5" fill="#f5eccf" transform="rotate(29 488 622)" />
+                <ellipse cx="521" cy="615" rx="10" ry="4" fill="#e4d9b8" transform="rotate(-29 521 615)" />
+                <ellipse cx="814" cy="439" rx="9" ry="4" fill="#f7edcf" transform="rotate(-29 814 439)" />
+              </g>
+              <g data-scene-part="watering-can" stroke="#8ea99c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+                <ellipse cx="169" cy="376" rx="25" ry="7" fill="#8fab81" opacity=".18" stroke="none" />
+                <path d="M152 345C139 332 139 356 150 362" fill="none" stroke="#96b9ae" stroke-width="6" />
+                <path d="M173 349 187 337 192 341 177 361Z" fill="#bad5c7" />
+                <ellipse cx="190" cy="338" rx="6" ry="3" fill="#d2e3d1" transform="rotate(-34 190 338)" />
+                <path d="M149 343 177 343 179 366Q164 376 149 366Z" fill="#b9d4c6" />
+                <ellipse cx="163" cy="343" rx="14" ry="5" fill="#d6e7d5" />
+                <ellipse cx="163" cy="343" rx="8" ry="2.5" fill="#99b8a7" stroke="none" />
+                <path d="M157 355Q163 350 169 355M159 362Q164 365 169 361" fill="none" stroke="#e3eee0" stroke-width="2" />
+              </g>
+              <g data-scene-part="little-sign" stroke-linejoin="round" stroke-linecap="round">
+                <ellipse cx="604" cy="299" rx="24" ry="7" fill="#8fa876" opacity=".15" />
+                <path d="M603 259 603 298" stroke="#b49a72" stroke-width="7" />
+                <path d="M572 230 631 237 631 265 572 258Z" fill="#d7bf91" stroke="#b7a078" stroke-width="2" />
+                <path d="M577 235 626 241M577 253 626 260" fill="none" stroke="#eddbb4" stroke-width="2" />
+                <path d="M600 253Q586 242 592 240Q601 236 604 250M601 253Q610 237 617 245Q620 251 603 253" fill="#a5b481" stroke="#9ca877" stroke-width="1" />
+              </g>
+              <g data-scene-part="fence-bird" stroke-linecap="round">
+                <ellipse cx="433" cy="147" rx="12" ry="9" fill="#bfd4cd" />
+                <circle cx="441" cy="140" r="7" fill="#bfd4cd" />
+                <path d="m447 139 6 3-6 2Z" fill="#d8b986" />
+                <path d="m422 146-8-5 3 10Z" fill="#a6c2b8" />
+                <path d="M425 145Q430 155 437 147" fill="#9fbeb3" />
+                <circle cx="443" cy="139" r="1.4" fill="#6b817a" />
+                <path d="m431 155-1 5m5-5 1 4" stroke="#a69b7e" stroke-width="1.5" />
+              </g>
+              <g data-scene-part="small-insects" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M185 316C165 296 162 322 181 326C165 323 169 339 185 329C200 340 205 323 189 325C208 313 192 301 185 316Z" fill="#e2c9c6" stroke="#cbb6b6" stroke-width="1.5" />
+                <path d="m185 316 1 14m-1-14-3-4m3 4 3-4" fill="none" stroke="#ad9d98" stroke-width="1.5" />
+                <ellipse cx="847" cy="353" rx="7" ry="4.5" fill="#f0d6a2" transform="rotate(-15 847 353)" />
+                <ellipse cx="842" cy="347" rx="4" ry="6" fill="#f4f4df" transform="rotate(-31 842 347)" />
+                <ellipse cx="849" cy="346" rx="4" ry="6" fill="#f4f4df" transform="rotate(18 849 346)" />
+                <path d="m844 350 1 6m3-7 1 6" stroke="#c4a66f" stroke-width="2" />
+                <circle cx="853" cy="351" r="1" fill="#9f8e6e" />
+              </g>
+              <g data-scene-part="moss-and-grass" stroke-linecap="round">
+                <g fill="#86a274"><ellipse cx="170" cy="385" rx="5" ry="2.5" /><ellipse cx="180" cy="387" rx="4" ry="2" /><ellipse cx="187" cy="377" rx="3.5" ry="2" /><ellipse cx="798" cy="297" rx="6" ry="3" /><ellipse cx="807" cy="338" rx="4" ry="2" /></g>
+                <path d="M120 407q-3-11-8-13m8 13 2-15m-2 15 7-8M606 647q-2-11-6-13m6 13 4-16m-4 16 9-9M849 416q-2-12-8-16m8 16 1-17m-1 17 8-9M643 270q-2-10-7-13m7 13 3-13" fill="none" stroke="#91ac78" stroke-width="3" />
+                <g fill="#dce8bd"><ellipse cx="133" cy="410" rx="2.5" ry="1.5" /><ellipse cx="610" cy="656" rx="3" ry="1.5" /><ellipse cx="835" cy="412" rx="2.5" ry="1.5" /></g>
               </g>
             </svg>
             <div
