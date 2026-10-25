@@ -1,10 +1,19 @@
 # Verification
 
-Version: **0.9.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.10.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified on 2026-10-25 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.9.0 results
+## Current 0.10.0 results
+
+- **95 automated tests pass, with no skips.** Growth, storage, archive schema, plant layout, bird timing and sprite assets are unchanged. This release changes album presentation and the existing native SVG distance layer; no new presentation-mirroring tests were added.
+- **16 connected Chrome result records** use the real extracted host bridges, CSP, sandbox and temporary synthetic SQLite. Four weeks appear in ascending date order (2026-09-28, 10-05, 10-12, 10-19), with the selected week's live album panel immediately below its date. The 30-flower week retains 25+5 gardens. Only one panel exists; switching to all-time moves it back to its home, and reload still defaults to weekly mode while retaining the selected week.
+- A 5,001-flower collection retains 201 gardens and the final one-flower garden. All 30 weeks navigate in ascending order through windows 25–30, 13–24, 1–12 and back again. At most twelve date rows and twelve miniature scenes are mounted. A selected empty historical week remains in order and explains that all 122 flowers still exist in other weeks. Enter selects a week and keyboard focus survives ordinary polling. SVG IDs remain unique across main and miniature scenes.
+- Narrow bodies of 394 and 354 CSS pixels have equal client/scroll widths. Weekly garden selection works, and the settled detail drawer still spans x=8..346 at 354 pixels. The temporary viewport override was reset.
+- Four corner scenes were visually inspected: layered round trees and a low shrub, distant hills with conifers, a seed basket with fern leaves, and low shrubs/stepping stones. The scenery remains static, clipped outside the island, behind its original geometry and hidden in miniatures. Existing plant PNGs and moving visitors are unchanged. Screenshots are actual connected-Chrome captures using synthetic data.
+- Final Chrome warning/error logs are empty. The source HTML article was read locally without modification; only original design analysis and source links are distributed. No personal Hindsight database was opened or modified. Seven permissions, 64 MB and schema 2 are unchanged. The final 0.10.0 ZIP was not installed into native Hindsight in this run; prior-version checks do not replace that validation, and the native/long-duration limits below remain.
+
+## Previous 0.9.0 results
 
 - **95 automated tests pass, with no skips.** Growth, storage, archive schema and plant-layout modules are unchanged. Existing actual-PNG contact/shadow, SQLite migration/rollback, archive limits and local-calendar checks remain in place. Decorative presentation was checked visually rather than covered by mirror-image CSS tests.
 - Connected Chrome used the original page/worker, real host bridges, restrictive CSP and isolated synthetic SQLite. Selecting a flower opens a fixed right-side, nonmodal drawer without adding a lower page section or increasing page height. A second flower updates it. Rename input survived polling; save, cancel, nested Escape and delete confirmation work inside the drawer. Confirmed deletion closed the drawer, returned shared action panels to their original home and kept the other records. Close/Escape restored flower focus; an outside click closed it, and polling did not reopen it.

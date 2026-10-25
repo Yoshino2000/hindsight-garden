@@ -389,8 +389,12 @@
                   <stop offset="1" stop-color="#8fc8c5" />
                 </linearGradient>
                 <linearGradient id="distant-hill-fade" x1="0" y1="0" x2="0" y2="1">
-                  <stop stop-color="#b8cbb0" stop-opacity=".7" />
+                  <stop stop-color="#bdcdb5" stop-opacity=".85" />
                   <stop offset="1" stop-color="#d5debf" stop-opacity="0" />
+                </linearGradient>
+                <linearGradient id="scenery-leaf" x1="0" y1="0" x2="1" y2="1">
+                  <stop stop-color="#d0dcb7" />
+                  <stop offset="1" stop-color="#a5bd9a" />
                 </linearGradient>
                 <clipPath id="distant-outside-clip">
                   <path clip-rule="evenodd" fill-rule="evenodd" d="M0 0H1000V760H0Z M482.5 140Q500 130 517.5 140L955 390Q972.5 400 955 410L517.5 660Q500 670 482.5 660L45 410Q27.5 400 45 390Z" />
@@ -402,33 +406,69 @@
                   <path d="M482.5 140Q500 130 517.5 140L955 390Q972.5 400 955 410L517.5 660Q500 670 482.5 660L45 410Q27.5 400 45 390Z" />
                 </clipPath>
               </defs>
-              <g class="garden-distant-scenery" data-scene-part="distant-scenery" opacity=".26" clip-path="url(#distant-outside-clip)">
+              <g class="garden-distant-scenery" data-scene-part="distant-scenery" opacity=".56" clip-path="url(#distant-outside-clip)">
                 <g data-scene-part="scenery-back-left">
                   <path d="M54 271Q82 247 114 255Q150 221 186 247Q222 228 251 260Q270 261 294 285H54Z" fill="url(#distant-hill-fade)" />
                   <path d="M112 247Q118 226 144 233Q165 214 185 233Q208 229 218 250" fill="none" stroke="#bdcdb0" stroke-width="2" stroke-linecap="round" />
                   <path d="M144 194Q146 220 143 246M144 218 133 207M145 207 154 195" fill="none" stroke="#b3b995" stroke-width="5" stroke-linecap="round" />
-                  <path d="M119 182C109 166 120 140 137 142C143 124 166 133 168 151C190 159 182 185 168 190C162 208 135 208 129 192C124 192 119 188 119 182Z" fill="#adc4a1" />
+                  <path d="M119 182C109 166 120 140 137 142C143 124 166 133 168 151C190 159 182 185 168 190C162 208 135 208 129 192C124 192 119 188 119 182Z" fill="url(#scenery-leaf)" />
+                  <path d="M122 164Q123 145 139 148Q147 136 157 145M128 183Q143 191 155 183" fill="none" stroke="#e2e8cb" stroke-width="4" stroke-linecap="round" />
                   <path d="M203 208 203 244" fill="none" stroke="#b7be9d" stroke-width="4" stroke-linecap="round" />
                   <path d="M183 199C175 183 187 167 199 171C210 156 228 171 224 185C239 197 224 218 212 215C200 225 183 214 183 199Z" fill="#bdceb1" />
+                  <path d="M188 189Q192 177 202 180M209 201q8 1 12-7" fill="none" stroke="#e1e8cd" stroke-width="3" stroke-linecap="round" />
+                  <path d="M90 263Q86 252 97 248Q97 235 111 237Q117 224 129 235Q145 233 146 248Q160 255 150 265Z" fill="#bdcaa6" />
+                  <path d="M93 249q9-6 17-1m12-8q8 1 11 7" fill="none" stroke="#e1e6c9" stroke-width="2" stroke-linecap="round" />
+                  <path d="M151 244q18-5 35 2m-72 23q17 3 28 0" fill="none" stroke="#c8cbb5" stroke-width="2" stroke-linecap="round" />
+                  <g fill="#dfd4a3">
+                    <circle cx="101" cy="244" r="2.5" /><circle cx="115" cy="250" r="2" /><circle cx="129" cy="241" r="2.5" />
+                  </g>
                   <path d="M80 262q-2-11-7-15m7 15 5-12m153 16 3-13m-3 13 9-9" fill="none" stroke="#b6c4a3" stroke-width="2" stroke-linecap="round" />
                 </g>
                 <g data-scene-part="scenery-back-right">
                   <path d="M718 280Q752 247 784 197Q792 183 803 200L833 231Q854 183 874 161Q884 151 895 172Q922 215 961 266L978 285Z" fill="url(#distant-hill-fade)" />
+                  <path d="M743 280Q778 229 800 240Q824 259 843 226Q859 204 878 220Q922 249 949 282Z" fill="#c8d5bd" opacity=".65" />
+                  <path d="M873 126q2-10 13-10q5-14 18-8q8 1 10 11q13-1 14 9Z" fill="#fffdf0" opacity=".8" />
                   <path d="M752 270Q781 248 805 253Q829 226 853 246Q880 227 900 250Q927 244 953 276" fill="none" stroke="#b9cbb1" stroke-width="2" stroke-linecap="round" />
                   <path d="m789 207 12 7 7-7m61-27 12 10 11-4" fill="none" stroke="#e1e6d3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M887 264v-35m31 43v-30" fill="none" stroke="#b4bda1" stroke-width="3" stroke-linecap="round" />
+                  <path d="m887 206-17 30h9l-12 19h40l-12-19h9Zm31 19-13 24h7l-9 15h31l-9-15h7Z" fill="#a7bfa6" />
+                  <path d="m887 218-6 12m37 6-5 10" fill="none" stroke="#dce5cd" stroke-width="2" stroke-linecap="round" />
                   <path d="M908 253q-4-11-10-13m10 13 2-17m-2 17 9-8M942 270l-1-11m1 11 6-8" fill="none" stroke="#b2c2a1" stroke-width="2" stroke-linecap="round" />
                 </g>
                 <g data-scene-part="scenery-front-left">
+                  <path d="M59 631Q74 594 109 598Q142 575 178 594Q206 607 218 637Q186 661 138 662Q89 658 59 631Z" fill="#e1e7cd" opacity=".65" />
                   <path d="M72 645Q105 601 144 584Q197 560 236 516" fill="none" stroke="#c7cbb4" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2 10" />
                   <path d="m111 604 7-4 8 2-5 5-9 1Zm42-26 8-4 8 3-6 4-8 1Zm45-34 7-4 7 2-4 5-8 1Z" fill="#c9c5af" />
                   <path d="M73 624q-4-18-12-23m12 23 1-23m-1 23 10-15M130 654q-3-17-11-23m11 23 5-25m-5 25 13-13M207 590q-3-13-9-17m9 17 4-19m-4 19 10-10" fill="none" stroke="#b1c3a0" stroke-width="2.5" stroke-linecap="round" />
                   <path d="M117 643q-9-10-12-4t12 4m23-2q8-11 11-5t-11 5M66 615q-8-8-9-3t9 3" fill="#bccbac" />
+                  <g stroke-linejoin="round">
+                    <path d="m83 592 25-13 28 14-25 14Z" fill="#e1cfaa" stroke="#beab86" stroke-width="1.5" />
+                    <path d="m83 592 28 15v22l-28-15Z" fill="#cfbb92" /><path d="m111 607 25-14v22l-25 14Z" fill="#bfa981" />
+                    <path d="m89 600 16 9m-16-2 16 9m12-6 13-7m-13 14 13-7" fill="none" stroke="#eadbb9" stroke-width="1.5" />
+                    <path d="M98 590v-10q0-8 8-4l12 6q6 3 6 9v5" fill="none" stroke="#b6a27c" stroke-width="3" stroke-linecap="round" />
+                    <path d="m94 591 9-11 9 5-7 12Z" fill="#f2edda" /><path d="m105 597 9-14 9 5-6 13Z" fill="#c4d4ae" />
+                  </g>
+                  <path d="m161 631 2-27m-2 27-16-17m16 17 15-15m-14 5-12-18m12 18 13-20" fill="none" stroke="#a4bc92" stroke-width="2" stroke-linecap="round" />
+                  <path d="M145 614q-12-9-10-14q7-2 10 14m31 2q13-6 11-12q-8-3-11 12m-26-13q-6-14-1-15q6 2 1 15m25-2q5-13 11-11q2 7-11 11" fill="#adbf98" />
+                  <g fill="#fffdf0" stroke="#ded7b8" stroke-width=".7">
+                    <path d="M193 622q-6-6-1-8q4-1 4 4q5-4 7 0q1 4-4 4q3 5-1 6q-5 0-5-6Z" />
+                    <path d="M77 648q-4-4-1-6q3-1 3 3q4-2 5 1q0 3-3 3q1 3-2 4q-3-1-2-5Z" />
+                  </g>
+                  <circle cx="196" cy="621" r="1.8" fill="#d9bd79" /><circle cx="79" cy="648" r="1.4" fill="#d9bd79" />
                 </g>
                 <g data-scene-part="scenery-front-right">
+                  <path d="M788 632Q806 601 835 606Q860 590 893 599Q929 600 944 628Q917 648 878 658Q826 657 788 632Z" fill="#e1e7cd" opacity=".65" />
                   <path d="M934 643Q904 604 869 583Q824 558 787 518" fill="none" stroke="#c7cbb4" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2 11" />
                   <path d="m879 592 7-4 9 3-5 5-9-1Zm-47-34 7-4 7 2-4 5-8 1Z" fill="#c9c5af" />
                   <path d="M925 608q-3-15-10-20m10 20 4-22m-4 22 11-12M864 652q-3-18-11-25m11 25 2-27m-2 27 12-16M794 574q-3-12-9-16m9 16 4-18m-4 18 9-9" fill="none" stroke="#b1c3a0" stroke-width="2.5" stroke-linecap="round" />
                   <path d="M854 640q-8-10-12-5t12 5m21-1q8-11 11-5t-11 5M934 603q8-8 10-3t-10 3" fill="#bccbac" />
+                  <path d="M858 618q-7-15 4-20q-2-15 11-17q12-11 21 1q16-1 17 13q15 4 8 20q-26 13-61 3Z" fill="#bfcea8" />
+                  <path d="m866 604 8-7m12-5 7 5m4 12 10-5" fill="none" stroke="#e6ead1" stroke-width="3" stroke-linecap="round" />
+                  <g fill="#dbcca0"><circle cx="869" cy="608" r="2.3" /><circle cx="887" cy="596" r="2" /><circle cx="902" cy="610" r="2.5" /></g>
+                  <path d="m820 632 9-6 13 3 2 7-16 3Zm83 11 10-6 13 2 4 6-15 5Z" fill="#d8d4bd" stroke="#c2c7ad" stroke-width="1" />
+                  <path d="m826 631 9-1m77 12 8-1" fill="none" stroke="#f3efdb" stroke-width="2" stroke-linecap="round" />
+                  <path d="m832 616-2-18m2 18 7-16m-7 16-9-10" fill="none" stroke="#a8bd96" stroke-width="2" stroke-linecap="round" />
+                  <g fill="#e5d4af"><circle cx="828" cy="596" r="3" /><circle cx="840" cy="599" r="2.5" /></g>
                 </g>
               </g>
               <ellipse
@@ -647,30 +687,34 @@
           </div>
           <section id="garden-week-browser" class="garden-week-browser" aria-label="按周选择花园">
             <div class="garden-week-heading">
-              <p class="subtle">每一周，都有自己的花园</p>
+              <p class="subtle">按时间先后，从较早的一周到本周</p>
               <button id="garden-this-week" class="button quiet small" type="button">回到本周</button>
             </div>
-            <div id="garden-week-list" class="garden-week-list" role="group" aria-label="每周相册"></div>
+            <ol id="garden-week-list" class="garden-week-list" aria-label="每周相册，从早到晚"></ol>
             <nav id="garden-week-navigation" class="album-week-navigation" aria-label="更多周相册" hidden>
-              <button id="garden-week-next" class="button quiet small" type="button">更近一组</button>
-              <span id="garden-week-range" class="subtle"></span>
               <button id="garden-week-prev" class="button quiet small" type="button">更早一组</button>
+              <span id="garden-week-range" class="subtle"></span>
+              <button id="garden-week-next" class="button quiet small" type="button">更近一组</button>
             </nav>
           </section>
-          <p id="garden-album-context" class="album-context" role="status"></p>
-          <div id="garden-album" class="garden-album" role="group" aria-label="不同花园，选择后查看全景" hidden></div>
-          <nav id="garden-album-navigation" class="garden-album-navigation" aria-label="更多花园" hidden>
-            <button id="garden-album-prev" class="button quiet small" type="button">前一组花园</button>
-            <span id="garden-album-range" class="subtle"></span>
-            <button id="garden-album-next" class="button quiet small" type="button">后一组花园</button>
-          </nav>
-          <div id="garden-jump-control" class="garden-jump" hidden>
-            <label for="garden-jump">前往第</label>
-            <input id="garden-jump" type="number" min="1" step="1" inputmode="numeric" aria-label="花园序号" required>
-            <span>座</span>
-            <button id="garden-jump-confirm" class="button quiet small" type="button">查看</button>
+          <div id="garden-album-home">
+            <div id="garden-album-panel" class="garden-album-panel">
+              <p id="garden-album-context" class="album-context" role="status"></p>
+              <div id="garden-album" class="garden-album" role="group" aria-label="不同花园，选择后查看全景" hidden></div>
+              <nav id="garden-album-navigation" class="garden-album-navigation" aria-label="更多花园" hidden>
+                <button id="garden-album-prev" class="button quiet small" type="button">前一组花园</button>
+                <span id="garden-album-range" class="subtle"></span>
+                <button id="garden-album-next" class="button quiet small" type="button">后一组花园</button>
+              </nav>
+              <div id="garden-jump-control" class="garden-jump" hidden>
+                <label for="garden-jump">前往第</label>
+                <input id="garden-jump" type="number" min="1" step="1" inputmode="numeric" aria-label="花园序号" required>
+                <span>座</span>
+                <button id="garden-jump-confirm" class="button quiet small" type="button">查看</button>
+              </div>
+            </div>
           </div>
-          <p class="garden-capacity-hint">每座花园最多 25 株，种满后继续分园。按开花日期归入每周，本地时间周一至周日。</p>
+          <p class="garden-capacity-hint">每座花园最多 25 株，种满后继续分园。按开花日期归入本地周一至周日；展示有花的周、本周和选中的空周。</p>
         </section>
       </section>
 

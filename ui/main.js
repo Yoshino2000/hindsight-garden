@@ -626,34 +626,49 @@
 
   function renderWeekIndex() {
     $("garden-week-browser").hidden = gardenMode !== "week";
-    const index = Math.max(0, gardenView.weeks.findIndex((week) => week.key === gardenWeek));
+    // Calendar order runs from older to newer, matching the vertical time line.
+    const weeks = [...gardenView.weeks].reverse();
+    const index = Math.max(0, weeks.findIndex((week) => week.key === gardenWeek));
     const page = Math.floor(index / WEEK_GROUP_SIZE);
     const start = page * WEEK_GROUP_SIZE;
-    const visible = gardenView.weeks.slice(start, start + WEEK_GROUP_SIZE);
+    const visible = weeks.slice(start, start + WEEK_GROUP_SIZE);
     const signature = JSON.stringify({ start, weeks: visible });
     if (signature !== weekSignature) {
       weekSignature = signature;
+      // Keep one live album panel while rebuilding the date index.
+      $("garden-album-home").append($("garden-album-panel"));
       const cards = visible.map((week) => {
+        const entry = el("li", "garden-week-entry");
+        entry.dataset.week = week.key;
         const button = el("button", "garden-week-card");
         button.type = "button";
         button.dataset.week = week.key;
+        button.setAttribute("aria-controls", "garden-album-panel");
         button.setAttribute("aria-label", `${week.current ? "本周，" : ""}${weekRange(week)}，${week.count} 株花`);
-        button.append(
-          el("span", "week-card-title", week.current ? "本周" : `${new Date(week.start).getMonth() + 1} 月 ${new Date(week.start).getDate()} 日这一周`),
-          el("span", "week-card-range", weekRange(week)),
-          el("span", "week-card-count", `${week.count} 株已开花`),
-        );
+        const dates = el("span", "week-card-dates");
+        dates.append(el("span", "week-card-title", weekRange(week)));
+        dates.append(el("span", "week-card-range", week.current ? "本周 · 周一至周日" : "周一至周日"));
+        button.append(dates, el("span", "week-card-count", `${week.count} 株 · ${Math.ceil(week.count / GardenLayout.PAGE_SIZE)} 座花园`));
         button.addEventListener("click", () => changeGardenScope("week", week.key));
-        return button;
+        entry.append(button);
+        return entry;
       });
       $("garden-week-list").replaceChildren(...cards);
     }
-    for (const button of $("garden-week-list").querySelectorAll("button"))
-      button.setAttribute("aria-pressed", String(button.dataset.week === gardenWeek));
+    let selectedEntry = null;
+    for (const entry of $("garden-week-list").children) {
+      const selected = entry.dataset.week === gardenWeek;
+      entry.dataset.selected = String(selected);
+      entry.firstElementChild.setAttribute("aria-pressed", String(selected));
+      if (selected) selectedEntry = entry;
+    }
+    const panelHome = gardenMode === "week" && selectedEntry ? selectedEntry : $("garden-album-home");
+    if ($("garden-album-panel").parentElement !== panelHome)
+      panelHome.append($("garden-album-panel"));
     $("garden-week-navigation").hidden = gardenView.weeks.length <= WEEK_GROUP_SIZE;
-    $("garden-week-prev").disabled = start + visible.length >= gardenView.weeks.length;
-    $("garden-week-next").disabled = page === 0;
-    $("garden-week-range").textContent = `第 ${start + 1}—${start + visible.length} 周 / 共 ${gardenView.weeks.length} 周`;
+    $("garden-week-prev").disabled = page === 0;
+    $("garden-week-next").disabled = start + visible.length >= weeks.length;
+    $("garden-week-range").textContent = `第 ${start + 1}—${start + visible.length} 个周相册 / 共 ${weeks.length} 个`;
     $("garden-this-week").disabled = gardenView.weeks.some((week) => week.current && week.key === gardenWeek);
   }
 
@@ -1148,13 +1163,14 @@
   $("garden-this-week").addEventListener("click", () => changeGardenScope("week", ""));
   function moveGardenWeek(delta) {
     if (!gardenView) return;
-    const index = gardenView.weeks.findIndex((week) => week.key === gardenWeek);
+    const weeks = [...gardenView.weeks].reverse();
+    const index = weeks.findIndex((week) => week.key === gardenWeek);
     const group = Math.floor(Math.max(0, index) / WEEK_GROUP_SIZE) + delta;
-    const week = group >= 0 ? gardenView.weeks[group * WEEK_GROUP_SIZE] : null;
+    const week = group >= 0 ? weeks[group * WEEK_GROUP_SIZE] : null;
     if (week) changeGardenScope("week", week.key);
   }
-  $("garden-week-prev").addEventListener("click", () => moveGardenWeek(1));
-  $("garden-week-next").addEventListener("click", () => moveGardenWeek(-1));
+  $("garden-week-prev").addEventListener("click", () => moveGardenWeek(-1));
+  $("garden-week-next").addEventListener("click", () => moveGardenWeek(1));
   $("cancel-plant").addEventListener("click", closePlant);
   $("confirm-plant").addEventListener("click", plant);
   $("add-rule").addEventListener("click", () => addRule());

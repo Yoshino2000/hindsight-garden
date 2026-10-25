@@ -18,7 +18,7 @@ FILES = [
     *(f"assets/garden/{name}.png" for name in SPECIES),
     *(f"assets/ambience/{name}.png" for name in AMBIENCE),
     "README.md", "intro/zh/README.md", "docs/development.md",
-    "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md", "docs/artwork-ambience-070.md", "docs/plant-guide-sources.md",
+    "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md", "docs/artwork-ambience-070.md", "docs/plant-guide-sources.md", "docs/design-notes-forest.md",
     "docs/screenshots/garden.png", "docs/screenshots/album.png", "docs/screenshots/drawer.png", "docs/screenshots/current.png", "docs/screenshots/guide.png", "LICENSE",
 ]
 

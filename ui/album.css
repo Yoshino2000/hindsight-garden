@@ -1,4 +1,4 @@
-/* Weekly albums stay directly visible. Only twelve week cards and twelve garden previews
+/* Weekly albums stay directly visible. Only twelve week rows and twelve garden previews
    are mounted at once; CSS changes presentation without changing the stored collection. */
 .garden-browser .garden-browser-heading {
   display: flex;
@@ -48,14 +48,46 @@
   margin: 0;
 }
 .garden-week-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
-  gap: 8px;
+  position: relative;
+  margin: 0;
+  padding: 0 0 0 19px;
+  list-style: none;
+}
+.garden-week-list::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 25px;
+  bottom: 25px;
+  width: 1px;
+  background: #d5dfc7;
+}
+.garden-week-entry {
+  position: relative;
+  padding-bottom: 9px;
+}
+.garden-week-entry::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 25px;
+  width: 7px;
+  height: 7px;
+  border: 2px solid #fafbf3;
+  border-radius: 50%;
+  background: #becdad;
+}
+.garden-week-entry[data-selected="true"]::before {
+  background: #668652;
+  box-shadow: 0 0 0 2px #dce8ce;
 }
 .garden-week-card {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  flex-wrap: wrap;
+  width: 100%;
   min-width: 0;
   padding: 11px 12px;
   border: 1px solid #e0e8d3;
@@ -72,6 +104,11 @@
 .week-card-title {
   font-size: 12px;
   font-weight: 600;
+}
+.week-card-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .week-card-range {
   font-size: 10px;
@@ -94,5 +131,27 @@
   color: var(--muted);
   font-size: 11px;
   line-height: 1.7;
-  margin: 15px 0 10px;
+  margin: 0 0 9px;
+}
+.garden-week-entry .garden-album-panel {
+  padding: 12px 13px 8px;
+  margin-top: -5px;
+  border: 1px solid #dbe5ce;
+  border-top: 0;
+  border-radius: 0 0 13px 13px;
+  background: #f8faf1;
+}
+.garden-week-entry[data-selected="true"] > .garden-week-card {
+  border-radius: 13px 13px 7px 7px;
+}
+.garden-week-entry .garden-jump {
+  margin: 12px 0 2px;
+}
+.garden-week-entry .garden-album-card {
+  background: #fffef8;
+}
+@media (max-width: 420px) {
+  .garden-week-card { padding: 10px; gap: 5px 9px; }
+  .week-card-title { font-size: 11px; }
+  .garden-week-entry .garden-album-panel { padding: 11px 9px 8px; }
 }
