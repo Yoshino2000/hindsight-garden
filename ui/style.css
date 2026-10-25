@@ -775,7 +775,7 @@ legend {
   aspect-ratio: 1;
 }
 .bird-art {
-  width: 5.8%;
+  width: 3.6%;
   background-image: url("../assets/ambience/bird-blue.png");
   background-size: 300% 100%;
   animation: bird-wings .72s step-end infinite;
@@ -796,7 +796,7 @@ legend {
   position: absolute;
   left: 1%;
   top: 28%;
-  width: 3.7%;
+  width: 2.1%;
   height: 1%;
   border-radius: 50%;
   background: #657946;
@@ -896,6 +896,7 @@ legend {
 .garden-scene[data-motion="true"] .pond-reflection { animation-play-state: running; }
 .garden-miniature .pond-ripple,
 .garden-miniature .pond-reflection { animation: none; }
+.garden-miniature .garden-distant-scenery { display: none; }
 @keyframes pond-ripple {
   0% { opacity: .05; transform: scale(.65); }
   30% { opacity: .28; }

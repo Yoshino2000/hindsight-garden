@@ -1,0 +1,42 @@
+.flower-drawer {
+  position: fixed;
+  z-index: 100;
+  top: 14px;
+  right: 14px;
+  bottom: 14px;
+  width: min(350px, calc(100% - 28px));
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #dce5ce;
+  border-radius: 20px;
+  background: #fffefa;
+  box-shadow: -12px 8px 40px #344b3429;
+  animation: flower-drawer-enter 180ms ease-out;
+}
+.flower-drawer-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 15px 18px 12px;
+  border-bottom: 1px solid #edf0e5;
+}
+.flower-drawer-heading .eyebrow { margin: 0; }
+.flower-drawer-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  padding: 17px 18px 20px;
+}
+.flower-detail-title { font-size: 21px; overflow-wrap: anywhere; }
+.flower-drawer .flower-detail-art { height: 170px; margin-top: 6px; }
+.flower-drawer .flower-detail-art .plant-sprite { width: calc(170px * var(--sprite-ratio, .5)); }
+.flower-drawer .action-row { flex-wrap: wrap; }
+.flower-drawer .action-panel { padding: 14px; margin: 18px 0 0; border-radius: 14px; }
+@keyframes flower-drawer-enter {
+  from { opacity: 0; transform: translateX(28px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@media (max-width: 380px) {
+  .flower-drawer { inset: 8px; width: auto; }
+}

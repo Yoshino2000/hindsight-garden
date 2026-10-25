@@ -20,7 +20,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 HINDSIGHT_SOURCE = PLUGIN_ROOT.parent / "Hindsight" / "src-tauri" / "src" / "plugins" / "file_reader.rs"
 FILES = {
     "manifest.json", "background.js", "core.js", "store.js", "garden-layout.js",
-    "ui/index.html", "ui/style.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js",
+    "ui/index.html", "ui/style.css", "ui/album.css", "ui/drawer.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js",
     "icon.png", "assets/sunflower.png", "assets/hydrangea.png",
     "assets/tulip.png", "assets/daisy.png",
     "assets/rose.png", "assets/lavender.png", "assets/cosmos.png", "assets/lily.png",
@@ -140,6 +140,12 @@ def seed_garden(server, params):
             monday = current - timedelta(days=current.weekday())
             at = int((monday - timedelta(days=7 if index < 28 else 0)
                       + timedelta(minutes=(index % 28) * 30)).timestamp() * 1000)
+        elif count == 122:
+            current = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            monday = current - timedelta(days=current.weekday())
+            group = 0 if index < 32 else 1 + (index - 32) // 30
+            slot = index if index < 32 else (index - 32) % 30
+            at = int((monday - timedelta(days=group * 7) + timedelta(minutes=slot * 30)).timestamp() * 1000)
         garden.append({"id": f"demo-{index:03d}", "name": f"演示{name}{index + 1}", "species": species,
                        "createdAt": at, "bloomAt": at + 1800000, "targetMs": 1800000, "progressMs": 1800000})
     state = {"schema": 1, "paused": False, "notify": False, "active": None, "garden": garden,

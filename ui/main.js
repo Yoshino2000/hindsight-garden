@@ -83,6 +83,7 @@
   let polling = false;
   let generation = 0;
   let selectedFlower = null;
+  let flowerSignature = "";
   let renameId = null;
   let deleteId = null;
   let ruleCounter = 0;
@@ -91,10 +92,12 @@
   let firstRender = true;
   let gardenSignature = "";
   let gardenPage = 0;
-  let gardenMode = "all";
+  let gardenMode = "week";
   let gardenWeek = "";
   let gardenView = null;
   let albumSignature = "";
+  const WEEK_GROUP_SIZE = 12;
+  let weekSignature = "";
   let ambienceEnabled = true;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const visitors = GardenAmbience.createVisitors(
@@ -198,6 +201,7 @@
   }
 
   function tab(name, focus = false) {
+    if (name !== "garden") closeFlowerDrawer(false);
     for (const item of ["current", "garden"]) {
       const selected = item === name;
       $("tab-" + item).setAttribute("aria-selected", String(selected));
@@ -495,35 +499,22 @@
     $("garden-scene-title").textContent =
       layout.total ? `${gardenMode === "week" ? "这一周的" : "我的"}第 ${layout.page + 1} 座花园`
         : gardenMode === "week" ? "这一周的花园" : "等待第一朵花的花园";
-    $("garden-view-mode").value = gardenMode;
-    $("garden-week-controls").hidden = gardenMode !== "week";
-    const weekOptions = gardenView.weeks.map((week) => ({
-      value: week.key,
-      label: `${week.current ? "本周 · " : ""}${weekRange(week)} · ${week.count} 株`,
-    }));
-    const weekSignature = JSON.stringify(weekOptions);
-    if ($("garden-week").dataset.signature !== weekSignature) {
-      $("garden-week").replaceChildren(...weekOptions.map(({ value, label }) => {
-        const option = el("option", "", label);
-        option.value = value;
-        return option;
-      }));
-      $("garden-week").dataset.signature = weekSignature;
-    }
-    $("garden-week").value = gardenWeek;
-    const weekIndex = gardenView.weeks.findIndex((week) => week.key === gardenWeek);
-    $("garden-week-prev").disabled = weekIndex >= gardenView.weeks.length - 1;
-    $("garden-week-next").disabled = weekIndex <= 0;
-    $("garden-this-week").disabled = gardenView.weeks.some((week) => week.current && week.key === gardenWeek);
+    $("garden-mode-week").setAttribute("aria-pressed", String(gardenMode === "week"));
+    $("garden-mode-all").setAttribute("aria-pressed", String(gardenMode === "all"));
+    renderWeekIndex();
     const selectedWeek = gardenView.weeks.find((week) => week.key === gardenWeek);
     const summary = `${gardenMode === "week" && selectedWeek ? weekRange(selectedWeek) : "全部收藏"} · ${layout.total} 株 · ${layout.total ? layout.pageCount : 0} 座花园`;
     if ($("garden-period-summary").textContent !== summary)
       $("garden-period-summary").textContent = summary;
+    if ($("garden-album-context").textContent !== summary)
+      $("garden-album-context").textContent = summary;
     $("garden-empty").textContent = gardenMode === "week"
       ? selectedWeek?.current
         ? "这一周还没有花朵开花。花开时，它就会留在本周的花园里。"
         : "这一周没有已收藏的花朵。可以切换其他周，或回到本周继续种花。"
       : "第一朵花会种在这里。完成当前盆栽，它就会留在这座花园里。";
+    if (gardenMode === "week" && layout.total === 0 && gardenView.total > 0)
+      $("garden-empty").textContent = `这一周还没有收藏的花朵。其他周已收藏 ${gardenView.total} 株，可直接在下方周相册中查看。`;
     $("garden-empty").hidden = layout.total > 0;
     $("garden-start").hidden = layout.total > 0;
     $("garden-interaction-hint").hidden = layout.total === 0;
@@ -633,32 +624,82 @@
     $("garden-album").replaceChildren(...cards);
   }
 
+  function renderWeekIndex() {
+    $("garden-week-browser").hidden = gardenMode !== "week";
+    const index = Math.max(0, gardenView.weeks.findIndex((week) => week.key === gardenWeek));
+    const page = Math.floor(index / WEEK_GROUP_SIZE);
+    const start = page * WEEK_GROUP_SIZE;
+    const visible = gardenView.weeks.slice(start, start + WEEK_GROUP_SIZE);
+    const signature = JSON.stringify({ start, weeks: visible });
+    if (signature !== weekSignature) {
+      weekSignature = signature;
+      const cards = visible.map((week) => {
+        const button = el("button", "garden-week-card");
+        button.type = "button";
+        button.dataset.week = week.key;
+        button.setAttribute("aria-label", `${week.current ? "本周，" : ""}${weekRange(week)}，${week.count} 株花`);
+        button.append(
+          el("span", "week-card-title", week.current ? "本周" : `${new Date(week.start).getMonth() + 1} 月 ${new Date(week.start).getDate()} 日这一周`),
+          el("span", "week-card-range", weekRange(week)),
+          el("span", "week-card-count", `${week.count} 株已开花`),
+        );
+        button.addEventListener("click", () => changeGardenScope("week", week.key));
+        return button;
+      });
+      $("garden-week-list").replaceChildren(...cards);
+    }
+    for (const button of $("garden-week-list").querySelectorAll("button"))
+      button.setAttribute("aria-pressed", String(button.dataset.week === gardenWeek));
+    $("garden-week-navigation").hidden = gardenView.weeks.length <= WEEK_GROUP_SIZE;
+    $("garden-week-prev").disabled = start + visible.length >= gardenView.weeks.length;
+    $("garden-week-next").disabled = page === 0;
+    $("garden-week-range").textContent = `第 ${start + 1}—${start + visible.length} 周 / 共 ${gardenView.weeks.length} 周`;
+    $("garden-this-week").disabled = gardenView.weeks.some((week) => week.current && week.key === gardenWeek);
+  }
+
+  function placeFlowerActions(inDrawer) {
+    const container = $(inDrawer ? "flower-drawer-actions" : "flower-action-home");
+    for (const id of ["rename-panel", "delete-panel"])
+      if ($(id).parentElement !== container) container.append($(id));
+  }
+
+  function closeFlowerDrawer(restoreFocus = false) {
+    const previous = selectedFlower;
+    const ownedActions = !$("flower-drawer").hidden ||
+      $("rename-panel").parentElement === $("flower-drawer-actions") ||
+      $("delete-panel").parentElement === $("flower-drawer-actions");
+    selectedFlower = null;
+    flowerSignature = "";
+    $("flower-drawer").hidden = true;
+    $("flower-details").hidden = true;
+    if (ownedActions) closeFlowerActions();
+    placeFlowerActions(false);
+    for (const button of $("garden-grid").querySelectorAll("button"))
+      button.setAttribute("aria-expanded", "false");
+    if (restoreFocus && previous)
+      [...$("garden-grid").querySelectorAll("button")]
+        .find((button) => button.dataset.plantId === previous)?.focus({ preventScroll: true });
+  }
+
   function renderFlower() {
     const plant = state.garden.find((item) => item.id === selectedFlower);
-    $("flower-details").hidden = !plant;
+    if (!plant || $("view-garden").hidden) {
+      closeFlowerDrawer(false);
+      return;
+    }
+    const opening = $("flower-drawer").hidden;
+    $("flower-details").hidden = false;
     for (const button of $("garden-grid").querySelectorAll("button")) {
       button.setAttribute(
         "aria-expanded",
         String(button.dataset.plantId === selectedFlower),
       );
     }
-    if (!plant) {
-      selectedFlower = null;
-      return;
-    }
-    const heading = el("div", "section-heading");
-    const close = el("button", "button quiet small", "收起详情");
-    close.type = "button";
-    close.addEventListener("click", () => {
-      const previous = selectedFlower;
-      selectedFlower = null;
-      closeFlowerActions();
-      renderFlower();
-      [...$("garden-grid").querySelectorAll("button")]
-        .find((button) => button.dataset.plantId === previous)
-        ?.focus();
-    });
-    heading.append(el("h2", "", plant.name), close);
+    const signature = JSON.stringify([plant.id, plant.name, plant.species, plant.createdAt, plant.bloomAt, plant.targetMs]);
+    if (signature === flowerSignature && !opening) return;
+    flowerSignature = signature;
+    const heading = el("h2", "flower-detail-title", plant.name);
+    heading.id = "flower-detail-title";
     const metadata = el("dl", "flower-metadata");
     const artwork = el("div", "flower-detail-art");
     const picture = el("div", "plant-sprite");
@@ -675,17 +716,22 @@
     }
     const actions = el("div", "action-row");
     const rename = el("button", "button quiet small", "重命名");
+    rename.id = "flower-rename";
     rename.type = "button";
     rename.addEventListener("click", () => openRename(plant));
     const remove = el("button", "button text-danger small", "移除这朵花");
+    remove.id = "flower-remove";
     remove.type = "button";
     remove.addEventListener("click", () => openDelete(plant));
     actions.append(rename, remove);
     $("flower-details").replaceChildren(heading, artwork, metadata, actions);
+    $("flower-drawer").hidden = false;
+    if (opening) $("flower-drawer-close").focus({ preventScroll: true });
   }
 
   function changeGardenPage(delta) {
     gardenPage += delta;
+    if (typeof closeFlowerDrawer === "function") closeFlowerDrawer(false);
     selectedFlower = null;
     closeFlowerActions();
     gardenSignature = "";
@@ -980,6 +1026,7 @@
   }
 
   function openRename(plant) {
+    placeFlowerActions(!$("flower-drawer").hidden && selectedFlower === plant.id);
     renameId = plant.id;
     $("rename-input").value = plant.name;
     $("rename-input").setCustomValidity("");
@@ -991,16 +1038,19 @@
 
   async function saveRename() {
     if (!$("rename-input").reportValidity()) return;
-    await command(
+    const saved = await command(
       { type: "rename", id: renameId, name: $("rename-input").value },
       () => {
         $("rename-panel").hidden = true;
         notice("名字保存好了。");
       },
     );
+    if (saved && !$("flower-drawer").hidden)
+      $("flower-rename")?.focus({ preventScroll: true });
   }
 
   function openDelete(plant) {
+    placeFlowerActions(!$("flower-drawer").hidden && selectedFlower === plant.id);
     deleteId = plant.id;
     $("delete-message").textContent =
       `「${plant.name}」和它的生长记录会被移除，此操作无法撤销。`;
@@ -1093,13 +1143,14 @@
       jumpToGarden();
     }
   });
-  $("garden-view-mode").addEventListener("change", () => changeGardenScope($("garden-view-mode").value));
-  $("garden-week").addEventListener("change", () => changeGardenScope("week", $("garden-week").value));
+  $("garden-mode-week").addEventListener("click", () => changeGardenScope("week"));
+  $("garden-mode-all").addEventListener("click", () => changeGardenScope("all"));
   $("garden-this-week").addEventListener("click", () => changeGardenScope("week", ""));
   function moveGardenWeek(delta) {
     if (!gardenView) return;
     const index = gardenView.weeks.findIndex((week) => week.key === gardenWeek);
-    const week = gardenView.weeks[index + delta];
+    const group = Math.floor(Math.max(0, index) / WEEK_GROUP_SIZE) + delta;
+    const week = group >= 0 ? gardenView.weeks[group * WEEK_GROUP_SIZE] : null;
     if (week) changeGardenScope("week", week.key);
   }
   $("garden-week-prev").addEventListener("click", () => moveGardenWeek(1));
@@ -1186,24 +1237,43 @@
       saveRename();
     }
   });
+  $("flower-drawer-close").addEventListener("click", () => closeFlowerDrawer(true));
+  document.addEventListener("pointerdown", (event) => {
+    if (!$("flower-drawer").hidden && !$("flower-drawer").contains(event.target) &&
+        !event.target.closest?.(".garden-flower")) closeFlowerDrawer(false);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || $("flower-drawer").hidden) return;
+    event.preventDefault();
+    if (!$("rename-panel").hidden || !$("delete-panel").hidden) {
+      const action = !$("rename-panel").hidden ? "flower-rename" : "flower-remove";
+      closeFlowerActions();
+      $(action)?.focus({ preventScroll: true });
+    } else closeFlowerDrawer(true);
+  });
   $("rename-cancel").addEventListener("click", () => {
     $("rename-panel").hidden = true;
+    if (!$("flower-drawer").hidden) $("flower-rename")?.focus({ preventScroll: true });
   });
   $("delete-cancel").addEventListener("click", () => {
     $("delete-panel").hidden = true;
+    if (!$("flower-drawer").hidden) $("flower-remove")?.focus({ preventScroll: true });
   });
-  $("delete-confirm").addEventListener("click", () =>
-    command({ type: "delete", id: deleteId }, () => {
+  $("delete-confirm").addEventListener("click", async () => {
+    const fromDrawer = !$("flower-drawer").hidden;
+    const removed = await command({ type: "delete", id: deleteId }, () => {
       $("delete-panel").hidden = true;
       notice("已移除这株植物。");
-    }),
-  );
+    });
+    if (removed && fromDrawer) $("tab-garden").focus({ preventScroll: true });
+  });
   try {
     ambienceEnabled = localStorage.getItem("garden-ambience") !== "false";
     compact(localStorage.getItem("garden-compact") === "true");
     const saved = JSON.parse(localStorage.getItem("garden-view") || "null");
     if (saved && typeof saved === "object") {
-      gardenMode = saved.mode === "week" ? "week" : "all";
+      // Weekly albums are the default even when an older page saved the all-time mode.
+      gardenMode = "week";
       gardenWeek = typeof saved.week === "string" ? saved.week : "";
       gardenPage = Number.isSafeInteger(saved.page) ? Math.max(0, saved.page) : 0;
     }

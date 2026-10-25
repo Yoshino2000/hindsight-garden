@@ -1,10 +1,20 @@
 # Verification
 
-Version: **0.8.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.9.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified on 2026-10-25 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.8.0 results
+## Current 0.9.0 results
+
+- **95 automated tests pass, with no skips.** Growth, storage, archive schema and plant-layout modules are unchanged. Existing actual-PNG contact/shadow, SQLite migration/rollback, archive limits and local-calendar checks remain in place. Decorative presentation was checked visually rather than covered by mirror-image CSS tests.
+- Connected Chrome used the original page/worker, real host bridges, restrictive CSP and isolated synthetic SQLite. Selecting a flower opens a fixed right-side, nonmodal drawer without adding a lower page section or increasing page height. A second flower updates it. Rename input survived polling; save, cancel, nested Escape and delete confirmation work inside the drawer. Confirmed deletion closed the drawer, returned shared action panels to their original home and kept the other records. Close/Escape restored flower focus; an outside click closed it, and polling did not reopen it.
+- Weekly albums are directly visible by default, including when the previous saved mode was all-time. Four synthetic weeks showed 32/30/30/30 flowers. Historical-week selection and 25+5 weekly overflow were checked without opening menus. A saved empty historical week correctly explained that 122 flowers remain in other weeks.
+- A 5,001-flower collection retained all 201 gardens, including the last one-flower garden. Its 30 weeks navigated through 1–12, 13–24 and 25–30 windows, with the selected week in view. SVG IDs remained unique across main and miniature scenes. Week cards and garden miniatures remain bounded to twelve each.
+- The narrow body measured 354 CSS pixels with no horizontal overflow. The settled drawer spans x=8..346, width 338; its viewport-unit sizing issue found during inspection was corrected. The close control and nested editor remain usable. The temporary viewport override was reset.
+- Natural flight showed the bird at about 0.036 of scene width, with all three wing poses. The timing and original PNGs are unchanged. The four faint static SVG corner decorations were visually reviewed, clipped outside the original island and hidden in miniatures; original island/bed/plant geometry is unchanged.
+- Final Chrome warning/error logs are empty. The seven permissions, 64 MB and schema 2 are unchanged, with no additional migration. No personal Hindsight database was opened or modified. The final ZIP has not been installed into native Hindsight in this run; real hidden-document, OS-notification and broader native/long-duration limits still apply below.
+
+## Previous 0.8.0 results
 
 - **95 automated tests pass, with no skips.** Two additional geometry regressions check the original PNG seat-edge direction against the complete small shadow polygon (moving, static and motion-off), and the watering can's single base shadow plus removal of the old grey patches. Actual feet, seat contours, pond, ground clip and 4/7 projection remain covered. Growth and SQLite archive logic are unchanged.
 - The flowerbed radius increases from 315 to 350, about **23.5% more area**, while the island stays unchanged. Its plant lattice uses 78.75/45 projected axes. Peripheral swing/pond/sign/fence/can artwork scales to 80%; flowers are slightly larger. Connected Chrome visually reviewed both a full 25-flower garden and a sparse garden. The main scene has one close-fitting watering-can base shadow. The small swing-seat shadow follows the source atlas edge, and Chrome confirmed the same direction with motion disabled and in static miniatures.
@@ -85,7 +95,7 @@ Use the isolated preview with the actual Hindsight bridge, restrictive CSP and s
 
 ## Native checks
 
-**A native installation of the final 0.8.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.8.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
+**A native installation of the final 0.9.0 ZIP has not been performed in this development run.** User-provided Hindsight screenshots show completed flowers from an earlier build, establishing basic planting/bloom use for that build; they do not establish native validation of all 0.9.0 changes. Real operating-system bloom notification presentation for this plugin has not been separately verified. Install the final ZIP through the normal permission review and verify actual category/app/domain capture, background heartbeat, saved progress and notification presentation. A successful simulated-host call does not establish this result.
 
 macOS/Linux, long-duration use, sleep/resume, multiple monitors, clock changes under a real host and every notification configuration require separate verification. Market installation is subject to a published release and maintainer review. No public-market listing is implied by a local package.
 
