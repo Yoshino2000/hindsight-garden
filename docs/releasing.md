@@ -85,3 +85,7 @@ Publish 0.18.0 as a development prerelease from `main`, attaching the ZIP and it
 Describe the resized runtime artwork (originals in `assets-source/`, not packaged; the swing atlas stays original), the 29.3 → 12.1 MB package, the 6-second idle write throttle with immediate writes for growth, penalties, gap resets and reversed clocks, the queued-focus race fix, the bench/blossom layout fixes and the shortened copy. Schema 2, achievement revision 4 (IDs, names and thresholds), seven permissions, 64 MB and the icon are unchanged.
 
 The final ZIP has not been installed in native Hindsight; native worker timer cadence, OS notification delivery and long-running GPU behavior remain unverified. Market listing updates are a separate step.
+
+## 0.19.0 publication
+
+Publish 0.19.0 as a development prerelease from `main`, attaching the ZIP and its `.sha256`. The only change is the planting form's column split (38 : 62 → 42 : 58 in the normal view). Data, permissions, quota, artwork and icon are unchanged. Native installation remains unverified; market listing updates are a separate step.

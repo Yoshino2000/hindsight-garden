@@ -6,7 +6,7 @@
 
 让一段日常，长成一座花园。为 [Hindsight](https://github.com/Tomotsugu-dev/Hindsight) 制作的第三方插件：选择已有分类，累计前台使用时间，慢慢等花开。
 
-**[下载 0.18.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.18.0)** · [安装与使用](docs/usage.zh-CN.md) · [开发与验证](docs/verification.md)
+**[下载 0.19.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.19.0)** · [安装与使用](docs/usage.zh-CN.md) · [开发与验证](docs/verification.md)
 
 0.18.0：安装包从 29 MB 缩小到 12 MB，后台空闲时少写数据库，说明文字更简洁。[本版说明](docs/features-0180.md)
 

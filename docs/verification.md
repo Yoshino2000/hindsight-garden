@@ -1,10 +1,19 @@
 # Verification
 
-Version: **0.18.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.19.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified across 2026-10-25/26 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.18.0 results
+## Current 0.19.0 results
+
+Verified on 2026-10-26 using Node 24.15.0, Python 3.14.4 and the simulated host in the Claude desktop browser pane, with synthetic data only.
+
+- The only change is layout: the two-column planting form (normal view, 540 px and wider) now splits 42 : 58 instead of 38 : 62. At a 1100 px window the columns measured 321 px and 443 px; the plant cards, plan box and right-hand fields render without overlap or overflow.
+- **239 automated tests pass, zero skipped.**
+
+The 0.19.0 ZIP has **not** been installed in native Hindsight; the 0.18.0 native gaps below still apply.
+
+## Previous 0.18.0 results
 
 Verified on 2026-10-26 using Node 24.15.0, Python 3.14.4, extracted host bridges, strict CSP and connected Chrome, with synthetic data only.
 

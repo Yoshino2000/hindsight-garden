@@ -4,6 +4,6 @@
 
 [打开中文首页](../../README.md) · [English](../../README.en.md) · [详细使用说明](../../docs/usage.zh-CN.md)
 
-[下载 0.18.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.18.0)
+[下载 0.19.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.19.0)
 
 ![0.17.0 的花园轻风与贴地阴影](../../docs/screenshots/breeze.jpg)

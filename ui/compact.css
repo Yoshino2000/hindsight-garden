@@ -76,7 +76,7 @@ body:not(.compact) #view-current .current-window-hint { margin-bottom: 12px; fon
 
 @media (min-width: 540px) {
   body:not(.compact) .current-pot-layout { grid-template-columns: minmax(0, 44fr) minmax(0, 56fr); }
-  body:not(.compact) #plant-form { grid-template-columns: minmax(0, 38fr) minmax(0, 62fr); }
+  body:not(.compact) #plant-form { grid-template-columns: minmax(0, 42fr) minmax(0, 58fr); }
   body:not(.compact) #plant-form .species-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 539px) {
