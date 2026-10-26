@@ -417,6 +417,18 @@ test("disabled notifications preserve the completed plant without notes", () => 
   assert.deepEqual(result.notes, []);
 });
 
+test("the interface language is saved only when chosen and old values are dropped", () => {
+  let state = boot();
+  assert.equal(Object.hasOwn(state, "language"), false);
+  state = change(state, { type: "language", language: "ja" }, 0);
+  assert.equal(state.language, "ja");
+  assert.equal(core.normalizeState(JSON.parse(JSON.stringify(state))).language, "ja");
+  state = change(state, { type: "language", language: "auto" }, 0);
+  assert.equal(Object.hasOwn(state, "language"), false);
+  assert.throws(() => core.reduce(state, { type: "language", language: "fr" }, 0), /界面语言/);
+  assert.equal(Object.hasOwn(core.normalizeState({ ...state, language: "fr" }), "language"), false);
+});
+
 test("page actions cannot create elapsed time or mutate their input state", () => {
   const previous = focus(planted(), "reader", 0);
   const frozen = JSON.stringify(previous);

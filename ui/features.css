@@ -7,7 +7,7 @@ textarea { font: inherit; color: inherit; width: 100%; border: 1px solid #dce3d6
 .preset-heading { margin-bottom: 8px; }
 .preset-heading h3 { font-size: 13px; margin-right: auto; }
 .preset-heading select { flex: 1 1 180px; width: auto; min-width: 0; min-height: 36px; padding: 6px 9px; font-size: 12px; }
-.preset-summary { font-size: 11px; line-height: 1.8; color: #657562; white-space: pre-line; margin: 8px 0; overflow-wrap: anywhere; }
+.preset-summary { font-size: 11px; line-height: 1.8; color: #61715f; white-space: pre-line; margin: 8px 0; overflow-wrap: anywhere; }
 .preset-manage { font-size: 12px; margin-top: 10px; }
 .preset-manage summary { cursor: pointer; color: #537349; }
 .preset-manage .field { margin: 12px 0 8px; }
@@ -15,29 +15,29 @@ textarea { font: inherit; color: inherit; width: 100%; border: 1px solid #dce3d6
 .task-memory { padding: 12px 0; margin-top: 12px; border-top: 1px solid var(--line); }
 .task-memory-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
 .task-memory h3 { font-size: 13px; }
-.task-copy { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.9; color: #66765e; }
-.note-privacy { font-size: 10px; line-height: 1.7; color: var(--muted); margin-top: 6px; }
+.task-copy { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.9; color: #617059; }
+.note-privacy { font-size: 11px; line-height: 1.7; color: var(--muted); margin-top: 6px; }
 .review-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 9px; }
 .review-heading h3 { font-size: 13px; }
 .week-review-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
 .review-stat { padding: 9px 8px; border: 1px solid #e1e9d4; border-radius: 10px; background: #fffef8; }
-.review-stat dt { font-size: 10px; color: var(--muted); margin-bottom: 5px; }
+.review-stat dt { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
 .review-stat dd { margin: 0; font-size: 15px; font-weight: 650; color: #46613d; overflow-wrap: anywhere; }
 .review-stat:last-child dd { font-size: 12px; line-height: 1.8; }
-.review-note { font-size: 10px; color: var(--muted); line-height: 1.8; margin: 9px 0; }
+.review-note { font-size: 11px; color: var(--muted); line-height: 1.8; margin: 9px 0; }
 .review-species { display: flex; flex-wrap: wrap; gap: 5px; margin: 7px 0 12px; }
-.review-species span { border-radius: 6px; background: #e9efdf; color: #58714b; padding: 3px 6px; font-size: 10px; }
+.review-species span { border-radius: 6px; background: #e9efdf; color: #58714b; padding: 3px 6px; font-size: 11px; }
 .collection-settings { padding: 18px 20px; }
 .collection-settings > summary { cursor: pointer; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 15px; font-weight: 600; }
 .collection-settings > summary::after { content: "展开"; font-size: 11px; font-weight: 400; color: var(--muted); }
 .collection-settings[open] > summary::after { content: "收起"; }
-.collection-summary { font-size: 11px; color: #6e815d; font-weight: 400; margin-right: auto; }
+.collection-summary { font-size: 11px; color: #617252; font-weight: 400; margin-right: auto; }
 .achievement-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 18px 0 10px; }
 .achievement { min-width: 0; border: 1px solid #e1e7d5; background: #fafbf4; border-radius: 13px; padding: 9px 6px; text-align: center; }
 .achievement-art { width: 66px; max-width: 100%; aspect-ratio: 543 / 724; margin: -8px auto -4px; background-image: url("../assets/collection/milestones.png"); background-size: 400% 100%; background-position: var(--badge-position) center; }
 .achievement[data-earned="false"] .achievement-art { filter: grayscale(.9); opacity: .42; }
 .achievement h3 { font-size: 11px; line-height: 1.6; }
-.achievement p { font-size: 10px; color: var(--muted); line-height: 1.7; margin-top: 3px; }
+.achievement p { font-size: 11px; color: var(--muted); line-height: 1.7; margin-top: 3px; }
 .achievement progress { width: 75%; max-width: 100%; height: 4px; margin-top: 7px; accent-color: #8aa86b; }
 .achievement progress::-webkit-progress-bar { background: #e4eadb; border-radius: 3px; }
 .achievement progress::-webkit-progress-value { background: #8aa86b; border-radius: 3px; }
@@ -45,10 +45,11 @@ textarea { font: inherit; color: inherit; width: 100%; border: 1px solid #dce3d6
 .theme-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .theme-card { min-width: 0; padding: 7px 5px 10px; background: #f7f9ef; border: 1px solid #e0e7d4; border-radius: 12px; color: #4b6043; }
 .theme-card[aria-pressed="true"] { border-color: #7d9e66; box-shadow: 0 0 0 1px #7d9e66; background: #edf3e1; }
-.theme-card:disabled { cursor: default; opacity: .65; }
+.theme-card:disabled { cursor: default; opacity: 1; }
+.theme-card:disabled .theme-art { opacity: .45; filter: grayscale(.5); }
 .theme-card strong, .theme-card small { display: block; }
 .theme-card strong { font-size: 11px; margin-top: 3px; }
-.theme-card small { font-size: 9px; margin-top: 4px; line-height: 1.7; }
+.theme-card small { font-size: 10px; margin-top: 4px; line-height: 1.7; }
 .theme-art { display: block; width: 72px; max-width: 100%; aspect-ratio: 1; margin: auto; background-image: url("../assets/collection/themes.png"); background-size: 300% 100%; background-position: var(--theme-position) center; }
 .theme-card[data-theme="meadow"] .theme-art { background-image: url("../assets/garden/hydrangea.png"); background-size: contain; background-repeat: no-repeat; background-position: center; }
 .theme-ornament { position: absolute; top: 15%; right: 10%; width: 14%; aspect-ratio: 1; background-image: url("../assets/collection/themes.png"); background-size: 300% 100%; background-position: var(--theme-position) center; pointer-events: none; opacity: .82; }
@@ -73,7 +74,7 @@ textarea { font: inherit; color: inherit; width: 100%; border: 1px solid #dce3d6
   .achievement-list, .theme-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .achievement { display: grid; grid-template-columns: 45px minmax(0, 1fr); text-align: left; align-items: center; padding: 7px; gap: 0 5px; }
   .achievement-art { grid-row: 1 / 4; width: 45px; }
-  .achievement h3 { font-size: 10px; }
+  .achievement h3 { font-size: 11px; }
   .achievement progress { width: 100%; }
   .theme-card { display: grid; grid-template-columns: 45px minmax(0, 1fr); text-align: left; align-items: center; padding: 6px; gap: 0 4px; }
   .theme-art { width: 45px; grid-row: 1 / 3; }

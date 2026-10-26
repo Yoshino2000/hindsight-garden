@@ -1,10 +1,19 @@
 # Verification
 
-Version: **0.21.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.22.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified across 2026-10-25/26 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.21.0 results
+## Current 0.22.0 results
+
+Verified on 2026-10-27 using Node 24.15.0, Python 3.14.4 and the simulated host in the Claude desktop browser pane, with synthetic data only.
+
+- **249 automated tests pass, zero skipped.** New cases cover the `language` command (set, back to "auto", invalid values) and its normalization, a cached page choice winning over the system language with unreadable storage falling back, and a worker on an English system sending a Japanese bloom notification after Japanese is chosen.
+- A contrast scan of every visible text element on the current pot, planting form and garden pages (computed colour and opacity against the composited background) found nothing below 4.5:1 apart from disabled buttons and two counters at 4.4:1. Before the change the same scan of the planting page alone found 28 groups of text between 1.8:1 and 3.9:1.
+- Switching to English, Japanese and back to System default each reloaded the page once in the chosen language. With the cached choice cleared, a reload followed by one sync reload restored the saved language, with no further reloads.
+- The stage ticks, rule chips with "or", penalty chip and timeline, flower icons in the week review, hidden-collection pips and badge legend rendered at 1280 px; at 460 px the header (English included), planting form and compact mode had no horizontal overflow, and compact mode hides the language picker.
+
+## Previous 0.21.0 results
 
 Verified on 2026-10-26 using Node 24.15.0, Python 3.14.4 and the simulated host in the Claude desktop browser pane, with synthetic data only.
 
@@ -12,7 +21,7 @@ Verified on 2026-10-26 using Node 24.15.0, Python 3.14.4 and the simulated host 
 - A real one-minute tulip with auto-replant bloomed in the worker: one archived flower, one notification, the bloom card reporting the next pot, and a new pot with the same name, an empty note and continuing growth. Switching auto-replant off on the growing pot persisted across polls.
 - The planting notice cleared once growth started. The diagnosis folded to one line while growing; a manual expand stayed open across refreshes. The progress line read "还需 51 秒开花 · 8 秒后发芽" at 9%.
 
-The 0.21.0 ZIP has **not** been installed in native Hindsight; OS notifications and native timer cadence remain unverified.
+The 0.21.0 ZIP has been installed and used in native Hindsight.
 
 ## Previous 0.20.0 results
 

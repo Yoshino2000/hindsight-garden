@@ -6,9 +6,9 @@
 
 Let a little everyday time become a garden. A third-party [Hindsight](https://github.com/Tomotsugu-dev/Hindsight) plugin that grows flowers from matching foreground activity, using your existing categories.
 
-**[Download 0.21.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.21.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
+**[Download 0.22.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.22.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
 
-Version 0.21.0 can replant automatically at bloom so no growing time is lost, and shows the time left to bloom and to the next stage.
+Version 0.22.0 raises text contrast, shows more information as stage ticks, icons and small graphics, and adds a language picker in the top corner.
 
 ![A complete garden with its own furniture, compact navigation and motion controls](docs/screenshots/garden.jpg)
 
@@ -72,7 +72,7 @@ Meadow keeps its gentle swing. Light rain falls continuously in the rain theme a
 
 ## Your interface language, your own words
 
-The interface follows the environment language: Simplified Chinese, English or Japanese, with English as the fallback. Flower names, task memories and Hindsight category names keep their original text.
+The interface follows the environment language by default: Simplified Chinese, English or Japanese, with English as the fallback. You can also pick a language in the top corner; bloom notifications use the same choice. Flower names, task memories and Hindsight category names keep their original text.
 
 ![Live Japanese interface showing hidden-collection achievements](docs/screenshots/interface-ja.jpg)
 

@@ -68,7 +68,7 @@ async function run(input, options) {
   if (result.state.sessionId !== sessionId) { superseded = true; return; }
   for (const note of result.notes) {
     try {
-      await notify(GardenI18n.message(note.body));
+      await notify(GardenI18n.create(result.state.language || navigator.language).message(note.body));
     } catch (error) {
       // The bloom is already saved. Never resend after a timeout: delivery may have succeeded.
       await store.apply({

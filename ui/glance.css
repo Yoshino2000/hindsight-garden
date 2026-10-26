@@ -1,0 +1,75 @@
+/* At-a-glance pieces that replace explanatory sentences: the language picker, stage ticks,
+   rule chips, the penalty timeline, flower icons and collection pips. Full explanations stay in
+   each element's title. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.count-pill { display: inline-block; border-radius: 999px; background: #eef2e4; color: #4f6247; padding: 1px 8px; font-size: 11px; font-weight: 600; line-height: 1.7; font-variant-numeric: tabular-nums; vertical-align: 1px; }
+
+.header-controls { display: flex; align-items: center; gap: 8px; }
+.language-control { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #dfe5d6; border-radius: 10px; background: #fffef8; padding: 0 2px 0 8px; color: #4f6247; cursor: pointer; }
+.language-control:focus-within { outline: 2px solid #75975d; outline-offset: 2px; }
+.language-icon { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.3; }
+.language-control select { width: auto; min-height: 32px; border: 0; background: transparent; padding: 4px 4px; font-size: 12px; color: inherit; cursor: pointer; }
+.language-control select:focus-visible { outline: none; }
+body.compact .language-control { display: none; }
+
+/* Quarter ticks on the growth bar; passed stages turn white against the fill. */
+.progress { position: relative; }
+.progress-ticks { position: absolute; inset: 0; pointer-events: none; }
+.progress-ticks i { position: absolute; top: 1px; bottom: 1px; width: 2px; margin-left: -1px; border-radius: 1px; background: #c9d3bb; }
+.progress-ticks i[data-stage="1"] { left: 25%; }
+.progress-ticks i[data-stage="2"] { left: 50%; }
+.progress-ticks i[data-stage="3"] { left: 75%; }
+.progress[data-stage="1"] i[data-stage="1"],
+.progress[data-stage="2"] i:is([data-stage="1"], [data-stage="2"]),
+.progress:is([data-stage="3"], [data-stage="4"]) i { background: #fffef8b3; }
+
+.active-rule-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; }
+.active-rule-row .rule-summary { margin: 0; align-items: center; }
+.rule-summary .rule-or { border: 0; background: none; padding: 0 1px; color: #656f5f; font-size: 11px; }
+.mode-chip { display: inline-flex; align-items: center; gap: 5px; border-radius: 9px; padding: 5px 9px; font-size: 12px; background: #eef1f4; color: #4d5a66; }
+.mode-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #8fa0ad; }
+.mode-chip[data-penalty="true"] { background: #f8ece6; color: #8b4f3f; }
+.mode-chip[data-penalty="true"]::before { background: #c9806b; }
+
+.variant-chance { margin-left: 8px; border-radius: 999px; background: #f1e9f6; color: #6f4f87; padding: 1px 7px; font-size: 11px; font-weight: 600; cursor: help; }
+
+/* Growing → grace → deduction, sized like a small timeline. */
+.penalty-timeline { display: flex; align-items: stretch; height: 24px; margin-top: 10px; border-radius: 7px; overflow: hidden; font-size: 11px; font-weight: 600; cursor: help; }
+.penalty-step { display: flex; align-items: center; justify-content: center; white-space: nowrap; padding: 0 8px; }
+.penalty-step.grow { flex: 1.3; background: linear-gradient(90deg, #cfe0bf, #a9c58f); }
+.penalty-step.grace { flex: 1; background: repeating-linear-gradient(135deg, #f2eedc 0 6px, #e8e2c8 6px 12px); color: #5e5a3f; }
+.penalty-step.cut { flex: none; background: #a65d49; color: #fff; }
+
+.check-row { align-items: center; }
+.check-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--leaf); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Week review: a flower icon and its count per species. */
+.review-species .review-species-chip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px 2px 3px; background: #f3f6ec; border: 1px solid #e1e8d5; border-radius: 999px; color: #3f5539; font-size: 12px; }
+.review-species-chip .garden-flower-art { width: 22px; height: 22px; }
+.review-species-chip b { font-weight: 650; font-variant-numeric: tabular-nums; }
+
+.focus-statistics-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.focus-statistics-heading h3 { margin: 0; cursor: help; }
+
+.hidden-collection { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 4px; cursor: help; }
+.hidden-collection-label { font-size: 12px; font-weight: 650; color: #6f4f87; }
+.hidden-collection-pips { display: flex; gap: 3px; }
+.hidden-collection-pip { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #f1ecf4; }
+.hidden-collection-pip .garden-flower-art { width: 22px; height: 22px; }
+.hidden-collection-pip[data-found="false"] .garden-flower-art { filter: grayscale(1); opacity: 0.35; }
+.hidden-collection-pip[data-found="true"] { background: #e8dcf1; box-shadow: 0 0 0 1px #c9b2dc; }
+.hidden-collection .count-pill { background: #f1e9f6; color: #6f4f87; }
+
+/* Badge tiers as swatches, the last one a completed-group card. */
+.metal-legend { display: flex; align-items: center; gap: 5px; margin: 8px 0 10px; cursor: help; }
+.metal-legend i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; background: #fff; }
+.metal-legend i[data-metal="white"] { border-color: #c9ccc2; }
+.metal-legend i[data-metal="blue"] { border-color: #79adcf; }
+.metal-legend i[data-metal="purple"] { border-color: #af88d0; }
+.metal-legend i[data-metal="gold"] { border-color: #d4af60; }
+.metal-legend i[data-metal="rainbow"] { border-color: #79adcf #af88d0 #d4af60 #d58fa9; }
+.metal-legend-complete { width: 22px; height: 14px; margin-left: 6px; border-radius: 4px; background: #fff3d2; border: 1px solid #d6bd7b; }
+
+#connection { display: inline-flex; align-items: center; gap: 6px; }
+#connection::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #c6c9bd; }
+#connection[data-fresh="true"]::before { background: #6d9b61; box-shadow: 0 0 0 3px #6d9b6126; }

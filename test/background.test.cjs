@@ -532,6 +532,17 @@ test("background bloom notifications follow English, Japanese and fallback syste
   }
 });
 
+test("a chosen interface language overrides the system language for bloom notifications", async (t) => {
+  const host = hostFor(t);
+  const store = await seeded(host);
+  await store.apply({ type: "language", language: "ja" }, 0);
+  const live = worker(host, 0, 0.5, "en-US");
+  t.after(() => live.close());
+  await live.focus({ app: "reader" });
+  await live.grow(60000);
+  assert.equal(host.notifications[0].body, "「阅读绣球」が咲きました！庭を見に来てください。");
+});
+
 test("queued focus changes settle at reception time instead of crediting the previous app during a slow write", async (t) => {
   const host = hostFor(t);
   await seeded(host);

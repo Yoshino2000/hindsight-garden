@@ -7,31 +7,31 @@
 .garden-album-layout[data-mode="all"] { grid-template-columns: minmax(0, 1fr); }
 .garden-week-browser { min-width: 0; }
 .garden-week-heading { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 8px; }
-.garden-week-heading p { font-size: 10px; margin: 0; }
-.garden-week-heading .button { font-size: 10px; padding: 6px 8px; }
+.garden-week-heading p { font-size: 11px; margin: 0; }
+.garden-week-heading .button { font-size: 11px; padding: 6px 8px; }
 .garden-week-list { position: relative; margin: 0; padding: 2px 3px 2px 0; list-style: none; overflow: visible; }
 .garden-week-entry { position: relative; margin-bottom: 4px; }
 .garden-week-card { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 7px; min-width: 0; border: 1px solid #e0e8d3; border-radius: 9px; background: #fafbf3; text-align: left; color: #34473b; padding: 7px 8px; transition: background-color 160ms ease, border-color 160ms ease; }
 .garden-week-card[aria-pressed="true"] { border-color: #91ac75; background: #edf3e1; box-shadow: inset 2px 0 #91ac75; }
 .week-card-dates { display: flex; gap: 5px; align-items: baseline; min-width: 0; }
 .week-card-title { font-size: 11px; font-weight: 600; white-space: nowrap; }
-.week-card-range { font-size: 9px; color: var(--muted); white-space: nowrap; }
-.week-card-count { font-size: 10px; color: #567647; white-space: nowrap; }
+.week-card-range { font-size: 10px; color: var(--muted); white-space: nowrap; }
+.week-card-count { font-size: 11px; color: #557446; white-space: nowrap; }
 .album-week-navigation { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-top: 7px; }
-.album-week-navigation .button { padding: 5px 7px; font-size: 10px; }
-#garden-week-range { font-size: 9px; }
+.album-week-navigation .button { padding: 5px 7px; font-size: 11px; }
+#garden-week-range { font-size: 10px; }
 .week-locate { display: flex; gap: 5px; align-items: center; margin-top: 10px; }
-.week-locate label { font-size: 10px; flex-shrink: 0; color: var(--muted); }
-.week-locate input { min-width: 0; width: 100%; min-height: 31px; padding: 4px 5px; font-size: 10px; }
-.week-locate button { flex-shrink: 0; white-space: nowrap; font-size: 10px; padding: 5px 6px; }
+.week-locate label { font-size: 11px; flex-shrink: 0; color: var(--muted); }
+.week-locate input { min-width: 0; width: 100%; min-height: 31px; padding: 4px 5px; font-size: 11px; }
+.week-locate button { flex-shrink: 0; white-space: nowrap; font-size: 11px; padding: 5px 6px; }
 .garden-album-panel { min-width: 0; border: 1px solid #dbe5ce; border-radius: 13px; background: #f8faf1; padding: 13px; }
-.album-context { color: #5c7452; font-size: 11px; line-height: 1.7; margin: 0 0 10px; }
+.album-context { color: #5b7351; font-size: 11px; line-height: 1.7; margin: 0 0 10px; }
 .garden-album-panel .garden-album-card { flex-basis: 82px; width: 82px; background: #fffef8; }
 .garden-album-panel .garden-jump { margin: 10px 0 0; gap: 6px; font-size: 11px; }
 .garden-album-panel .garden-jump input { width: 60px; padding: 5px 7px; min-height: 32px; }
 .garden-album-panel .garden-jump .button { font-size: 11px; padding: 6px 9px; }
 .garden-album-panel .garden-album-navigation { margin-top: 9px; }
-.garden-album-panel .garden-album-navigation .button { font-size: 10px; padding: 5px 7px; }
+.garden-album-panel .garden-album-navigation .button { font-size: 11px; padding: 5px 7px; }
 @media (max-width: 620px) {
   .garden-album-layout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .garden-week-card { padding: 6px 9px; }

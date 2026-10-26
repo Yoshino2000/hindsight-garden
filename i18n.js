@@ -2533,6 +2533,66 @@
   "花园归档版本已到上限，已有记录已保留，请备份后检查。": [
     "The garden archive version has reached its limit. Existing records are preserved; back up and inspect the data.",
     "庭のアーカイブバージョンが上限に達しました。既存記録は保持しています。バックアップして確認してください。"
+  ],
+  "界面语言": [
+    "Language",
+    "表示言語"
+  ],
+  "跟随系统": [
+    "System default",
+    "システムに合わせる"
+  ],
+  "界面语言设置不正确。": [
+    "Invalid language setting.",
+    "表示言語の設定が正しくありません。"
+  ],
+  "只留下一盆花。在 Hindsight「设置 → 插件」中还可选择独立窗口。": [
+    "Show only the pot. Hindsight Settings → Plugins can also open the garden in its own window.",
+    "鉢だけを表示します。Hindsight の「設定 → プラグイン」で別ウィンドウにもできます。"
+  ],
+  "满足任意一条即可生长": [
+    "Grows when any rule matches",
+    "どれか一つに当てはまれば育ちます"
+  ],
+  "{0} 秒宽限": [
+    "{0} s grace",
+    "猶予 {0} 秒"
+  ],
+  "中断时暂停": [
+    "Pauses on interruption",
+    "中断中は一時停止"
+  ],
+  "中断扣 {0} · 宽限 {1} 秒": [
+    "Interruption −{0} · {1} s grace",
+    "中断で −{0} · 猶予 {1} 秒"
+  ],
+  "或": [
+    "or",
+    "または"
+  ],
+  "后台运行中": [
+    "Running in the background",
+    "バックグラウンドで実行中"
+  ],
+  "当前处于暂停状态，播种后可点击「继续生长」。": [
+    "Growth is paused. After planting, choose “Resume growth”.",
+    "一時停止中です。種をまいたら「成長を再開」を押してください。"
+  ],
+  "✧ 梦色收藏": [
+    "✧ Hidden collection",
+    "✧ 夢色コレクション"
+  ],
+  "{0} 株 · {1} / 8 种": [
+    "{0} flowers · {1} / 8 species",
+    "{0} 株 · {1} / 8 種"
+  ],
+  "统计养花且符合规则时的有效生长时间。最多单列 24 个分类，之后的新分类汇总为「其他」。": [
+    "Effective growth time: time spent growing a plant while its rules match. Up to 24 categories are listed; newer ones are grouped as “Other”.",
+    "鉢を育て、ルールに合っていた有効な成長時間です。分類は24個まで個別に表示し、それ以降は「その他」にまとめます。"
+  ],
+  "{0} 个分类 · {1} 个大类": [
+    "{0} categories · {1} groups",
+    "分類 {0} 件 · 大分類 {1} 件"
   ]
 };
   function resolveLanguage(value) {
@@ -2611,7 +2671,16 @@
     return { locale, t, message, achievement, localizeDocument };
   }
   function escapeRegex(value) { return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
-  const api = create(root.navigator?.language || root.navigator?.languages?.[0] || "en");
+  // The page caches the saved language choice so it can localize before the store loads. The
+  // worker has no localStorage and reads the choice from the saved state instead.
+  function preferred() {
+    try {
+      const saved = root.localStorage?.getItem("garden-language");
+      if (saved) return saved;
+    } catch (_) { /* Storage may be unavailable; follow the system. */ }
+    return root.navigator?.language || root.navigator?.languages?.[0] || "en";
+  }
+  const api = create(preferred());
   Object.assign(api, { create, resolveLanguage, MESSAGES });
   root.GardenI18n = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

@@ -6,7 +6,7 @@
   background: #f7f7ee;
   --leaf: #477654;
   --leaf-dark: #345b3e;
-  --muted: #7b877b;
+  --muted: #656f65;
   --line: #e5e9dd;
 }
 
@@ -40,7 +40,7 @@ button {
   cursor: pointer;
 }
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.62;
   cursor: wait;
 }
 h1,
@@ -73,7 +73,7 @@ select {
   padding: 9px 11px;
 }
 input::placeholder {
-  color: #9a9f92;
+  color: #83887a;
 }
 input[type="checkbox"],
 input[type="radio"] {
@@ -125,7 +125,7 @@ input[type="radio"] {
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: #7c897c;
+  color: #646e64;
   padding: 10px;
   font-weight: 650;
 }
@@ -165,7 +165,7 @@ input[type="radio"] {
 .badge {
   font-size: 11px;
   background: #edf2e4;
-  color: #6b825c;
+  color: #5d7250;
   padding: 5px 10px;
   border-radius: 20px;
 }
@@ -175,7 +175,7 @@ input[type="radio"] {
 }
 .stage-name {
   font-size: 11px;
-  color: #9b9e8c;
+  color: #6c6e5d;
 }
 .plant-scene {
   position: relative;
@@ -213,7 +213,7 @@ input[type="radio"] {
   overflow-wrap: anywhere;
 }
 .hero-caption {
-  color: #83907c;
+  color: #65705f;
   font-size: 12px;
   line-height: 1.7;
 }
@@ -254,7 +254,7 @@ input[type="radio"] {
 }
 .quiet {
   background: #eef1e8;
-  color: #697c62;
+  color: #5f7159;
 }
 .quiet:hover {
   background: #e4eadb;
@@ -266,7 +266,7 @@ input[type="radio"] {
 }
 .text-danger {
   background: transparent;
-  color: #a37669;
+  color: #8b6155;
 }
 .text-danger:hover {
   background: #fbefea;
@@ -296,7 +296,7 @@ input[type="radio"] {
   display: flex;
   justify-content: space-between;
   margin-top: 8px;
-  color: #7c8c6c;
+  color: #626f56;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
@@ -341,7 +341,7 @@ input[type="radio"] {
   max-width: 100%;
   border: 1px solid #e7ebdf;
   background: #f7f9f1;
-  color: #718466;
+  color: #617158;
   border-radius: 9px;
   padding: 6px 9px;
   font-size: 12px;
@@ -357,7 +357,7 @@ input[type="radio"] {
   margin-top: 12px;
 }
 .subtle {
-  color: #8e9788;
+  color: #676f61;
   font-size: 11px;
   line-height: 1.7;
 }
@@ -375,7 +375,7 @@ input[type="radio"] {
   font-weight: 600;
 }
 .field small {
-  color: #8b9684;
+  color: #656f5f;
   font-size: 11px;
   font-weight: 400;
   line-height: 1.7;
@@ -389,7 +389,7 @@ input[type="radio"] {
   width: 120px;
 }
 .input-unit > span {
-  color: #8b9684;
+  color: #656f5f;
   font-weight: 400;
 }
 fieldset {
@@ -419,7 +419,7 @@ legend {
   padding: 8px 6px 12px;
   cursor: pointer;
   font-size: 12px;
-  color: #8b9482;
+  color: #676f5f;
 }
 .species-option:has(input:checked) {
   border-color: #93ad79;
@@ -456,7 +456,7 @@ legend {
   font-size: 18px;
 }
 .species-botanical {
-  color: #7d8d70;
+  color: #636f58;
   font-size: 11px;
   line-height: 1.6;
   margin-bottom: 7px;
@@ -473,20 +473,20 @@ legend {
   font-weight: 600;
   margin-top: 13px;
 }
-.species-guide dd { margin: 4px 0 0; color: #77846c; }
+.species-guide dd { margin: 4px 0 0; color: #65705c; }
 .species-sources {
   margin-top: 15px;
   padding-top: 10px;
   border-top: 1px solid #e2e8d7;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.7;
   text-align: left;
-  color: #939d87;
+  color: #66705b;
 }
 .species-guide-note {
   margin-top: 8px;
-  color: #939d87;
-  font-size: 10px;
+  color: #66705b;
+  font-size: 11px;
   line-height: 1.7;
   text-align: left;
 }
@@ -495,8 +495,8 @@ legend {
   border: 1px solid #dfe7ce;
   border-radius: 10px;
   padding: 4px 9px;
-  color: #8a9874;
-  font-size: 10px;
+  color: #646f53;
+  font-size: 11px;
   margin-top: 12px;
 }
 .field-intro {
@@ -533,7 +533,7 @@ legend {
   align-items: center;
   gap: 7px;
   font-size: 11px;
-  color: #8a9580;
+  color: #656f5c;
   margin-top: 8px;
 }
 .check-row {
@@ -702,7 +702,7 @@ legend {
   background: #e7eed8;
 }
 .garden-heading .eyebrow {
-  font-size: 10px;
+  font-size: 11px;
 }
 .garden-scene-viewport {
   display: flow-root;
@@ -858,7 +858,7 @@ legend {
   padding: 2px 8px 0;
 }
 .garden-toolbar .garden-pagination { padding-top: 0; justify-content: flex-start; gap: 8px; }
-.garden-toolbar .garden-pagination .subtle { font-size: 10px; }
+.garden-toolbar .garden-pagination .subtle { font-size: 11px; }
 .garden-motion-setting {
   display: flex;
   justify-content: flex-end;
@@ -884,7 +884,7 @@ legend {
   cursor: pointer;
 }
 .garden-motion-setting .subtle {
-  font-size: 10px;
+  font-size: 11px;
 }
 @keyframes garden-swing {
   0%, 100% { transform: rotate(-4deg); }
@@ -1025,7 +1025,7 @@ legend {
   outline-offset: 2px;
 }
 .garden-scene-caption {
-  color: #8a9979;
+  color: #647055;
   font-size: 11px;
   line-height: 1.8;
   max-width: 380px;
@@ -1056,12 +1056,12 @@ legend {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 8px 14px;
-  color: #7a8971;
+  color: #64705c;
   font-size: 12px;
   margin: 15px 0;
 }
 .flower-metadata dt {
-  color: #9aa28f;
+  color: #676f5c;
 }
 .flower-metadata dd {
   margin: 0;
@@ -1087,12 +1087,12 @@ legend {
   overflow-wrap: anywhere;
 }
 .error {
-  color: #995f50;
+  color: #975e4f;
   background: #fbebe4;
   border: 1px solid #efddd2;
 }
 .notice {
-  color: #5d7850;
+  color: #59734d;
   background: #eaf2df;
   border: 1px solid #dce8ce;
 }
@@ -1102,8 +1102,8 @@ legend {
   padding: 30px 10px;
 }
 .app-footer {
-  color: #a0a590;
-  font-size: 10px;
+  color: #6a6f5a;
+  font-size: 11px;
   text-align: center;
   line-height: 1.8;
   padding-top: 3px;
@@ -1186,7 +1186,7 @@ body.compact .hero h2 {
     font-size: 23px;
   }
   .eyebrow {
-    font-size: 10px;
+    font-size: 11px;
   }
   .card {
     padding: 17px;
@@ -1202,7 +1202,7 @@ body.compact .hero h2 {
     gap: 8px;
   }
   .species-option {
-    font-size: 10px;
+    font-size: 11px;
   }
   .field-pair {
     gap: 8px;
@@ -1223,10 +1223,10 @@ body.compact .hero h2 {
   }
   .garden-heading .eyebrow {
     letter-spacing: 0;
-    font-size: 9px;
+    font-size: 10px;
   }
   .garden-heading .badge {
-    font-size: 10px;
+    font-size: 11px;
     padding: 5px 7px;
   }
   .garden-pagination {

@@ -8,7 +8,7 @@ Grow a small garden while you use your computer. A third-party plugin for [Hinds
 
 - **Eight plants**: sunflower, hydrangea, tulip, daisy, rose, lavender, cosmos and lily, each with five growth stages.
 - **Eight hidden palettes**: each flower has one hidden color, with an independent 5% chance per bloom and no guaranteed drop. The saved result stays with the flower. Older mature flowers keep their original colors and are not rerolled.
-- **Offline interface languages**: Simplified Chinese, English or Japanese follows the environment language when the page opens; other languages fall back to English. Saved flower names, notes and host category names are not translated or rewritten.
+- **Offline interface languages**: Simplified Chinese, English or Japanese follows the environment language by default, with English as the fallback, or pick one in the top corner. Saved flower names, notes and host category names are not translated or rewritten.
 - **A complete garden scene**: finished flowers grow on an isometric garden island with paths, pond and fence. The flowerbed area is 23.5% larger, with surrounding decorations scaled to 80%; the island, bed and planting positions retain one symmetric 4/7 projection. Layered trees, distant hills, a seed basket, ferns and small verge details frame the four corners behind the island and are omitted from thumbnails. The watering can has one close-fitting base shadow, and the swing seat's small shadow follows its illustrated direction even with motion off. Names and records stay hidden until you choose a flower; close its details to return to the whole garden.
 - **A compact garden album**: weekly mode opens by default, with five earlier-to-later weeks per page and the selected week's review and small garden previews beside it. Use previous/next pages when there are more than five weeks. Narrow windows stack these sections. Garden thumbnails still use groups of at most 12; date navigation reveals the page containing any local week, including an empty one. A short transition accompanies explicit week changes and respects reduced-motion settings.
 - **Saved planting plans**: save up to 20 named sets of species, target time, rules and penalty settings. Plan choices show your name, the current category/rules and target minutes without rewriting saved names. Load, update or delete a plan, or reuse the last planting settings, then confirm the next planting yourself. Enter in the plan-name field saves a plan without planting. Flower names and task notes are not copied into plans.
@@ -53,14 +53,14 @@ Preview with synthetic test data. Scenery is original; plant art was created for
 
 ## Install
 
-Requires Hindsight **0.10.0 or later**, or **0.10.2 or later** for market installation. Version 0.21.0 is a prerelease of an experimental personal plugin, not an official Hindsight plugin. Basic functionality is usable, and development and iteration are ongoing. It has not been exhaustively tested and may contain problems or risks.
+Requires Hindsight **0.10.0 or later**, or **0.10.2 or later** for market installation. Version 0.22.0 is a prerelease of an experimental personal plugin, not an official Hindsight plugin. Basic functionality is usable, and development and iteration are ongoing. It has not been exhaustively tested and may contain problems or risks.
 
-1. Download the prerelease `hindsight-garden-0.21.0.zip` from [Releases](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.21.0), or build it below.
+1. Download the prerelease `hindsight-garden-0.22.0.zip` from [Releases](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.22.0), or build it below.
 2. In Hindsight, open **Settings → Plugins** and choose the local ZIP installation option.
 3. Review the seven permissions and the 64 MB database allowance, then install.
 4. Open **时光花园**, pick a plant, give it a name and select a Hindsight category or group. App/domain rules are optional.
 
-**Back up the plugin database before upgrading.** Stop Hindsight or use SQLite's online backup facility to obtain a consistent copy. Update the same plugin without deleting its data. Version 0.21.0 retains schema 2, seven API permissions, 64 MB and achievement revision 4. The icon is unchanged; since 0.18.0, asset PNGs are resized to their display size with the same artwork. Existing flowers, progress, observed-growth statistics and earned dates are retained, including the original 36 conditions. Updating from 0.16.0 or later never redraws a hidden result. Older mature flowers are not rerolled; an older active pot receives one persisted ticket during upgrade and reveals its result at bloom. Earlier gardens still establish their ordinary collection baseline from the remaining archive; previously deleted flowers cannot be recovered. Upgrades from before 0.5.0 include the 4-to-64 MB allowance change, and upgrades from 0.1.0 include the category permissions introduced in 0.2.0.
+**Back up the plugin database before upgrading.** Stop Hindsight or use SQLite's online backup facility to obtain a consistent copy. Update the same plugin without deleting its data. Version 0.22.0 retains schema 2, seven API permissions, 64 MB and achievement revision 4. The icon is unchanged; since 0.18.0, asset PNGs are resized to their display size with the same artwork. Existing flowers, progress, observed-growth statistics and earned dates are retained, including the original 36 conditions. Updating from 0.16.0 or later never redraws a hidden result. Older mature flowers are not rerolled; an older active pot receives one persisted ticket during upgrade and reveals its result at bloom. Earlier gardens still establish their ordinary collection baseline from the remaining archive; previously deleted flowers cannot be recovered. Upgrades from before 0.5.0 include the 4-to-64 MB allowance change, and upgrades from 0.1.0 include the category permissions introduced in 0.2.0.
 
 **Do not downgrade or run old and new versions together.** Version 0.15.0 and earlier do not understand revision 4 and its hidden state, and can reject reads. Persistent database guards also reject writes that discard new fields or change the ticket of the same active plant. Close old pages/workers and reopen the latest version. To return, restore a consistent pre-upgrade backup. A matching archive schema number does not guarantee compatible state writes.
 
@@ -80,7 +80,7 @@ From 0.18.0, the worker saves its state every 6 seconds while idle; growth, pena
 
 Date navigation accepts January 1, 1970 through December 31, 9999 and reports unsupported dates explicitly. The minimum day belongs to the week beginning December 29, 1969. An unusual old archive with deeply nested extra metadata remains readable. If it exceeds SQLite's JSON depth limit, renaming or editing its task note is refused clearly while retaining the original record; viewing and explicit removal remain available. Do not edit the database to bypass this limit.
 
-See [verification](verification.md) for final test results, the [0.21.0 notes](features-0210.md) for this version, the [0.20.0 notes](features-0200.md) for the bloom card and duration shortcuts, the [0.18.0 notes](features-0180.md) for the package and idle-write changes, and the [0.17.0 audit](audit-0170.md) for earlier measured problems and limits. Checks use an isolated simulated host and synthetic data; no personal Hindsight database was read or written. The final ZIP has not been installed in native Hindsight. OS bloom notifications and long-running GPU performance remain unverified. English, Japanese and fallback notification templates were checked in an independent VM; page-language simulation does not change the worker's host language and does not establish an English OS notification.
+See [verification](verification.md) for final test results, the [0.22.0 notes](features-0220.md) for this version, the [0.21.0 notes](features-0210.md) for auto-replant, the [0.20.0 notes](features-0200.md) for the bloom card and duration shortcuts, the [0.18.0 notes](features-0180.md) for the package and idle-write changes, and the [0.17.0 audit](audit-0170.md) for earlier measured problems and limits. Checks use an isolated simulated host and synthetic data; no personal Hindsight database was read or written. Version 0.21.0 has been installed and used in native Hindsight.
 
 The default opens in a separate **ordinary window**. Its title bar, background and overlap with other windows are controlled by Hindsight. Transparent desktop overlays, always-on-top, click-through and autonomous window movement are not supported. Use Hindsight's plugin settings to change where the page opens; compact view only changes this plugin's layout.
 
@@ -148,7 +148,9 @@ Sixteen new permanent conditions cover the first hidden bloom and 5/10/25/50 hid
 
 The [eight-palette comparison](screenshots/hidden-colors.jpg) is manually arranged to demonstrate the original/hidden colors, not a sample validating the 5% probability. [Hidden flower details](screenshots/hidden-detail.jpg) show palette, dates and task memory.
 
-## Automatic interface language
+## Interface language
+
+The globe in the top corner offers System default, 中文, English and 日本語. The choice is saved in the plugin database and bloom notifications use it too; the page reloads once after a change. With System default:
 
 | Environment language | Interface |
 |---|---|
@@ -156,4 +158,4 @@ The [eight-palette comparison](screenshots/hidden-colors.jpg) is manually arrang
 | `ja*` | Japanese |
 | `en*` and every other language | English |
 
-Selection happens when the plugin opens. Interface and plant-guide translations are bundled offline. Flower names, notes, plan names and Hindsight categories retain their original text. Reopen the plugin after changing the environment language. The new [English pot](screenshots/interface-en.jpg) and [Japanese achievements](screenshots/interface-ja.jpg) are actual localized captures; some older planting, growth and plant-guide examples remain Chinese.
+Interface and plant-guide translations are bundled offline. Flower names, notes, plan names and Hindsight categories retain their original text. With System default, reopen the plugin after changing the environment language. The new [English pot](screenshots/interface-en.jpg) and [Japanese achievements](screenshots/interface-ja.jpg) are actual localized captures; some older planting, growth and plant-guide examples remain Chinese.

@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="variants.css" />
     <link rel="stylesheet" href="breeze.css" />
     <link rel="stylesheet" href="bloom.css" />
+    <link rel="stylesheet" href="glance.css" />
   </head>
   <body>
     <main class="app">
@@ -25,14 +26,18 @@
           <p class="eyebrow">一小段时间，一点点生长</p>
           <h1>时光花园<span class="brand-dot" aria-hidden="true"></span></h1>
         </div>
-        <button
-          id="compact-toggle"
-          class="button quiet small"
-          type="button"
-          aria-pressed="false"
-        >
-          紧凑模式
-        </button>
+        <div class="header-controls">
+          <label class="language-control" for="language" title="界面语言"><svg class="language-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.25"/><path d="M1.75 8h12.5M8 1.75c-2.4 2.4-2.4 10.1 0 12.5M8 1.75c2.4 2.4 2.4 10.1 0 12.5"/></svg><select id="language" aria-label="界面语言"></select></label>
+          <button
+            id="compact-toggle"
+            class="button quiet small"
+            type="button"
+            aria-pressed="false"
+            title="只留下一盆花。在 Hindsight「设置 → 插件」中还可选择独立窗口。"
+          >
+            紧凑模式
+          </button>
+        </div>
       </header>
 
       <nav class="tabs" role="tablist" aria-label="花园页面">
@@ -98,6 +103,7 @@
               aria-valuenow="0"
             >
               <div id="progress-fill" class="progress-fill"></div>
+              <span class="progress-ticks" aria-hidden="true"><i data-stage="1"></i><i data-stage="2"></i><i data-stage="3"></i></span>
             </div>
             <div class="progress-text">
               <span id="progress-time"></span
@@ -134,15 +140,15 @@
               </button>
             </div>
           </div>
-          <p id="active-target-summary" class="hint"></p>
           <details id="growth-explanation" class="growth-explanation" open>
             <summary><h3 id="growth-explanation-title">当前生长状态</h3><span id="growth-explanation-summary"></span></summary>
             <dl id="growth-observation" class="growth-observation"></dl>
             <p id="growth-advice" class="growth-advice"></p>
           </details>
-          <p class="hint field-intro">满足以下任意一条规则时累计时间。</p>
-          <ul id="active-rules" class="rule-summary"></ul>
-          <p id="penalty-summary" class="hint"></p>
+          <div class="active-rule-row">
+            <ul id="active-rules" class="rule-summary" title="满足以下任意一条规则时累计时间。"></ul>
+            <p id="penalty-summary" class="mode-chip"></p>
+          </div>
           <div class="detail-footer">
             <span id="planted-at" class="subtle"></span
             ><button
@@ -219,15 +225,13 @@
               重置选择
             </button>
           </div>
-          <p id="plant-form-hint" class="hint field-intro">
-            选品种、设置生长规则和累计时长，然后直接播种。
-          </p>
+          <p id="plant-form-hint" class="hint field-intro" hidden></p>
           <form id="plant-form" class="plant-form-grid" novalidate>
             <section class="plant-catalog" aria-label="种植方案与花种">
           <section class="plant-presets" aria-label="种植方案">
-            <div class="preset-heading"><h3>种植方案</h3><select id="plan-select" aria-label="选择保存的种植方案"><option value="">选择方案，或使用上次设置</option></select></div>
+            <div class="preset-heading"><h3>种植方案 <span id="plan-count" class="count-pill" title="方案会保存品种、目标时长、规则与中断设置，最多 20 个。"></span></h3><select id="plan-select" aria-label="选择保存的种植方案"><option value="">选择方案，或使用上次设置</option></select></div>
             <p id="plan-summary" class="preset-summary"></p>
-            <div class="preset-actions"><button id="plan-use" class="button quiet small" type="button" disabled>使用此方案</button><span class="subtle">先载入设置，再确认播种</span></div>
+            <div class="preset-actions"><button id="plan-use" class="button quiet small" type="button" disabled>使用此方案</button></div>
             <details class="preset-manage"><summary>保存或管理方案</summary>
               <label class="field" for="plan-name"><span>方案内容</span><input id="plan-name" maxlength="40" placeholder="例如：论文阅读，类别与时长会自动附加" autocomplete="off"><small id="plan-name-preview" class="note-privacy"></small></label>
               <div class="preset-actions">
@@ -235,18 +239,16 @@
                 <button id="plan-update" class="button quiet small" type="button" disabled>用当前设置更新</button>
                 <button id="plan-delete" class="button text-danger small" type="button" disabled>删除方案</button>
               </div>
-              <p class="note-privacy">方案会保存品种、目标时长、规则与中断设置，最多 20 个。</p>
               <div id="plan-delete-confirm" class="preset-delete-confirm" hidden><p class="hint">确定删除这个方案吗？</p><div class="preset-actions"><button id="plan-delete-yes" class="button text-danger small" type="button">确认删除方案</button><button id="plan-delete-no" class="button quiet small" type="button">取消</button></div></div>
             </details>
           </section>
             <fieldset>
-              <legend>挑一株喜欢的植物</legend>
+              <legend>挑一株喜欢的植物<span class="variant-chance" title="每次开花有 5% 概率遇见隐藏配色。">✧ 5%</span></legend>
               <div id="species-options" class="species-options"></div>
             </fieldset>
             </section>
             <section class="plant-plan" aria-label="设置生长计划">
             <div class="field">
-              <p class="variant-explainer">每次开花有 5% 概率遇见隐藏配色。</p>
               <div class="name-heading"><label for="plant-name-input">给它取个名字</label><button id="recommend-name" class="button quiet small" type="button" title="优先使用已选分类；没有分类时，随机组合任务名称与当前花朵">推荐</button></div>
               <input
                 id="plant-name-input"
@@ -256,7 +258,7 @@
                 placeholder="例如：论文阅读的绣球"
                 autocomplete="off"
             /><small id="name-recommendation" role="status" aria-live="polite"></small></div>
-            <label class="field" for="plant-task-note"><span>给这朵花留一句任务记忆 <small>可选</small></span><textarea id="plant-task-note" maxlength="280" rows="2" placeholder="例如：读完第三章，记下两个新想法"></textarea><small>开花后也能回看和编辑。</small></label>
+            <label class="field" for="plant-task-note"><span>给这朵花留一句任务记忆 <small>可选</small></span><textarea id="plant-task-note" maxlength="280" rows="2" placeholder="例如：读完第三章，记下两个新想法"></textarea></label>
             <div class="field">
               <label for="target-minutes">累计多少分钟开花</label>
               <div class="input-unit">
@@ -278,13 +280,10 @@
                   <button class="minute-preset" type="button" data-minutes="180">180</button>
                 </div>
               </div>
-              <small>可以分多次、跨天完成。</small>
             </div>
             <fieldset>
               <legend>哪些活动可以让它生长</legend>
-              <p class="hint field-intro">
-                选择 Hindsight 的分类或大类，也可以添加程序或网站规则；满足任意一条即可生长。
-              </p>
+              <p class="hint field-intro">满足任意一条即可生长</p>
               <div class="catalog-tools">
                 <button
                   id="refresh-catalogs"
@@ -304,12 +303,8 @@
             </fieldset>
             <fieldset class="penalty-fieldset">
               <legend>生长模式与中断设置</legend>
-              <label class="check-row" for="penalty-enabled"
-                ><input id="penalty-enabled" type="checkbox" /><span
-                  >开启中断惩罚<span class="subtle block"
-                    >默认关闭：切到其他活动时暂停生长。</span
-                  ></span
-                ></label
+              <label class="check-row" for="penalty-enabled" title="默认关闭：切到其他活动时暂停生长。"
+                ><input id="penalty-enabled" type="checkbox" /><span>开启中断惩罚</span></label
               >
               <div id="penalty-options" class="penalty-options" hidden>
                 <label class="field" for="penalty-kind"
@@ -340,20 +335,20 @@
                       value="30"
                   /></label>
                 </div>
-                <p class="hint">
-                  切到不匹配的活动超过宽限时间，扣减一次。手动暂停和离开电脑时只暂停。
-                </p>
+                <div class="penalty-timeline" title="切到不匹配的活动超过宽限时间，扣减一次。手动暂停和离开电脑时只暂停。" aria-hidden="true">
+                  <span class="penalty-step grow"></span><span id="penalty-timeline-grace" class="penalty-step grace"></span><span id="penalty-timeline-cut" class="penalty-step cut"></span>
+                </div>
               </div>
             </fieldset>
             <div id="plant-notification-slot">
               <div id="notification-settings" class="notification-settings">
-                <label class="check-row" for="notify">
+                <label class="check-row" for="notify" title="发送一条无声的系统通知。">
                   <input id="notify" type="checkbox" checked />
-                  <span>花开时告诉我<span class="subtle block">发送一条无声的系统通知。</span></span>
+                  <svg class="check-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 11.5V7.2a4 4 0 0 1 8 0v4.3l1.2 1.2H2.8Z"/><path d="M6.6 14h2.8"/></svg><span>花开时告诉我</span>
                 </label>
-                <label class="check-row" for="auto-replant">
+                <label class="check-row" for="auto-replant" title="用同样的品种、规则和时长接着种一盆，花名沿用，任务记忆留空。">
                   <input id="auto-replant" type="checkbox" />
-                  <span>开花后自动续种<span class="subtle block">用同样的品种、规则和时长接着种一盆，花名沿用，任务记忆留空。</span></span>
+                  <svg class="check-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M12.8 6.4A5 5 0 0 0 3.6 5"/><path d="M3.2 9.6A5 5 0 0 0 12.4 11"/><path d="M3.2 2.6V5.4H6"/><path d="M12.8 13.4V10.6H10"/></svg><span>开花后自动续种</span>
                 </label>
               </div>
             </div>
@@ -389,10 +384,6 @@
           </form>
         </section>
 
-        <p class="hint current-window-hint">
-          在 Hindsight「设置 →
-          插件」中可选择独立窗口。紧凑模式会收起其他内容，留下一盆花。
-        </p>
       </section>
 
       <section
@@ -413,7 +404,7 @@
               <div class="garden-motion-setting">
                 <label class="garden-motion-control" for="garden-motion"><input id="garden-motion" type="checkbox" aria-describedby="garden-motion-hint" checked><span>轻柔动效</span></label>
                 <span id="garden-theme-label" class="subtle"></span>
-                <span id="garden-motion-hint" class="subtle">秋千微摆，偶尔有小鸟和蝴蝶来访</span>
+                <span id="garden-motion-hint" class="visually-hidden">秋千微摆，偶尔有小鸟和蝴蝶来访</span>
               </div>
             </div>
           </div>
@@ -750,7 +741,7 @@
         <section class="card garden-browser" aria-label="选择花园">
           <div class="garden-browser-heading">
             <div>
-              <h2>花园相册</h2>
+              <h2 title="每座花园最多 25 株，种满后继续分园；花朵按开花日期归入当周（周一至周日）。">花园相册</h2>
               <span id="garden-collection-total" class="subtle"></span>
             </div>
             <div class="garden-mode-toggle" role="group" aria-label="相册展示范围">
@@ -761,7 +752,7 @@
           <div id="garden-album-layout" class="garden-album-layout" data-mode="week">
           <section id="garden-week-browser" class="garden-week-browser" aria-label="按周选择花园">
             <div class="garden-week-heading">
-              <p class="subtle">从早到晚 · 每页 5 周</p>
+              <span></span>
               <button id="garden-this-week" class="button quiet small" type="button">回到本周</button>
             </div>
             <ol id="garden-week-list" class="garden-week-list" aria-label="每周相册，从早到晚"></ol>
@@ -776,9 +767,8 @@
             <div id="garden-album-panel" class="garden-album-panel">
               <p id="garden-album-context" class="album-context" role="status"></p>
               <section id="week-review" aria-labelledby="week-review-title">
-                <div class="review-heading"><h3 id="week-review-title">这一周的回顾</h3></div>
+                <div class="review-heading"><h3 id="week-review-title" title="按开花日期归周，跨周生长的花计入开花那一周。">这一周的回顾</h3></div>
                 <dl id="week-review-stats" class="week-review-stats"></dl>
-                <p id="week-review-note" class="review-note"></p>
                 <div id="week-review-species" class="review-species" aria-label="开花品种分布"></div>
               </section>
               <div id="garden-album" class="garden-album" role="group" aria-label="不同花园，选择后查看全景" hidden></div>
@@ -796,31 +786,32 @@
             </div>
           </div>
           </div>
-          <p class="garden-capacity-hint">每座花园最多 25 株，种满后继续分园；花朵按开花日期归入当周（周一至周日）。</p>
         </section>
         <details id="collection-settings" class="card collection-settings">
           <summary>收藏成就与主题<span id="collection-summary" class="collection-summary"></span></summary>
           <section class="focus-statistics" aria-labelledby="focus-statistics-title">
-            <h3 id="focus-statistics-title">有效生长记录</h3>
-            <p id="focus-statistics-since" class="note-privacy"></p>
+            <div class="focus-statistics-heading"><h3 id="focus-statistics-title" title="统计养花且符合规则时的有效生长时间。最多单列 24 个分类，之后的新分类汇总为「其他」。">有效生长记录</h3><span id="focus-statistics-since" class="count-pill"></span></div>
             <dl id="focus-statistics-summary" class="focus-statistics-summary"></dl>
-            <p class="note-privacy">最多单列 24 个分类，之后的新分类汇总为「其他」。</p>
             <div id="focus-distribution-bar" class="focus-distribution-bar" aria-hidden="true"></div>
             <p id="focus-distribution-empty" class="note-privacy">获得有效生长时间后，这里会显示分类比例。</p>
             <ul id="focus-distribution-preview" class="focus-distribution-list"></ul>
             <details id="focus-distribution-more" hidden><summary>查看其余分类</summary><ul id="focus-distribution-rest" class="focus-distribution-list"></ul></details>
           </section>
-          <p id="hidden-collection-status" class="hidden-collection-status"></p>
-          <p class="variant-explainer">每次开花有 5% 概率遇见隐藏配色。</p>
+          <div class="hidden-collection" title="每次开花有 5% 概率遇见隐藏配色。">
+            <span class="hidden-collection-label">✧ 梦色收藏</span>
+            <span id="hidden-collection-pips" class="hidden-collection-pips"></span>
+            <span id="hidden-collection-status" class="count-pill"></span>
+          </div>
           <div id="achievement-filters" class="achievement-filters" role="group" aria-label="筛选成就">
             <button type="button" data-filter="all" aria-pressed="true">全部</button><button type="button" data-filter="blooms" aria-pressed="false">株数里程碑</button><button type="button" data-filter="species" aria-pressed="false">品种收藏</button><button type="button" data-filter="hidden" aria-pressed="false">隐藏收藏</button><button type="button" data-filter="focus" aria-pressed="false">生长记录</button><button type="button" data-filter="earned" aria-pressed="false">已获得</button>
           </div>
-          <p class="note-privacy">点击查看各级条件与日期。徽章分白、蓝、紫、金、彩五档，整组达成后卡片会变成淡黄色。</p>
+          <div class="metal-legend" title="点击查看各级条件与日期。徽章分白、蓝、紫、金、彩五档，整组达成后卡片会变成淡黄色。" aria-hidden="true">
+            <i data-metal="white"></i><i data-metal="blue"></i><i data-metal="purple"></i><i data-metal="gold"></i><i data-metal="rainbow"></i><span class="metal-legend-complete"></span>
+          </div>
           <div id="achievement-list" class="achievement-list" aria-label="收藏成就"></div>
           <p id="achievement-empty" class="achievement-empty" hidden>还没有符合筛选的成就，先从一朵花开始吧。</p>
           <h3 class="theme-heading">给花园换个心情</h3>
           <div id="theme-options" class="theme-options" role="group" aria-label="选择花园主题"></div>
-          <p class="note-privacy">新装饰由 AI 原创绘制。</p>
         </details>
       </section>
 
@@ -906,7 +897,7 @@
 
       </div>
       <footer class="app-footer">
-        <p id="connection">正在连接后台…</p>
+        <p id="connection" data-fresh="false">正在连接后台…</p>
         <p>原创植物插画由 AI 生成 · 数据保存在本机</p>
       </footer>
     </main>

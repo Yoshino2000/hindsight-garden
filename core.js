@@ -7,6 +7,7 @@
   const HIDDEN_CHANCE = 0.05;
   const FOCUS_CATEGORY_LIMIT = 24;
   const CATEGORY_GOAL_MS = 10 * 60000;
+  const LANGUAGES = ["zh-CN", "en", "ja"];
   const SPECIES = [
     {
       id: "sunflower",
@@ -692,6 +693,7 @@
     const state = initialState();
     state.paused = value.paused === true;
     state.notify = value.notify !== false;
+    if (LANGUAGES.includes(value.language)) state.language = value.language;
     state.active =
       value.active == null ? null : savedPlant(value.active, false);
     state.garden = value.garden.map((plant) => savedPlant(plant, true));
@@ -990,6 +992,12 @@
           throw new Error("通知设置不正确。");
         state.notify = input.enabled;
         break;
+      case "language":
+        // Absent means "follow the system", so older saves read the same as before.
+        if (input.language === "auto") delete state.language;
+        else if (LANGUAGES.includes(input.language)) state.language = input.language;
+        else throw new Error("界面语言设置不正确。");
+        break;
       case "rules":
         if (!state.active || state.active.id !== input.id)
           throw new Error("这株植物已不在生长，请刷新后重试。");
@@ -1062,6 +1070,7 @@
 
   const api = {
     SPECIES,
+    LANGUAGES,
     ACHIEVEMENTS,
     ACHIEVEMENT_REVISION,
     HIDDEN_CHANCE,

@@ -6,9 +6,9 @@
 
 让一段日常，长成一座花园。为 [Hindsight](https://github.com/Tomotsugu-dev/Hindsight) 制作的第三方插件：选择已有分类，累计前台使用时间，慢慢等花开。
 
-**[下载 0.21.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.21.0)** · [安装与使用](docs/usage.zh-CN.md) · [开发与验证](docs/verification.md)
+**[下载 0.22.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.22.0)** · [安装与使用](docs/usage.zh-CN.md) · [开发与验证](docs/verification.md)
 
-0.21.0：可选开花后自动续种，活动不断就不漏时间；进度下方直接显示还需多久开花、多久进入下一阶段。[本版说明](docs/features-0210.md)
+0.22.0：文字对比度更高，更多信息改用刻度、图标和小图表达，右上角可以选择界面语言。[本版说明](docs/features-0220.md)
 
 ![时光花园：完整花圃、专属装饰、顶部动效开关和紧凑切园导航](docs/screenshots/garden.jpg)
 
@@ -72,7 +72,7 @@
 
 ## 用熟悉的语言，留下自己的记录
 
-自动跟随环境语言显示简体中文、English 或日本語，其他语言回退英语。你写的花名、任务备注和 Hindsight 分类名保持原样。
+默认跟随环境语言显示简体中文、English 或日本語，其他语言回退英语；也可以在右上角手动选择，开花通知同样使用所选语言。你写的花名、任务备注和 Hindsight 分类名保持原样。
 
 ![真实英文界面：一分钟生长中的双列盆栽](docs/screenshots/interface-en.jpg)
 

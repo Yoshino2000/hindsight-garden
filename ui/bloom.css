@@ -8,7 +8,7 @@
   border: 1px solid #dfe6d4;
   border-radius: 99px;
   background: #fff;
-  color: #5f7457;
+  color: #5d7155;
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -35,8 +35,8 @@
 .bloom-reveal-card .eyebrow { margin: 0; }
 .bloom-reveal-card h2 { margin: 2px 0 6px; font-size: 19px; overflow-wrap: anywhere; }
 .bloom-reveal-card .variant-badge { margin: 0 0 6px; }
-.bloom-reveal-meta { margin: 0 0 16px; color: #7b8873; font-size: 12px; }
-.bloom-reveal-next { margin: -10px 0 16px; color: #5f7457; font-size: 12px; font-weight: 600; }
+.bloom-reveal-meta { margin: 0 0 16px; color: #656f5e; font-size: 12px; }
+.bloom-reveal-next { margin: -10px 0 16px; color: #5d7155; font-size: 12px; font-weight: 600; }
 .bloom-reveal-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
 .bloom-reveal-stage { position: relative; width: 168px; height: 168px; margin: 6px auto 8px; }
 .bloom-reveal-art { position: absolute; inset: 6px 14px 0; transform-origin: 50% 100%; }
@@ -69,10 +69,10 @@
 .bloom-reveal-petals i:nth-child(8) { --angle: 315deg; }
 .bloom-reveal-sparkles { display: none; }
 .bloom-reveal[data-variant="hidden"] .bloom-reveal-sparkles { display: block; }
-.bloom-reveal-sparkles i { position: absolute; color: #9b78bd; font-size: 14px; font-style: normal; line-height: 1; }
+.bloom-reveal-sparkles i { position: absolute; color: #8459ae; font-size: 14px; font-style: normal; line-height: 1; }
 .bloom-reveal-sparkles i:nth-child(1) { left: 6%; top: 18%; }
 .bloom-reveal-sparkles i:nth-child(2) { right: 4%; top: 30%; font-size: 11px; }
-.bloom-reveal-sparkles i:nth-child(3) { left: 16%; bottom: 14%; font-size: 10px; }
+.bloom-reveal-sparkles i:nth-child(3) { left: 16%; bottom: 14%; font-size: 11px; }
 
 .bloom-reveal[data-motion="true"] .bloom-reveal-card { animation: bloom-card-in 360ms ease-out both; }
 .bloom-reveal[data-motion="true"] .bloom-reveal-art { animation: bloom-art-rise 900ms 120ms cubic-bezier(.2, .9, .3, 1.15) both; }
@@ -97,6 +97,6 @@
 }
 
 /* Remaining-time line under the active pot's progress, and the second notification-box option. */
-.progress-next { margin: 6px 0 0; color: #7b8873; font-size: 11px; font-variant-numeric: tabular-nums; }
+.progress-next { margin: 6px 0 0; color: #656f5e; font-size: 11px; font-variant-numeric: tabular-nums; }
 .progress-next:empty { display: none; }
 .notification-settings .check-row + .check-row { margin-top: 10px; }

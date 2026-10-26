@@ -8,6 +8,8 @@
   const C = GardenCore;
   const $ = (id) => document.getElementById(id);
   const STAGES = [t("种子"), t("发芽"), t("长叶"), t("花苞"), t("开花")];
+  // Interface languages, each named in its own language. "auto" follows the system.
+  const LANGUAGE_NAMES = { "zh-CN": "中文", en: "English", ja: "日本語" };
   // The original generated strips have uneven spacing. Frame bounds keep each plant intact
   // without changing the artwork or showing a neighbour at the edge of a frame.
   const FRAMES = {
@@ -302,7 +304,7 @@
       ? t("正在读取 Hindsight 分类…")
       : failed.length
         ? t("{0}读取失败，可刷新重试；程序和网站仍可手动填写。", failed.map(([type]) => (type === "category" ? t("分类") : t("大类"))).join("、"))
-        : t("已读取 {0} 个分类、{1} 个大类。分类变动后请刷新。", catalogs.category.items.length, catalogs.superCategory.items.length);
+        : t("{0} 个分类 · {1} 个大类", catalogs.category.items.length, catalogs.superCategory.items.length);
     for (const id of ["catalog-status", "edit-catalog-status"])
       $(id).textContent = text;
     for (const id of ["refresh-catalogs", "refresh-edit-catalogs"])
@@ -420,6 +422,18 @@
     }
   }
 
+  function penaltyChip(penalty) {
+    if (!penalty?.enabled) return t("中断时暂停");
+    return t("中断扣 {0} · 宽限 {1} 秒", penalty.kind === "minutes" ? t("{0} 分钟", penalty.amount) : `${penalty.amount}%`, penalty.graceSeconds);
+  }
+
+  // The planting form shows the penalty as a small timeline: growing → grace → deduction.
+  function syncPenaltyTimeline() {
+    const amount = Number($("penalty-amount").value);
+    $("penalty-timeline-grace").textContent = t("{0} 秒宽限", Number($("penalty-grace").value) || 0);
+    $("penalty-timeline-cut").textContent = $("penalty-kind").value === "minutes" ? `−${t("{0} 分钟", amount || 0)}` : `−${amount || 0}%`;
+  }
+
   function penaltyText(penalty) {
     if (!penalty?.enabled) return t("累计模式：切到其他活动时暂停生长。");
     const amount =
@@ -458,8 +472,9 @@
     $("plan-delete").disabled = !editable || busy;
     renderPlanNamePreview();
     $("plan-summary").textContent = plan
-      ? t("{0} · {1} 分钟 · {2}\n{3}", species(plan.species).name, plan.targetMinutes, plan.rules.map(ruleText).join("；"), penaltyText(plan.penalty))
-      : t("选好下方设置后，可以把常用的品种、规则和时长保存成方案。");
+      ? t("{0} · {1} 分钟 · {2}\n{3}", species(plan.species).name, plan.targetMinutes, plan.rules.map(ruleText).join("；"), penaltyChip(plan.penalty))
+      : "";
+    $("plan-summary").hidden = !plan;
   }
 
   function renderPlans() {
@@ -481,6 +496,7 @@
         options.push(option);
       }
       $("plan-select").replaceChildren(...options);
+      $("plan-count").textContent = `${state.plans.length} / 20`;
       $("plan-select").value = options.some((item) => item.value === selected) ? selected : "";
     }
     renderPlanSummary();
@@ -504,6 +520,7 @@
     $("penalty-grace").value = String(plan.penalty.graceSeconds);
     $("penalty-options").hidden = !plan.penalty.enabled;
     for (const input of $("penalty-options").querySelectorAll("input, select")) input.disabled = !plan.penalty.enabled;
+    syncPenaltyTimeline();
     notice(t("已载入设置。{0}填好花名和任务备注后即可播种。", plan.penalty.enabled ? t("本方案启用了中断惩罚，请检查扣减设置。") : t("累计模式，中断只暂停。")));
     // Loading a preset changes settings, never starts a plant or copies an old task.
     $("plant-name-input").focus();
@@ -536,16 +553,18 @@
       item.append(el("dt", "", label), el("dd", "", value));
       return item;
     }));
-    $("week-review-note").textContent = t("按开花日期归周，跨周生长的花计入开花那一周。");
     // Follow the planting picker's order rather than the internal English IDs.
     const order = (id) => {
       const index = C.SPECIES.findIndex((item) => item.id === id);
       return index === -1 ? C.SPECIES.length : index;
     };
     $("week-review-species").replaceChildren(...[...review.species].sort((first, second) =>
-      order(first.id) - order(second.id)).map((item) =>
-      el("span", "", `${species(item.id).name} ${item.count}`),
-    ));
+      order(first.id) - order(second.id)).map((item) => {
+      const chip = el("span", "review-species-chip");
+      chip.title = species(item.id).name;
+      chip.append(gardenArtwork(item.id), el("span", "visually-hidden", species(item.id).name), el("b", "", String(item.count)));
+      return chip;
+    }));
   }
 
   function focusTime(value) {
@@ -573,7 +592,7 @@
     if (signature === focusSignature) return;
     focusSignature = signature;
     const summary = C.focusSummary(state);
-    $("focus-statistics-since").textContent = t("{0} · 统计养花且符合规则时的有效生长时间。", summary.startedAt === null ? t("从升级后首次记录开始") : t("{0} 起记录", date(summary.startedAt)));
+    $("focus-statistics-since").textContent = summary.startedAt === null ? t("从升级后首次记录开始") : t("{0} 起记录", date(summary.startedAt));
     $("focus-statistics-summary").replaceChildren(...[
       [t("累计有效生长"), summary.totalMs], [t("最长连续"), summary.longestMs], [t("本次连续"), summary.streakMs],
     ].map(([label, value]) => {
@@ -614,7 +633,20 @@
   function renderCollection() {
     renderFocusStatistics();
     const progress = C.achievementProgress(state).map(I.achievement);
-    $("hidden-collection-status").textContent = t("梦色收藏：{0} 株 · {1} / 8 种", state.hiddenCollection?.totalBlooms || 0, state.hiddenCollection?.species.length || 0);
+    const hidden = state.hiddenCollection?.species || [];
+    $("hidden-collection-status").textContent = t("{0} 株 · {1} / 8 种", state.hiddenCollection?.totalBlooms || 0, hidden.length);
+    const pips = JSON.stringify(hidden);
+    if ($("hidden-collection-pips").dataset.signature !== pips) {
+      $("hidden-collection-pips").dataset.signature = pips;
+      $("hidden-collection-pips").replaceChildren(...C.SPECIES.map((item) => {
+        const found = hidden.includes(item.id);
+        const pip = el("span", "hidden-collection-pip");
+        pip.dataset.found = String(found);
+        pip.title = found ? t(GardenVariants.PALETTES[item.id].name) : species(item.id).name;
+        pip.append(gardenArtwork(item.id, found ? "hidden" : "normal"));
+        return pip;
+      }));
+    }
     const chosen = GardenCollection.theme(gardenTheme, state.earnedAchievements);
     const previousTheme = $("view-garden").dataset.theme;
     $("view-garden").dataset.theme = chosen.id;
@@ -796,13 +828,11 @@
     const notificationSlot = $(plant ? "active-notification-slot" : "plant-notification-slot");
     if ($("notification-settings").parentElement !== notificationSlot)
       notificationSlot.append($("notification-settings"));
-    $("connection").textContent = fresh
-      ? t("后台运行中 · 累计符合规则的前台时间")
-      : t("等待后台连接或新的活动信息");
+    $("connection").textContent = fresh ? t("后台运行中") : t("等待后台连接或新的活动信息");
+    $("connection").dataset.fresh = String(fresh);
     if (!plant) {
-      $("plant-form-hint").textContent = state.paused
-        ? t("选品种、设置规则和累计时长，然后直接播种。当前处于暂停状态，播种后可点击「继续生长」。")
-        : t("选品种、设置生长规则和累计时长，然后直接播种。");
+      $("plant-form-hint").textContent = state.paused ? t("当前处于暂停状态，播种后可点击「继续生长」。") : "";
+      $("plant-form-hint").hidden = !state.paused;
       sprite($("hero-sprite"), "sunflower", 0);
       $("growth-status").textContent = state.paused ? t("已暂停") : t("等待播种");
       $("stage-name").textContent = t("从一颗种子开始");
@@ -834,10 +864,9 @@
     $("current-rule-summary").textContent =
       t("生长规则：{0}{1}", rules.slice(0, 2).join("；"), rules.length > 2 ? t(" 等 {0} 条", rules.length) : "");
     $("current-rule-summary").title = rules.join("；");
-    $("active-target-summary").textContent =
-      t("{0} · 累计目标 {1}", species(plant.species).name, minutes(plant.targetMs));
     $("progress-fill").style.width = `${ratio}%`;
     $("progress").setAttribute("aria-valuenow", String(Math.round(ratio)));
+    $("progress").dataset.stage = String(stage);
     $("progress-time").textContent =
       `${minutes(plant.progressMs)} / ${minutes(plant.targetMs)}`;
     $("progress-percent").textContent = ratio > 0 && ratio < 1 ? "<1%" : `${Math.floor(ratio)}%`;
@@ -856,10 +885,17 @@
     $("growth-observation").replaceChildren(...explanation.observations.flatMap(([label, value]) =>
       [el("dt", "", label), el("dd", "", value)]));
     $("growth-advice").textContent = explanation.advice;
-    $("active-rules").replaceChildren(
-      ...plant.rules.map((rule) => el("li", "", ruleText(rule))),
-    );
-    $("penalty-summary").textContent = penaltyText(plant.penalty);
+    // Rules are alternatives: a small "or" sits between the chips.
+    $("active-rules").replaceChildren(...plant.rules.flatMap((rule, index) => {
+      const chip = el("li", "", ruleText(rule));
+      if (!index) return [chip];
+      const or = el("li", "rule-or", t("或"));
+      or.setAttribute("aria-hidden", "true");
+      return [or, chip];
+    }));
+    $("penalty-summary").textContent = penaltyChip(plant.penalty);
+    $("penalty-summary").title = penaltyText(plant.penalty);
+    $("penalty-summary").dataset.penalty = String(plant.penalty.enabled);
     $("active-task-note").textContent = plant.taskNote || t("还没有任务记忆。可以留下一句话，等花开时再回看。");
     $("planted-at").textContent = t("{0} 种下", date(plant.createdAt));
   }
@@ -1235,8 +1271,24 @@
     if (saved) $(state.active?.id === id ? "note-active" : "flower-note")?.focus({ preventScroll: true });
   }
 
+  function syncLanguage() {
+    const saved = state.language || "";
+    if (document.activeElement !== $("language")) $("language").value = state.language || "auto";
+    let cached = null;
+    try { cached = localStorage.getItem("garden-language") || ""; } catch (_) { return; }
+    if (cached === saved) return;
+    try {
+      if (saved) localStorage.setItem("garden-language", saved);
+      else localStorage.removeItem("garden-language");
+      if ((localStorage.getItem("garden-language") || "") !== saved) return;
+    } catch (_) { return; }
+    // After the reload the cache matches, so this runs at most once per change.
+    if (I.resolveLanguage(saved || navigator.language || navigator.languages?.[0]) !== I.locale) location.reload();
+  }
+
   function render() {
     $("loading").hidden = true;
+    syncLanguage();
     const exists = (id) => state.active?.id === id || state.garden.some((plant) => plant.id === id);
     if ((renameId && !exists(renameId)) || (deleteId && !exists(deleteId)) || (noteId && !exists(noteId)))
       closeFlowerActions();
@@ -1519,6 +1571,7 @@
     for (const input of $("plant-form").querySelectorAll("input"))
       input.setCustomValidity("");
     syncMinutePresets();
+    syncPenaltyTimeline();
   }
 
   function syncMinutePresets() {
@@ -1862,7 +1915,9 @@
       : t("扣减时间（分钟）");
     $("penalty-amount").max = percent ? "100" : "1440";
     $("penalty-amount").value = percent ? "10" : "1";
+    syncPenaltyTimeline();
   });
+  $("penalty-options").addEventListener("input", syncPenaltyTimeline);
   $("pause").addEventListener(
     "click",
     () => state && command({ type: "pause", paused: !state.paused }),
@@ -1872,6 +1927,16 @@
     if (!state?.active) return;
     if (!(await command({ type: "replant", id: state.active.id, enabled: $("auto-replant").checked })) && state?.active)
       $("auto-replant").checked = state.active.autoReplant === true;
+  });
+  for (const value of ["auto", ...C.LANGUAGES]) {
+    const option = el("option", "", value === "auto" ? t("跟随系统") : LANGUAGE_NAMES[value]);
+    option.value = value;
+    if (value !== "auto") option.lang = value;
+    $("language").append(option);
+  }
+  $("language").addEventListener("change", async () => {
+    if (!(await command({ type: "language", language: $("language").value })) && state)
+      $("language").value = state.language || "auto";
   });
   $("notify").addEventListener("change", async () => {
     if (

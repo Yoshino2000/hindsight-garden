@@ -17,6 +17,17 @@ test("system language uses its primary language and unsupported languages fall b
   }
 });
 
+test("the page's cached language choice wins over the system and unreadable storage falls back", () => {
+  const run = localStorage => {
+    const context=vm.createContext({navigator:{language:"en-US"},localStorage});
+    vm.runInContext(readFileSync(require.resolve("../i18n.js"),"utf8"),context);
+    return context.GardenI18n.locale;
+  };
+  assert.equal(run({getItem:()=>"ja"}),"ja");
+  assert.equal(run({getItem:()=>null}),"en");
+  assert.equal(run({getItem(){throw new Error("blocked");}}),"en");
+});
+
 test("every catalogue entry has two complete translations with exactly the same placeholders", () => {
   const tokens = value => [...value.matchAll(/\{\d+\}/g)].map(match=>match[0]).sort();
   assert.ok(Object.keys(I.MESSAGES).length > 600);
