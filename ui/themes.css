@@ -65,10 +65,21 @@ body:has(#view-garden[data-theme="blossom"]:not([hidden])) { background: radial-
 .theme-props { display: none; position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 #view-garden:not([data-theme="meadow"]) .theme-props { display: block; }
 .theme-prop { position: absolute; aspect-ratio: var(--theme-prop-ratio, 1); background-image: var(--theme-props); background-size: 300% 100%; background-repeat: no-repeat; }
-.theme-prop[data-slot="0"] { left: 14%; top: 26%; width: 17%; background-position: 0% center; }
+/* The rain and dusk benches paint past their atlas third (to x≈757/750). Slot 0 shows the
+   first 780 source columns instead of one 1/3 cell, at the same position and scale. */
+.theme-prop[data-slot="0"] { left: 14%; top: 26%; width: 18.3149%; aspect-ratio: 780 / 724; background-size: 278.4615% 100%; background-position: 0% center; }
+#view-garden[data-theme="rain"] .theme-prop[data-slot="0"] { width: 18.3826%; aspect-ratio: 780 / 727; background-size: 277.4359% 100%; }
 .theme-prop[data-slot="1"] { left: 61%; top: 21%; width: 11%; background-position: 50% center; clip-path: inset(0 6%); }
 .theme-prop[data-slot="2"] { left: 9%; top: 42%; width: 8%; background-position: 100% center; }
 #view-garden[data-theme="rain"] .theme-ornament,
 #view-garden[data-theme="dusk"] .theme-ornament { display: none; }
+/* Blossom spreads its lanterns and cherry branch along the back lawn above the flowerbed,
+   leaving the pond corner open. Lantern base (575, 222); branch stone base (690, 262). */
+#view-garden[data-theme="blossom"] .theme-prop[data-slot="1"] { left: 51.98%; top: 16%; }
+#view-garden[data-theme="blossom"] .theme-ornament { z-index: 1; top: 21.57%; right: auto; left: 63.66%; width: 11%; opacity: 1; }
+#view-garden[data-theme="blossom"] .theme-prop-shadows [data-slot="1"] { display: none; }
+.theme-blossom-shadow, .theme-ornament-shadow { display: none; }
+#view-garden[data-theme="blossom"] .theme-blossom-shadow,
+#view-garden[data-theme="blossom"] .garden-scene:not(.garden-miniature) .theme-ornament-shadow { display: inline; }
 #view-garden:not([data-theme="meadow"]) .garden-heading .badge { background: var(--pond-rim); color: #4a5c4e; }
 #view-garden:not([data-theme="meadow"]) .garden-album-panel { background: #fffefbc9; border-color: var(--ground-edge); }

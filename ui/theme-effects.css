@@ -20,8 +20,9 @@
   background-size: inherit;
   background-position: inherit;
   background-repeat: no-repeat;
-  clip-path: polygon(9% 27%, 16% 16%, 29% 9%, 46% 5%, 64% 12%, 81% 22%, 90% 34%, 94% 46%, 77% 38%, 61% 31%, 48% 34%, 38% 30%, 25% 34%, 18% 28%);
-  transform-origin: 50% 23%;
+  /* The same canopy outline, rescaled to slot 0's 780-column window (721.33 / 780). */
+  clip-path: polygon(8.323% 27%, 14.797% 16%, 26.819% 9%, 42.54% 5%, 59.186% 12%, 74.908% 22%, 83.231% 34%, 86.93% 46%, 71.209% 38%, 56.412% 31%, 44.39% 34%, 35.142% 30%, 23.12% 34%, 16.646% 28%);
+  transform-origin: 46.239% 23%;
   animation: rain-leaf-breathe 8.5s ease-in-out infinite;
 }
 @keyframes rain-leaf-breathe {
@@ -127,6 +128,8 @@
 }
 .theme-light-bench { left: 18.4%; top: 43.1579%; width: 8.8%; height: 2.6316%; }
 .theme-light-lantern { left: 63.6%; top: 32.4342%; width: 5.8%; height: 1.9737%; animation-delay: -3s; }
+/* Blossom's stone lanterns stand farther left on the back lawn; the glow follows their base. */
+#view-garden[data-theme="blossom"] .theme-light-lantern { left: 54.6%; top: 27.4342%; }
 @keyframes theme-lamplight {
   0%, 100% { opacity: .74; }
   50% { opacity: .98; }

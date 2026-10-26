@@ -10,7 +10,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SPECIES = ("sunflower", "hydrangea", "tulip", "daisy", "rose", "lavender", "cosmos", "lily")
-AMBIENCE = ("swing", "bird", "butterfly", "bird-blue", "bird-robin", "bird-finch", "butterfly-amber", "butterfly-blue")
+AMBIENCE = ("swing", "butterfly", "bird-blue", "bird-robin", "bird-finch", "butterfly-amber", "butterfly-blue")
 FILES = [
     "manifest.json", "icon.png", "background.js", "core.js", "store.js", "garden-layout.js", "i18n.js",
     "ui/index.html", "ui/style.css", "ui/album.css", "ui/drawer.css", "ui/main.js", "ui/ambience.js", "ui/plant-guide.js", "ui/collection.js", "ui/features.css",
@@ -23,7 +23,7 @@ FILES = [
     "README.md", "README.en.md", "intro/zh/README.md", "docs/usage.zh-CN.md", "docs/usage.en.md", "docs/development.md",
     "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md", "docs/artwork-ambience-070.md", "docs/plant-guide-sources.md", "docs/design-notes-forest.md", "docs/features-0110.md", "docs/artwork-collection-0110.md", "docs/features-0120.md", "docs/artwork-themes-0120.md",
     "docs/features-0130.md", "docs/features-0140.md", "docs/features-0150.md", "docs/screenshots/why-growth.jpg", "docs/screenshots/empty-garden.jpg", "docs/screenshots/meadow.jpg",
-    "docs/features-0160.md", "docs/features-0170.md", "docs/audit-0170.md", "docs/screenshots/breeze.jpg", "docs/screenshots/hidden-colors.jpg", "docs/screenshots/hidden-detail.jpg", "docs/screenshots/interface-en.jpg", "docs/screenshots/interface-ja.jpg",
+    "docs/features-0160.md", "docs/features-0170.md", "docs/features-0180.md", "docs/audit-0170.md", "docs/screenshots/breeze.jpg", "docs/screenshots/hidden-colors.jpg", "docs/screenshots/hidden-detail.jpg", "docs/screenshots/interface-en.jpg", "docs/screenshots/interface-ja.jpg",
     "docs/screenshots/garden.jpg", "docs/screenshots/album.jpg", "docs/screenshots/drawer.png", "docs/screenshots/current.png", "docs/screenshots/guide.png", "docs/screenshots/collection.jpg", "docs/screenshots/growing.png", "docs/screenshots/achievement.jpg", "docs/screenshots/rain.jpg", "docs/screenshots/dusk.jpg", "LICENSE",
 ]
 
@@ -59,11 +59,13 @@ def main():
     html = (ROOT / "ui/index.html").read_text(encoding="utf-8-sig")
     for name in ("milestones", "themes"):
         data = (ROOT / f"assets/collection/{name}.png").read_bytes()
-        assert png_size(data) == (2172, 724) and data[25] == 6, f"{name}: expected original RGBA atlas"
+        width, height = png_size(data)
+        # Runtime atlases are resized copies of assets-source/; their cells must stay exact.
+        assert width == height * 3 and height >= 200 and data[25] == 6, f"{name}: expected a 3:1 RGBA atlas"
     for theme in ("rain", "dusk", "blossom"):
         data = (ROOT / f"assets/collection/props-{theme}.png").read_bytes()
         width, height = png_size(data)
-        assert width >= 2000 and abs(width - height * 3) < 32 and data[25] == 6, f"{theme}: expected original three-cell RGBA atlas"
+        assert height >= 400 and abs(width - height * 3) < height * 3 // 50 and data[25] == 6, f"{theme}: expected a three-cell RGBA atlas"
     for name in AMBIENCE:
         width, height = png_size((ROOT / "assets/ambience" / f"{name}.png").read_bytes())
         assert min(width, height) >= 64, f"{name}: missing ambience illustration"

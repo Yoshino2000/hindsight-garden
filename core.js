@@ -106,20 +106,20 @@
     ...[5, 15, 25, 45, 60].map((minutes) => ({
       id: `streak-${minutes}m`, name: `连续 ${minutes} 分钟`, metric: "focusStreak",
       target: minutes * 60000, badge: 0, sinceStats: true,
-      condition: `从有效生长统计开始后，单次连续累计 ${minutes} 分钟实际生长时间。切出规则、离开、暂停、休眠、重启、修改规则或开花都会结束连续段。`,
-      description: "正在养花、符合生长规则并实际增加进度的时间，会累计成一段连续记录。",
+      condition: `连续生长 ${minutes} 分钟；暂停、离开、切到不匹配的活动、修改规则或开花会结束连续段。`,
+      description: "养花时符合规则的时间，会连成一段完整的记录。",
     })),
     ...[1, 5, 10, 25, 50].map((hours) => ({
       id: `focus-${hours}h`, name: `累计 ${hours} 小时`, metric: "focusTotal",
       target: hours * 3600000, badge: 1, sinceStats: true,
-      condition: `从有效生长统计开始后，累计 ${hours} 小时实际生长时间。旧花朵、旧目标时长与升级前进度不补算。`,
-      description: "可以分多次、跨天积累。惩罚不倒扣已经真实获得的生长时间，规则重叠也只计一次。",
+      condition: `累计生长 ${hours} 小时。`,
+      description: "可以分多次、跨天慢慢积累。",
     })),
     ...[2, 3, 5].map((count) => ({
       id: `categories-${count}x10m`, name: `${count} 类时光`, metric: "focusCategories",
       target: count, minCategoryMs: CATEGORY_GOAL_MS, badge: 2, sinceStats: true,
-      condition: `从有效生长统计开始后，至少 ${count} 个单列分类各累计 10 分钟实际生长时间。未分类与超出 24 个分类后合并的「其他」不计入。`,
-      description: "分类来自当时真实的 Hindsight 分类标识，不从规则名称猜测，也不拆分同一段时间。",
+      condition: `${count} 个分类各累计生长 10 分钟。`,
+      description: "在不同的分类里，各自留下一段生长的时间。",
     })),
     ...[
       { id: "ratio-single-80", name: "专心一隅", minTotalMs: 3600000, requiredCategories: 1, sharePercent: 80 },
@@ -127,27 +127,27 @@
       { id: "ratio-triple-15", name: "三类交响", minTotalMs: 7200000, requiredCategories: 3, sharePercent: 15 },
     ].map((item) => ({
       ...item, metric: "focusRatio", target: 100, badge: 3, sinceStats: true,
-      condition: `从有效生长统计开始后，总计至少 ${item.minTotalMs / 3600000} 小时；至少 ${item.requiredCategories} 个单列分类各占总有效生长时间的 ${item.sharePercent}%。总量包含未分类和「其他」，它们不作为合格分类。`,
-      description: "进度条表示时长门槛与比例条件的共同完成度，不是实际分类百分比。达成后永久保留，之后比例变化不会撤回。",
+      condition: `累计生长至少 ${item.minTotalMs / 3600000} 小时，且至少 ${item.requiredCategories} 个分类各占 ${item.sharePercent}% 以上。`,
+      description: "进度条综合了总时长与分类占比两项条件。",
     })),
     ...[1, 5, 10, 25, 50].map((count) => ({
       id: count === 1 ? "hidden-first" : `hidden-${count}`,
       name: count === 1 ? "初见梦色" : `${count} 朵梦色花`, metric: "hiddenBlooms",
       target: count, badge: 3, variant: "hidden", sinceHidden: true,
       condition: `累计成功开出 ${count} 朵隐藏配色花朵。每朵完成时独立有 5% 概率获得隐藏配色。`,
-      description: "偶然遇到不同的颜色，也留住了同样认真积累的一段时间。删除花朵不撤回已获得的成就。",
+      description: "偶然遇到不同的颜色，也留住了同样认真积累的一段时间。",
     })),
     ...[2, 4, 8].map((count) => ({
       id: `hidden-species-${count}`, name: `${count} 种梦色收藏`, metric: "hiddenSpecies",
       target: count, badge: 2, variant: "hidden", sinceHidden: true,
-      condition: `收集到 ${count} 种曾经开花的隐藏配色植物。普通配色不计入隐藏品种数。`,
-      description: "慢慢遇见不同品种的隐藏配色，不需要改变原本的种植节奏。",
+      condition: `收集到 ${count} 种曾经开花的隐藏配色植物。`,
+      description: "按自己的节奏种花，慢慢遇见不同品种的隐藏配色。",
     })),
     ...SPECIES.map((item) => ({
       id: `hidden-${item.id}-first`, name: `梦色${item.name}初绽`, metric: "hiddenSpeciesBloom",
       species: item.id, target: 1, badge: null, variant: "hidden", sinceHidden: true,
       condition: `至少让一株${item.name}开花，并获得它的隐藏配色。`,
-      description: `这株${item.name}留住了一次特别的相遇。旧版已开花的普通配色不会重新抽取。`,
+      description: `这株${item.name}留住了一次特别的相遇。`,
     })),
   ];
 

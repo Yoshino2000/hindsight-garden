@@ -408,6 +408,114 @@ test("a late wake-up tick drops the unobserved sleep interval rather than growin
   assert.equal(state.garden.length, 0);
 });
 
+// Hot-row commits issued by the worker, and the row exactly as SQLite holds it.
+function countWrites(host) {
+  const writes = [];
+  const previous = host.beforeCall;
+  host.beforeCall = async (method, params) => {
+    if (method === "db.execute" && params.sql.startsWith("UPDATE garden_store")) writes.push(params);
+    if (previous) await previous(method, params);
+  };
+  return writes;
+}
+function persisted(host) {
+  return JSON.parse(host.db.prepare("SELECT value FROM garden_store WHERE key = 'state'").get().value);
+}
+
+test("an idle worker writes its clock every 6 s and the saved clock never ages past 6 s", async (t) => {
+  const { explain } = require("../ui/focus-status.js");
+  const host = hostFor(t);
+  await seeded(host);
+  const live = worker(host);
+  t.after(() => live.close());
+  await live.focus({ app: "other" }, 0);
+  const writes = countWrites(host);
+  const expected = { 2000: 0, 4000: 0, 6000: 6000, 8000: 6000, 10000: 6000, 12000: 12000 };
+  for (let at = 2000; at <= 60000; at += 2000) {
+    await live.tick(at);
+    const state = persisted(host);
+    if (expected[at] !== undefined) assert.equal(state.heartbeatAt, expected[at], `heartbeat after ${at}`);
+    assert.ok(at - state.heartbeatAt <= 6000 && at - state.lastAt <= 6000, `saved clock too old at ${at}`);
+    // Even just before the next write, the page still sees a live worker.
+    assert.equal(explain(state, at + 1999).fresh, true, `page freshness at ${at + 1999}`);
+  }
+  assert.equal(writes.length, 10, "60 s idle: one write per 6 s instead of one per 2 s");
+  const state = persisted(host);
+  assert.equal(state.active.progressMs, 0);
+  assert.equal(state.focus.app, "other");
+});
+
+test("a page action just before the throttled write keeps the observed focus", async (t) => {
+  const host = hostFor(t);
+  await seeded(host);
+  const live = worker(host);
+  t.after(() => live.close());
+  await live.focus({ app: "other" }, 0);
+  await live.grow(10000);
+  assert.equal(persisted(host).lastAt, 6000);
+  // 5.999 s after the last saved clock: inside the 10 s gap, so no unobserved reset.
+  await live.store.apply({ type: "notifications", enabled: false }, 11999);
+  await live.tick(12000);
+  await live.focus({ app: "reader" }, 13000);
+  await live.tick(15000);
+  const state = persisted(host);
+  assert.equal(state.notify, false);
+  assert.equal(state.active.progressMs, 2000, "growth starts at the switch, with no idle credit");
+  assert.equal(state.focusStats.totalMs, 2000);
+});
+
+test("growth, a pending penalty and a return are written on the same ticks as without throttling", async (t) => {
+  const host = hostFor(t);
+  const store = createStore(host.call);
+  await store.apply({ type: "plant", id: "p1", plant: {
+    name: "阅读绣球", species: "hydrangea", targetMinutes: 1,
+    rules: [{ type: "app", value: "reader", exact: true }],
+    penalty: { enabled: true, kind: "percent", amount: 50, graceSeconds: 5 },
+  } }, 0);
+  const live = worker(host);
+  t.after(() => live.close());
+  await live.focus({ app: "reader" }, 0);
+  const writes = countWrites(host);
+  await live.tick(2000);
+  await live.tick(4000);
+  assert.equal(writes.length, 2, "every growing tick is saved");
+  assert.equal(persisted(host).active.progressMs, 4000);
+  await live.focus({ app: "other" }, 5000);
+  writes.length = 0;
+  await live.tick(6000);
+  await live.tick(8000);
+  assert.equal(writes.length, 0, "grace period ticks change nothing but the clock");
+  await live.tick(10000);
+  assert.equal(writes.length, 1, "the deduction is saved on the tick the grace period ends");
+  let state = persisted(host);
+  assert.deepEqual(state.lastPenalty, { at: 10000, lostMs: 2500, plantId: "p1" });
+  assert.equal(state.active.progressMs, 2500);
+  await live.focus({ app: "reader" }, 11000);
+  await live.tick(13000);
+  state = persisted(host);
+  assert.equal(state.active.progressMs, 4500);
+  assert.equal(state.focusStats.totalMs, 7000);
+});
+
+test("a reversed clock or a sleep gap writes at once rather than waiting for the interval", async (t) => {
+  const host = hostFor(t);
+  await seeded(host);
+  const live = worker(host, 10000);
+  t.after(() => live.close());
+  await live.focus({ app: "other" }, 10000);
+  const writes = countWrites(host);
+  await live.tick(12000);
+  assert.equal(writes.length, 0);
+  await live.tick(9000);
+  assert.equal(writes.length, 1, "a clock behind the saved one is written immediately");
+  assert.equal(persisted(host).heartbeatAt, 9000);
+  await live.tick(40000);
+  assert.equal(writes.length, 2, "a sleep gap is written immediately");
+  const state = persisted(host);
+  assert.equal(state.heartbeatAt, 40000);
+  assert.equal(state.focus, null);
+});
+
 test("background bloom notifications follow English, Japanese and fallback system languages", async (t) => {
   for (const language of ["en-US", "ja-JP", "fr-FR"]) {
     const host = hostFor(t);
@@ -455,6 +563,46 @@ test("queued focus changes settle at reception time instead of crediting the pre
   assert.equal(state.active.progressMs, 5000);
   assert.equal(state.focusStats.totalMs, 5000);
   assert.equal(state.focus.app, "other");
+});
+
+test("a focus change queued behind a waiting tick is applied instead of discarded as stale", async (t) => {
+  const host = hostFor(t);
+  await seeded(host);
+  const live = worker(host);
+  t.after(() => live.close());
+  await live.focus({ app: "reader" });
+  await live.tick(2000);
+  let release;
+  let entered;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const waiting = new Promise((resolve) => { entered = resolve; });
+  let blocked = false;
+  host.beforeCall = async (method, params) => {
+    if (!blocked && method === "db.execute" && params.sql.startsWith("UPDATE")) {
+      blocked = true;
+      entered();
+      await gate;
+    }
+  };
+  // A slow write for the first change; the next tick queues, then the user switches back.
+  live.clock.now = 3000;
+  live.listeners.get("focus.changed")({ app: "other" });
+  await waiting;
+  const tick = live.tick(3020);
+  live.clock.now = 3040;
+  live.listeners.get("focus.changed")({ app: "reader" });
+  live.clock.now = 3060;
+  release();
+  await tick;
+  await live.flush();
+  let state = await live.store.load();
+  assert.equal(state.focus.app, "reader");
+  assert.equal(state.active.progressMs, 3000);
+  // Growth continues from the switch back without waiting for yet another focus change.
+  await live.tick(5040);
+  state = await live.store.load();
+  assert.equal(state.active.progressMs, 5000);
+  assert.equal(state.focusStats.totalMs, 5000);
 });
 
 test("a queued observation from before a clock reversal cannot reactivate focus", async (t) => {

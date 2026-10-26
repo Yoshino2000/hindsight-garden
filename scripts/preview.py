@@ -28,7 +28,7 @@ FILES = {
     "assets/tulip.png", "assets/daisy.png",
     "assets/rose.png", "assets/lavender.png", "assets/cosmos.png", "assets/lily.png",
     *(f"assets/garden/{name}.png" for name in ("sunflower", "hydrangea", "tulip", "daisy", "rose", "lavender", "cosmos", "lily")),
-    *(f"assets/ambience/{name}.png" for name in ("swing", "bird", "butterfly", "bird-blue", "bird-robin", "bird-finch", "butterfly-amber", "butterfly-blue")),
+    *(f"assets/ambience/{name}.png" for name in ("swing", "butterfly", "bird-blue", "bird-robin", "bird-finch", "butterfly-amber", "butterfly-blue")),
 }
 PLUGIN_CSP = "; ".join([
     "default-src 'none'", "script-src 'self'", "worker-src 'self'",

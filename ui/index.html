@@ -139,7 +139,7 @@
             <dl id="growth-observation" class="growth-observation"></dl>
             <p id="growth-advice" class="growth-advice"></p>
           </section>
-          <p class="hint field-intro">满足以下任意一条规则时累计时间。修改规则会保留当前进度。</p>
+          <p class="hint field-intro">满足以下任意一条规则时累计时间。</p>
           <ul id="active-rules" class="rule-summary"></ul>
           <p id="penalty-summary" class="hint"></p>
           <div class="detail-footer">
@@ -177,7 +177,7 @@
             </button>
           </div>
           <p class="hint field-intro">
-            只修改哪些活动可以生长，已有进度、开花目标和惩罚设置都会保留。
+            调整哪些活动可以让这盆花生长。
           </p>
           <form id="rules-edit-form" novalidate>
             <div class="catalog-tools">
@@ -219,7 +219,7 @@
             </button>
           </div>
           <p id="plant-form-hint" class="hint field-intro">
-            选品种、设置生长规则和累计时长，然后直接播种。默认切换活动只暂停，不扣进度。
+            选品种、设置生长规则和累计时长，然后直接播种。
           </p>
           <form id="plant-form" class="plant-form-grid" novalidate>
             <section class="plant-catalog" aria-label="种植方案与花种">
@@ -234,8 +234,8 @@
                 <button id="plan-update" class="button quiet small" type="button" disabled>用当前设置更新</button>
                 <button id="plan-delete" class="button text-danger small" type="button" disabled>删除方案</button>
               </div>
-              <p class="note-privacy">最多保存 20 个方案。只保存品种、目标时长、规则与中断设置，不复制花名或任务备注。</p>
-              <div id="plan-delete-confirm" class="preset-delete-confirm" hidden><p class="hint">只删除方案，已种下的花会保留。</p><div class="preset-actions"><button id="plan-delete-yes" class="button text-danger small" type="button">确认删除方案</button><button id="plan-delete-no" class="button quiet small" type="button">取消</button></div></div>
+              <p class="note-privacy">方案会保存品种、目标时长、规则与中断设置，最多 20 个。</p>
+              <div id="plan-delete-confirm" class="preset-delete-confirm" hidden><p class="hint">确定删除这个方案吗？</p><div class="preset-actions"><button id="plan-delete-yes" class="button text-danger small" type="button">确认删除方案</button><button id="plan-delete-no" class="button quiet small" type="button">取消</button></div></div>
             </details>
           </section>
             <fieldset>
@@ -245,7 +245,7 @@
             </section>
             <section class="plant-plan" aria-label="设置生长计划">
             <div class="field">
-              <p class="variant-explainer">每次开花有 5% 概率遇见隐藏配色，花园与相册都会保留。旧花保持原色；隐藏结果不会因刷新或重启改变。</p>
+              <p class="variant-explainer">每次开花有 5% 概率遇见隐藏配色。</p>
               <div class="name-heading"><label for="plant-name-input">给它取个名字</label><button id="recommend-name" class="button quiet small" type="button" title="优先使用已选分类；没有分类时，随机组合任务名称与当前花朵">推荐</button></div>
               <input
                 id="plant-name-input"
@@ -255,7 +255,7 @@
                 placeholder="例如：论文阅读的绣球"
                 autocomplete="off"
             /><small id="name-recommendation" role="status" aria-live="polite"></small></div>
-            <label class="field" for="plant-task-note"><span>给这朵花留一句任务记忆 <small>可选</small></span><textarea id="plant-task-note" maxlength="280" rows="2" placeholder="例如：读完第三章，记下两个新想法"></textarea><small>保存在本机，开花后也能回看和编辑。方案不会复制这句话。</small></label>
+            <label class="field" for="plant-task-note"><span>给这朵花留一句任务记忆 <small>可选</small></span><textarea id="plant-task-note" maxlength="280" rows="2" placeholder="例如：读完第三章，记下两个新想法"></textarea><small>开花后也能回看和编辑。</small></label>
             <label class="field" for="target-minutes"
               ><span>累计多少分钟开花</span>
               <div class="input-unit">
@@ -270,13 +270,12 @@
                   required
                 /><span>分钟</span>
               </div>
-              <small>可以分多次、跨天完成，已有进度会保存。</small></label
+              <small>可以分多次、跨天完成。</small></label
             >
             <fieldset>
               <legend>哪些活动可以让它生长</legend>
               <p class="hint field-intro">
-                直接选择 Hindsight
-                已有的分类或大类，无需填写程序名。满足任意一条即可；也可以添加程序或网站规则。
+                选择 Hindsight 的分类或大类，也可以添加程序或网站规则；满足任意一条即可生长。
               </p>
               <div class="catalog-tools">
                 <button
@@ -300,7 +299,7 @@
               <label class="check-row" for="penalty-enabled"
                 ><input id="penalty-enabled" type="checkbox" /><span
                   >开启中断惩罚<span class="subtle block"
-                    >默认关闭：切到其他活动只暂停，不扣进度。</span
+                    >默认关闭：切到其他活动时暂停生长。</span
                   ></span
                 ></label
               >
@@ -334,8 +333,7 @@
                   /></label>
                 </div>
                 <p class="hint">
-                  切到不匹配的活动，超过宽限后只扣一次；及时返回不扣。手动暂停、离开电脑和关闭
-                  Hindsight 都不扣进度。进度最低为零。
+                  切到不匹配的活动超过宽限时间，扣减一次。手动暂停和离开电脑时只暂停。
                 </p>
               </div>
             </fieldset>
@@ -373,7 +371,7 @@
                   <div><dt>花语与寓意</dt><dd id="species-preview-meaning"></dd></div>
                 </dl>
                 <p id="species-preview-sources" class="species-sources"></p>
-                <p class="species-guide-note">花语随时代与文化而异；「本花园寓意」为本园创作。学名介绍采用常见代表种或属。</p>
+                <p class="species-guide-note">「本花园寓意」为本园创作，学名介绍采用常见代表种或属。</p>
               </section>
             </details>
           </form>
@@ -680,8 +678,10 @@
               </g>
               <g class="theme-prop-shadows" data-scene-part="theme-prop-shadows" clip-path="url(#ground-shadow-clip)" opacity=".16">
                 <ellipse cx="227" cy="339" rx="53" ry="9" />
-                <ellipse cx="665" cy="250" rx="36" ry="7" />
+                <ellipse data-slot="1" cx="665" cy="250" rx="36" ry="7" />
                 <ellipse cx="134" cy="382" rx="24" ry="5" />
+                <ellipse class="theme-blossom-shadow" cx="575" cy="212" rx="36" ry="7" />
+                <ellipse class="theme-ornament-shadow" cx="690" cy="261" rx="25" ry="5" />
               </g>
             </svg>
             <div class="theme-props" aria-hidden="true"><span class="theme-prop" data-slot="0"></span><span class="theme-prop" data-slot="1"></span><span class="theme-prop" data-slot="2"></span></div>
@@ -784,7 +784,7 @@
             </div>
           </div>
           </div>
-          <p class="garden-capacity-hint">每座花园最多 25 株，种满后继续分园。按开花日期归入本地周一至周日；展示有花的周、本周和选中的空周。</p>
+          <p class="garden-capacity-hint">每座花园最多 25 株，种满后继续分园；花朵按开花日期归入当周（周一至周日）。</p>
         </section>
         <details id="collection-settings" class="card collection-settings">
           <summary>收藏成就与主题<span id="collection-summary" class="collection-summary"></span></summary>
@@ -792,24 +792,23 @@
             <h3 id="focus-statistics-title">有效生长记录</h3>
             <p id="focus-statistics-since" class="note-privacy"></p>
             <dl id="focus-statistics-summary" class="focus-statistics-summary"></dl>
-            <p class="note-privacy">分类比例包含未分类与其他；最多单列 24 个分类，其后新分类汇总为「其他」。连续段在暂停、离开、不匹配或花开时结束。</p>
+            <p class="note-privacy">最多单列 24 个分类，之后的新分类汇总为「其他」。</p>
             <div id="focus-distribution-bar" class="focus-distribution-bar" aria-hidden="true"></div>
             <p id="focus-distribution-empty" class="note-privacy">获得有效生长时间后，这里会显示分类比例。</p>
             <ul id="focus-distribution-preview" class="focus-distribution-list"></ul>
             <details id="focus-distribution-more" hidden><summary>查看其余分类</summary><ul id="focus-distribution-rest" class="focus-distribution-list"></ul></details>
           </section>
           <p id="hidden-collection-status" class="hidden-collection-status"></p>
-          <p class="variant-explainer">每次开花有 5% 概率遇见隐藏配色，花园与相册都会保留。旧花保持原色；隐藏结果不会因刷新或重启改变。</p>
+          <p class="variant-explainer">每次开花有 5% 概率遇见隐藏配色。</p>
           <div id="achievement-filters" class="achievement-filters" role="group" aria-label="筛选成就">
             <button type="button" data-filter="all" aria-pressed="true">全部</button><button type="button" data-filter="blooms" aria-pressed="false">株数里程碑</button><button type="button" data-filter="species" aria-pressed="false">品种收藏</button><button type="button" data-filter="hidden" aria-pressed="false">隐藏收藏</button><button type="button" data-filter="focus" aria-pressed="false">生长记录</button><button type="button" data-filter="earned" aria-pressed="false">已获得</button>
           </div>
-          <p class="note-privacy">点击查看各级条件与日期。徽章有白、蓝、紫、金、彩五档颜色；整组全部达成后，卡片才会填上淡黄色。</p>
+          <p class="note-privacy">点击查看各级条件与日期。徽章分白、蓝、紫、金、彩五档，整组达成后卡片会变成淡黄色。</p>
           <div id="achievement-list" class="achievement-list" aria-label="收藏成就"></div>
-          <p class="note-privacy">花朵收藏成就按现存档案核验，已删除的旧花无法还原；有效生长成就只从上方统计起点开始。已获得等级永久保留，删除花朵不撤回。</p>
           <p id="achievement-empty" class="achievement-empty" hidden>还没有符合筛选的成就，先从一朵花开始吧。</p>
           <h3 class="theme-heading">给花园换个心情</h3>
           <div id="theme-options" class="theme-options" role="group" aria-label="选择花园主题"></div>
-          <p class="note-privacy">主题只改变颜色与装饰，不改变生长规则。新装饰由 AI 原创绘制。</p>
+          <p class="note-privacy">新装饰由 AI 原创绘制。</p>
         </details>
       </section>
 
@@ -833,7 +832,7 @@
       <section id="note-panel" class="card action-panel" aria-labelledby="note-title" hidden>
         <h2 id="note-title">给花留一句记忆</h2>
         <label class="field" for="note-input"><span>任务备注，可留空</span><textarea id="note-input" maxlength="280" rows="4"></textarea></label>
-        <p class="note-privacy">最多 280 个字符。只保存你填写的内容，不记录活动标题或浏览历史。</p>
+        <p class="note-privacy">最多 280 个字符。</p>
         <div class="action-row"><button id="note-save" class="button primary small" type="button">保存备注</button><button id="note-cancel" class="button quiet small" type="button">取消</button></div>
       </section>
       <section

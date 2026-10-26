@@ -298,9 +298,10 @@
       throw new Error("花园收藏正在频繁变化，请稍后重试。");
     }
 
-    async function apply(input, now = Date.now()) {
+    async function apply(input, now = Date.now(), options = {}) {
       // Retry the same instant. Background ticks only read the small hot state; page edits read
       // at most the one flower they change. Successful results are intentionally partial.
+      // options.skip(saved, next, now) may leave a result uncommitted; the caller owns that policy.
       let plantRoll;
       for (let attempt = 0; attempt < 8; attempt++) {
         const saved = await readHot(input?.type === "boot" && input.recoverSessionId === undefined ? input.sessionId : null);
@@ -320,6 +321,7 @@
           action = { ...input, expectedPreviousSessionId: bootClaim.previous };
         const result = root.GardenCore.reduce(state, action, now);
         if (result.ignored) return { ...result, partial: true };
+        if (options.skip?.(state, result.state, now)) return { ...result, partial: true, skipped: true };
         if (input.type === "plant" && await findFlower(result.state.active.id)) throw new Error("植物标识重复。");
         if (input.type === "plant" && plantRoll === undefined) {
           plantRoll = drawRoll();

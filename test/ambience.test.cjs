@@ -165,6 +165,27 @@ test("the actual ground-light ellipses stay on the rear lawn without reaching th
   }
 });
 
+test("blossom's relocated lantern glow also stays on the rear lawn clear of the flowerbed", () => {
+  const { readFileSync } = require("node:fs");
+  const { join } = require("node:path");
+  const { GEOMETRY } = require("../garden-layout.js");
+  const css = readFileSync(join(__dirname, "..", "ui", "theme-effects.css"), "utf8");
+  const base = css.match(/^\.theme-light-lantern\s*\{([^}]+)\}/m)[1];
+  const override = css.match(/^#view-garden\[data-theme="blossom"\] \.theme-light-lantern\s*\{([^}]+)\}/m)[1];
+  const read = (name) => Number((override.match(new RegExp(`\\b${name}:\\s*([\\d.]+)%`)) ||
+    base.match(new RegExp(`\\b${name}:\\s*([\\d.]+)%`)))[1]) / 100;
+  const width = read("width") * GEOMETRY.width, height = read("height") * GEOMETRY.height;
+  const center = { x: read("left") * GEOMETRY.width + width / 2, y: read("top") * GEOMETRY.height + height / 2 };
+  const distance = (point, diamond) => Math.abs(point.x - diamond.x) / diamond.radius +
+    Math.abs(point.y - diamond.y) / (diamond.radius * GEOMETRY.stepY / GEOMETRY.stepX);
+  for (let step = 0; step < 360; step++) {
+    const angle = step * Math.PI / 180;
+    const point = { x: center.x + width / 2 * Math.cos(angle), y: center.y + height / 2 * Math.sin(angle) };
+    assert.ok(distance(point, GEOMETRY.island) < .98, "the glow leaves the grass");
+    assert.ok(distance(point, GEOMETRY.bed) > 1.05, "the glow reaches the flowers");
+  }
+});
+
 function petalStyles() {
   const { readFileSync } = require("node:fs");
   const { join } = require("node:path");

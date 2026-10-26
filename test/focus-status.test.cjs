@@ -28,7 +28,7 @@ test("a matching app grows even if category or domain information is unavailable
 test("unclassified foreground activity is not asserted to be a different category", () => {
   const result = explain(state({ focus: { app: "Chrome" } }), 2000);
   assert.equal(result.code, "missing");
-  assert.match(result.summary, /没有提供/);
+  assert.match(result.summary, /缺少/);
   assert.ok(result.observations.some(([label, value]) => label === "当前分类" && value === "未识别"));
 });
 
@@ -62,7 +62,7 @@ test("deleted-category explanations keep an enabled interruption penalty visible
   const catalogs = { category: [] };
   assert.match(explain(source, 2000, { catalogs }).advice, /宽限期后.*扣减一次/);
   source.interruption.applied = true;
-  assert.match(explain(source, 2000, { catalogs }).advice, /不会再次扣减/);
+  assert.match(explain(source, 2000, { catalogs }).advice, /已扣减过/);
 });
 
 test("domain-unavailable explanation keeps OR matching and interruption wording intact", () => {
@@ -70,7 +70,7 @@ test("domain-unavailable explanation keeps OR matching and interruption wording 
     focus: { app: "Chrome" }, interruption: { applied: false } });
   assert.match(explain(base, 2000).advice, /扣减一次/);
   base.interruption.applied = true;
-  assert.match(explain(base, 2000).advice, /不会再次扣减/);
+  assert.match(explain(base, 2000).advice, /已扣减过/);
   base.active.rules.push({ type: "app", value: "chrome" });
   assert.equal(explain(base, 2000).code, "growing");
 });

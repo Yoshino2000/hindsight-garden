@@ -134,17 +134,17 @@
     "{0} (waiting to load)",
     "{0}（読み込み待ち）"
   ],
-  "累计模式：切到其他活动只暂停，不扣进度。": [
-    "Cumulative mode: other activities pause growth without losing progress.",
-    "累積モード：別の活動では一時停止し、進捗は減りません。"
+  "累计模式：切到其他活动时暂停生长。": [
+    "Cumulative mode: other activities pause growth.",
+    "累積モード：ほかの活動に切り替えると成長が止まります。"
   ],
   "当时已有进度的 {0}%": [
     "{0}% of progress at interruption",
     "中断時の進捗の {0}%"
   ],
-  "中断惩罚：宽限 {0} 秒后扣减{1}，每次中断只扣一次。手动暂停和离开电脑不扣。": [
-    "Interruption penalty: after a {0}-second grace period, deduct {1} once per interruption. Manual pause and time away incur no penalty.",
-    "中断ペナルティ：猶予 {0} 秒後に {1} を中断1回につき1度だけ差し引きます。手動停止と離席では減りません。"
+  "中断惩罚：离开符合规则的活动超过 {0} 秒，扣减{1}，每次中断扣一次。": [
+    "Interruption penalty: leaving matching activities for more than {0} seconds deducts {1}, once per interruption.",
+    "中断ペナルティ：ルールに合う活動から {0} 秒を超えて離れると、中断 1 回につき {1} を差し引きます。"
   ],
   "{0}（已删除）": [
     "{0} (deleted)",
@@ -178,9 +178,9 @@
     "Deduction (minutes)",
     "差し引く時間（分）"
   ],
-  "已载入设置。{0}花名与任务备注由你填写，确认后再播种。": [
-    "Settings loaded. {0}Enter a flower name and task note, then confirm planting.",
-    "設定を読み込みました。{0}花の名前とメモを入力してから植えてください。"
+  "已载入设置。{0}填好花名和任务备注后即可播种。": [
+    "Settings loaded. {0}Add a flower name and task note, then plant.",
+    "設定を読み込みました。{0}花の名前とメモを入れたら植えられます。"
   ],
   "本方案启用了中断惩罚，请检查扣减设置。": [
     "This plan enables interruption penalties; review the deduction settings. ",
@@ -226,9 +226,9 @@
     "Completed target time",
     "達成した目標時間"
   ],
-  "按开花日期归周；跨周生长的花，目标时长全部归到开花周。这不是当周实际活动时长，当前盆栽不计入。": [
-    "Grouped by bloom date. A flower's full target belongs to its bloom week, even if it grew across weeks. This is not actual activity time for that week; the current pot is excluded.",
-    "開花日で集計します。週をまたぐ花の目標時間も開花週に含みます。その週の実活動時間ではなく、現在の鉢は含みません。"
+  "按开花日期归周，跨周生长的花计入开花那一周。": [
+    "Grouped by bloom date; a flower that grew across weeks counts in its bloom week.",
+    "開花日で週に分けます。週をまたいで育った花は開花した週に入ります。"
   ],
   "{0} / {1} 个达标分类": [
     "{0} / {1} qualifying categories",
@@ -258,9 +258,9 @@
     "Effective growth: {0}; category ranked {1} holds {2}%",
     "有効成長 {0}；{1} 番目の分類の割合 {2}%"
   ],
-  "{0} · 只统计养花且匹配规则时的有效生长时间，历史花朵不回推。": [
-    "{0} · Only observed growth while raising a flower and matching its rules. No historical backfill.",
-    "{0} · 花を育て、ルールに一致した実際の成長時間だけを記録。過去の時間は補いません。"
+  "{0} · 统计养花且符合规则时的有效生长时间。": [
+    "{0} · Effective growth time while a plant matches its rules.",
+    "{0}・ルールに一致して育っていた有効成長時間を記録します。"
   ],
   "从升级后首次记录开始": [
     "From the first record after upgrading",
@@ -366,9 +366,9 @@
     "All levels in this achievement are complete",
     "この実績は全段階達成済み"
   ],
-  "已获得 · {0}（获得/核验日）": [
-    "Earned · {0} (award/verification date)",
-    "獲得済み · {0}（獲得・確認日）"
+  "已获得 · {0}": [
+    "Earned · {0}",
+    "獲得 · {0}"
   ],
   "尚未获得 · {0}": [
     "Not yet earned · {0}",
@@ -378,17 +378,17 @@
     "Unlocks the “{0}” theme",
     "「{0}」テーマを解放"
   ],
-  "只统计升级后统计起点以来实际获得的有效生长时间，不回推旧花、目标时长或升级前进度。未分类与其他计入总量；分类比例变化不会撤回已获等级。连续段在暂停、离开、不匹配、花开或未观察到的时间间隔后结束。": [
-    "Only effective growth observed since the statistics start is counted. Old flowers, targets and pre-upgrade progress are not backfilled. Unclassified and Other are included in the total. Changing shares never revokes awards. Pause, time away, mismatch, bloom or an unobserved gap ends a stretch.",
-    "統計開始後の実際の有効成長のみを集計します。過去の花・目標・更新前の進捗は補いません。未分類とその他も総量に含みます。割合が変わっても実績は失われません。停止、離席、不一致、開花、観測できない空白で連続記録は終了します。"
+  "统计从记录起点开始的有效生长时间，未分类与「其他」也计入总量。连续段在暂停、离开、切到不匹配的活动或开花时结束。": [
+    "Counts effective growth from the start of the record; Unclassified and Other are part of the total. A stretch ends on pause, time away, a non-matching activity or bloom.",
+    "記録開始からの有効成長時間を数え、未分類と「その他」も合計に含みます。一時停止・離席・ルールに合わない活動・開花で連続記録は終わります。"
   ],
-  "等级只是合并展示，原有条件与获得日期都保留。累计从首次核验时仍保留的收藏开始，此后新开花继续计入，删除不扣回。新成就可能按永久计数补授；获得日期可能为核验日，旧版本已删除的花不能还原。": [
-    "Levels are grouped for display; their original conditions and dates remain. Collection totals start with flowers present at first verification, then include new blooms permanently. Deletion does not subtract awards. New achievements may be granted from saved totals; dates may be verification dates. Previously deleted flowers cannot be restored.",
-    "段階は表示上まとめていますが、元の条件と日付は保持します。初回確認時の花と以降の開花を累積し、削除しても実績は失われません。保存済みの累計で新実績が付与され、日付が確認日になる場合があります。過去に削除された花は復元できません。"
+  "每开一朵花都会计入，已获得的等级会永久保留。": [
+    "Every bloom counts, and earned levels stay with you for good.",
+    "花が咲くたびに数えられ、獲得した段階はずっと残ります。"
   ],
-  "后台运行中 · 只累计符合规则的前台时间": [
-    "Background running · only matching foreground time counts",
-    "バックグラウンド稼働中 · 一致する前面活動の時間のみ集計"
+  "后台运行中 · 累计符合规则的前台时间": [
+    "Running in the background · counting matching foreground time",
+    "バックグラウンドで実行中・ルールに合う前面の時間を記録"
   ],
   "等待后台连接或新的活动信息": [
     "Waiting for background connection or new activity",
@@ -398,9 +398,9 @@
     "Choose a species, rules and duration, then plant. Growth is currently paused; choose “Resume growth” after planting.",
     "品種・ルール・時間を選んで植えましょう。現在は停止中です。植えた後に「成長を再開」を押せます。"
   ],
-  "选品种、设置生长规则和累计时长，然后直接播种。默认切换活动只暂停，不扣进度。": [
-    "Choose a species, growth rules and duration, then plant. By default, other activities only pause growth without losing progress.",
-    "品種・成長ルール・時間を選んで植えましょう。初期設定では別の活動に切り替えても進捗は減りません。"
+  "选品种、设置生长规则和累计时长，然后直接播种。": [
+    "Choose a species, growth rules and duration, then plant.",
+    "品種、成長ルール、時間を選んで、そのまま植えましょう。"
   ],
   "已暂停": [
     "Paused",
@@ -450,9 +450,9 @@
     "Interruption penalties enabled",
     "中断ペナルティ有効"
   ],
-  "累计模式，中断不扣进度": [
-    "Cumulative mode; no interruption loss",
-    "累積モード・中断で進捗は減りません"
+  "累计模式，中断时暂停": [
+    "Cumulative mode; interruptions pause growth",
+    "累積モード、中断時は一時停止"
   ],
   "生长规则：{0}{1}": [
     "Growth rules: {0}{1}",
@@ -602,9 +602,9 @@
     "Memories of this time",
     "この時間の思い出"
   ],
-  "这朵花还没有任务备注。旧记录不会自动补写任务。": [
-    "No task note for this flower. Older records are never given invented notes.",
-    "この花にメモはありません。古い記録のメモは自動で補いません。"
+  "这朵花还没有任务备注。": [
+    "This flower has no task note yet.",
+    "この花にはまだメモがありません。"
   ],
   "请先选择一个日期。": [
     "Choose a date first.",
@@ -618,9 +618,9 @@
     "Task memory saved.",
     "思い出のメモを保存しました。"
   ],
-  "本次中断扣减了 {0}。剩余进度已保存。": [
-    "This interruption deducted {0}. Remaining progress is saved.",
-    "この中断で {0} を差し引きました。残りの進捗は保存済みです。"
+  "本次中断扣减了 {0}。": [
+    "This interruption deducted {0}.",
+    "今回の中断で {0} 差し引きました。"
   ],
   "有一朵花开了，已为你留在「我的花园」。": [
     "A flower bloomed and is now in “My garden”.",
@@ -694,9 +694,9 @@
     "Planted. Return to an activity matching the category or rules to start growth.",
     "植えました。分類やルールに合う活動に戻ると成長が始まります。"
   ],
-  "生长规则已更新，已有进度、开花目标和惩罚设置都已保留。": [
-    "Growth rules updated. Progress, target and penalty settings are preserved.",
-    "成長ルールを更新しました。進捗・目標・ペナルティ設定は保持しています。"
+  "生长规则已更新。": [
+    "Growth rules updated.",
+    "成長ルールを更新しました。"
   ],
   "名字保存好了。": [
     "Name saved.",
@@ -706,9 +706,9 @@
     "“{0}” and its growth record will be removed. This cannot be undone.",
     "「{0}」とその成長記録を削除します。元には戻せません。"
   ],
-  "已删除方案，花朵与任务记忆已保留。": [
-    "Plan removed. Flowers and task memories are preserved.",
-    "プランを削除しました。花と思い出のメモは残っています。"
+  "已删除方案。": [
+    "Plan deleted.",
+    "プランを削除しました。"
   ],
   "已移除这株植物。": [
     "Plant removed.",
@@ -910,9 +910,9 @@
     "Manually paused",
     "手動で一時停止中"
   ],
-  "当前处于手动暂停状态，已有进度保留。": [
-    "Growth is manually paused. Existing progress is preserved.",
-    "手動で停止しています。これまでの進捗は保持しています。"
+  "当前处于手动暂停状态。": [
+    "Growth is paused manually.",
+    "手動で一時停止しています。"
   ],
   "准备好后点击「继续生长」。": [
     "Choose “Resume growth” when ready.",
@@ -922,9 +922,9 @@
     "Waiting for background connection",
     "バックグラウンド接続待ち"
   ],
-  "后台状态尚未更新，暂不累计这段时间。": [
-    "Background status has not updated; this interval is not counted.",
-    "バックグラウンド状態が未更新のため、この時間は集計しません。"
+  "后台状态尚未更新。": [
+    "The background status has not updated yet.",
+    "バックグラウンドの状態がまだ更新されていません。"
   ],
   "确认 Hindsight 和插件后台仍在运行，并切换一次前台活动以获取新信息。": [
     "Check that Hindsight and the plugin background are running, then switch foreground activity once for fresh information.",
@@ -934,9 +934,9 @@
     "Waiting for foreground information",
     "前面活動の情報待ち"
   ],
-  "尚未收到可用的前台活动信息，暂不累计。": [
-    "No usable foreground observation has arrived; time is not counted yet.",
-    "利用できる前面活動の情報がないため、まだ集計していません。"
+  "还没有收到前台活动信息。": [
+    "No foreground activity information yet.",
+    "前面の活動情報をまだ受け取っていません。"
   ],
   "切换一次程序或网站，再查看此处；请同时检查 Hindsight 的活动记录与隐私设置。": [
     "Switch app or website and check again; also review Hindsight activity recording and privacy settings.",
@@ -950,9 +950,9 @@
     "An away status was received; your plant is resting.",
     "離席状態を受け取り、植物は休んでいます。"
   ],
-  "回来后等待新的前台活动信息；离开期间不扣进度。": [
-    "After returning, wait for new activity information. No penalty applies while away.",
-    "戻ったら新しい活動情報をお待ちください。離席中は進捗を差し引きません。"
+  "回到电脑前，活动符合规则时会继续生长。": [
+    "When you return, it keeps growing on matching activities.",
+    "戻ってルールに合う活動をすると、また育ち始めます。"
   ],
   "当前活动符合规则": [
     "Current activity matches",
@@ -962,21 +962,17 @@
     "Matched: {0}.",
     "一致：{0}。"
   ],
-  "只累计后台实际观察到的有效时间，同一段时间不会重复计算。": [
-    "Only effective time actually observed by the background counts, once per interval.",
-    "バックグラウンドで実際に観測した有効時間だけを、重複せずに集計します。"
+  "停留在符合规则的活动里，它会继续生长。": [
+    "Stay on matching activities and it keeps growing.",
+    "ルールに合う活動を続けると、そのまま育ちます。"
   ],
-  " 本次中断已扣减过，不会再次扣减。": [
-    " This interruption has already been penalized; it will not be deducted again.",
-    " この中断では差し引き済みです。再度は差し引きません。"
+  " 本次中断已扣减过。": [
+    " This interruption has already been deducted.",
+    " この中断では差し引き済みです。"
   ],
   " 已开启中断惩罚，宽限期后将按约定扣减一次。": [
     " Interruption penalties are enabled; one deduction applies after the grace period.",
     " 中断ペナルティが有効です。猶予後に1度差し引きます。"
-  ],
-  " 已有进度保留。": [
-    " Existing progress is preserved.",
-    " これまでの進捗は保持しています。"
   ],
   "所选分类已不存在": [
     "Selected categories no longer exist",
@@ -986,9 +982,9 @@
     "This plant's categories or groups are absent from the current list.",
     "この鉢の分類・大分類が現在の一覧にありません。"
   ],
-  "点击「修改规则」，重新选择现有分类；修改不会清零当前进度。": [
-    "Choose “Edit rules” and select existing categories. Editing does not reset current progress.",
-    "「ルールを変更」で現存する分類を選んでください。変更しても進捗はリセットされません。"
+  "点击「修改规则」，重新选择现有分类。": [
+    "Choose “Edit rules” and select existing categories.",
+    "「ルールを変更」で現存する分類を選んでください。"
   ],
   "缺少匹配所需的信息": [
     "Information needed to match is missing",
@@ -998,9 +994,9 @@
     "Current activity does not match",
     "現在の活動はルールと不一致"
   ],
-  "当前活动没有提供这些规则需要的信息，无法确认匹配。": [
-    "This activity does not provide the information required by these rules, so a match cannot be confirmed.",
-    "活動からルールに必要な情報を取得できず、一致を確認できません。"
+  "当前活动缺少这些规则需要的信息。": [
+    "This activity lacks the information these rules need.",
+    "この活動には、ルールに必要な情報がありません。"
   ],
   "当前分类「{0}」未匹配这盆花的分类规则。": [
     "Current category “{0}” does not match this plant's category rules.",
@@ -1434,37 +1430,37 @@
     "{0} min uninterrupted",
     "連続 {0} 分"
   ],
-  "从有效生长统计开始后，单次连续累计 {0} 分钟实际生长时间。切出规则、离开、暂停、休眠、重启、修改规则或开花都会结束连续段。": [
-    "After growth statistics begin, accumulate {0} minutes of actual growth in one stretch. Mismatch, time away, pause, sleep, restart, rule changes or bloom end the stretch.",
-    "統計開始後、1回で連続 {0} 分の実成長を達成。不一致、離席、停止、スリープ、再起動、ルール変更、開花で連続記録は終了します。"
+  "连续生长 {0} 分钟；暂停、离开、切到不匹配的活动、修改规则或开花会结束连续段。": [
+    "Grow for {0} minutes in one stretch; pause, time away, a non-matching activity, rule changes or bloom end the stretch.",
+    "連続 {0} 分育てる。一時停止・離席・ルールに合わない活動・ルール変更・開花で連続記録は終わります。"
   ],
-  "正在养花、符合生长规则并实际增加进度的时间，会累计成一段连续记录。": [
-    "Time spent raising a flower while matching its rules and actually adding progress forms an uninterrupted record.",
-    "花を育て、ルールに一致して実際に進捗が増えた時間が、連続記録になります。"
+  "养花时符合规则的时间，会连成一段完整的记录。": [
+    "Time spent growing on matching activities joins into one continuous stretch.",
+    "ルールに合う活動で育てた時間が、ひと続きの記録になります。"
   ],
   "累计 {0} 小时": [
     "{0} hours total",
     "累計 {0} 時間"
   ],
-  "从有效生长统计开始后，累计 {0} 小时实际生长时间。旧花朵、旧目标时长与升级前进度不补算。": [
-    "Accumulate {0} hours of actual growth after statistics begin. Old flowers, targets and pre-upgrade progress are not backfilled.",
-    "統計開始後、実成長を累計 {0} 時間。過去の花・目標時間・更新前の進捗は補いません。"
+  "累计生长 {0} 小时。": [
+    "Grow for {0} hours in total.",
+    "合計 {0} 時間育てる。"
   ],
-  "可以分多次、跨天积累。惩罚不倒扣已经真实获得的生长时间，规则重叠也只计一次。": [
-    "Accumulate across sessions and days. Penalties do not subtract time already observed, and overlapping rules count each interval only once.",
-    "何度かに分け、日をまたいで累積できます。ペナルティでも観測済み時間は減らず、ルールが重なっても重複集計しません。"
+  "可以分多次、跨天慢慢积累。": [
+    "Build it up over several sessions and days.",
+    "何回かに分けて、日をまたいでゆっくり積み重ねられます。"
   ],
   "{0} 类时光": [
     "{0} kinds of time",
     "{0} 種類の時間"
   ],
-  "从有效生长统计开始后，至少 {0} 个单列分类各累计 10 分钟实际生长时间。未分类与超出 24 个分类后合并的「其他」不计入。": [
-    "After statistics begin, at least {0} individually tracked categories must each reach 10 minutes of actual growth. Unclassified and Other (beyond 24 categories) do not qualify.",
-    "統計開始後、個別記録する分類のうち {0} 個以上で各10分の実成長を達成。未分類と24分類を超えた「その他」は対象外です。"
+  "{0} 个分类各累计生长 10 分钟。": [
+    "Grow for 10 minutes in each of {0} categories.",
+    "{0} 個の分類でそれぞれ 10 分育てる。"
   ],
-  "分类来自当时真实的 Hindsight 分类标识，不从规则名称猜测，也不拆分同一段时间。": [
-    "Categories use actual Hindsight category IDs at the time, never guesses from rule names. The same interval is not split or duplicated.",
-    "当時の Hindsight の分類IDで集計し、ルール名から推測しません。同じ時間を重複して計上しません。"
+  "在不同的分类里，各自留下一段生长的时间。": [
+    "Leave a little growing time in each of several categories.",
+    "いくつもの分類に、それぞれの成長時間を残します。"
   ],
   "专心一隅": [
     "A focused corner",
@@ -1478,13 +1474,13 @@
     "A trio in harmony",
     "三つのハーモニー"
   ],
-  "从有效生长统计开始后，总计至少 {0} 小时；至少 {1} 个单列分类各占总有效生长时间的 {2}%。总量包含未分类和「其他」，它们不作为合格分类。": [
-    "After statistics begin, reach at least {0} hours total; at least {1} individually tracked categories must each hold {2}% of total effective growth. Unclassified and Other remain in the denominator but do not qualify.",
-    "統計開始後、総量 {0} 時間以上、個別分類のうち {1} 個以上が各 {2}% を占める。未分類とその他は分母に含みますが、達成分類には数えません。"
+  "累计生长至少 {0} 小时，且至少 {1} 个分类各占 {2}% 以上。": [
+    "Grow for at least {0} hours in total, with at least {1} categories each holding {2}% or more.",
+    "合計 {0} 時間以上育て、{1} 個以上の分類がそれぞれ {2}% 以上を占める。"
   ],
-  "进度条表示时长门槛与比例条件的共同完成度，不是实际分类百分比。达成后永久保留，之后比例变化不会撤回。": [
-    "The bar combines the duration threshold and share requirements, rather than displaying actual category share. Once earned, awards remain even if shares change.",
-    "バーは時間と割合条件を合わせた達成率で、実際の分類割合ではありません。一度獲得した実績は割合が変わっても残ります。"
+  "进度条综合了总时长与分类占比两项条件。": [
+    "The bar combines the total-time and category-share conditions.",
+    "バーは合計時間と分類の割合、2 つの条件をあわせた進み具合です。"
   ],
   "植物名称需要 1～40 个字符。": [
     "Plant names must contain 1–40 characters.",
@@ -1834,9 +1830,9 @@
     "Growth status",
     "成長の状態"
   ],
-  "满足以下任意一条规则时累计时间。修改规则会保留当前进度。": [
-    "Any matching rule counts time. Editing rules preserves current progress.",
-    "どれか1件のルールに合えば時間を集計します。変更しても進捗は保持します。"
+  "满足以下任意一条规则时累计时间。": [
+    "Time counts whenever any rule below matches.",
+    "下のいずれかのルールに一致すると時間が積み上がります。"
   ],
   "移除盆栽": [
     "Remove pot",
@@ -1854,9 +1850,9 @@
     "Cancel",
     "キャンセル"
   ],
-  "只修改哪些活动可以生长，已有进度、开花目标和惩罚设置都会保留。": [
-    "Change only which activities count. Progress, bloom target and penalty settings are preserved.",
-    "成長する活動だけを変更します。進捗・開花目標・ペナルティ設定は保持します。"
+  "调整哪些活动可以让这盆花生长。": [
+    "Choose which activities help this plant grow.",
+    "この鉢を育てる活動を調整します。"
   ],
   "刷新分类": [
     "Refresh categories",
@@ -1906,13 +1902,13 @@
     "Delete plan",
     "プランを削除"
   ],
-  "最多保存 20 个方案。只保存品种、目标时长、规则与中断设置，不复制花名或任务备注。": [
-    "Save up to 20 plans. Only species, target time, rules and interruption settings are saved; flower names and task notes are not copied.",
-    "プランは20件まで。品種・目標時間・ルール・中断設定のみ保存し、花の名前やメモはコピーしません。"
+  "方案会保存品种、目标时长、规则与中断设置，最多 20 个。": [
+    "A plan keeps the species, target, rules and interruption settings. Save up to 20.",
+    "プランには品種・目標時間・ルール・中断設定を保存します。最大 20 件です。"
   ],
-  "只删除方案，已种下的花会保留。": [
-    "Only the plan is removed. Planted flowers remain.",
-    "プランだけを削除します。植えた花は残ります。"
+  "确定删除这个方案吗？": [
+    "Delete this plan?",
+    "このプランを削除しますか？"
   ],
   "确认删除方案": [
     "Confirm plan deletion",
@@ -1938,9 +1934,9 @@
     "Optional",
     "任意"
   ],
-  "保存在本机，开花后也能回看和编辑。方案不会复制这句话。": [
-    "Saved locally; revisit or edit after blooming. Plans never copy this note.",
-    "本機に保存し、開花後も確認・編集できます。プランにはコピーしません。"
+  "开花后也能回看和编辑。": [
+    "Revisit and edit it after the flower blooms.",
+    "開花後も見返したり編集したりできます。"
   ],
   "累计多少分钟开花": [
     "Minutes until bloom",
@@ -1950,17 +1946,17 @@
     "min",
     "分"
   ],
-  "可以分多次、跨天完成，已有进度会保存。": [
-    "Complete over multiple sessions or days. Progress is saved.",
-    "何回かに分け、日をまたいで達成できます。進捗は保存されます。"
+  "可以分多次、跨天完成。": [
+    "Grow it over several sessions or days.",
+    "何回かに分けても、日をまたいでも育てられます。"
   ],
   "哪些活动可以让它生长": [
     "Which activities help it grow?",
     "成長する活動を選ぶ"
   ],
-  "直接选择 Hindsight 已有的分类或大类，无需填写程序名。满足任意一条即可；也可以添加程序或网站规则。": [
-    "Choose existing Hindsight categories or groups without entering app names. Any one matching rule is enough; app and website rules are also available.",
-    "Hindsight の分類・大分類を直接選べます。1件一致すれば十分で、アプリやサイトのルールも追加できます。"
+  "选择 Hindsight 的分类或大类，也可以添加程序或网站规则；满足任意一条即可生长。": [
+    "Choose Hindsight categories or groups, or add app and website rules. Any one match helps it grow.",
+    "Hindsight の分類・大分類を選ぶか、アプリやサイトのルールを追加します。どれか 1 つに一致すれば育ちます。"
   ],
   "生长模式与中断设置": [
     "Growth mode and interruptions",
@@ -1970,9 +1966,9 @@
     "Enable interruption penalty",
     "中断ペナルティを有効にする"
   ],
-  "默认关闭：切到其他活动只暂停，不扣进度。": [
-    "Off by default: other activities pause growth without losing progress.",
-    "初期設定は無効。別の活動では一時停止し、進捗は減りません。"
+  "默认关闭：切到其他活动时暂停生长。": [
+    "Off by default: other activities pause growth.",
+    "初期設定はオフ：ほかの活動に切り替えると成長が止まります。"
   ],
   "扣减方式": [
     "Deduction method",
@@ -1990,9 +1986,9 @@
     "Grace period (seconds)",
     "猶予時間（秒）"
   ],
-  "切到不匹配的活动，超过宽限后只扣一次；及时返回不扣。手动暂停、离开电脑和关闭 Hindsight 都不扣进度。进度最低为零。": [
-    "A mismatch deducts only once after the grace period; returning in time avoids it. Manual pause, time away and closing Hindsight incur no penalty. Progress never falls below zero.",
-    "不一致が猶予を超えた場合だけ1回差し引き、時間内に戻れば減りません。手動停止・離席・Hindsight 終了では減らず、進捗は0未満になりません。"
+  "切到不匹配的活动超过宽限时间，扣减一次。手动暂停和离开电脑时只暂停。": [
+    "Staying on a non-matching activity past the grace period deducts once. Manual pauses and time away only pause growth.",
+    "ルールに合わない活動が猶予時間を超えると 1 回差し引きます。手動停止と離席は一時停止だけです。"
   ],
   "花开时告诉我": [
     "Tell me when it blooms",
@@ -2026,9 +2022,9 @@
     "Flower language and meaning",
     "花言葉と意味"
   ],
-  "花语随时代与文化而异；「本花园寓意」为本园创作。学名介绍采用常见代表种或属。": [
-    "Flower meanings vary by time and culture. “Our garden's meaning” is original to this garden. Botanical notes use common representative species or genera.",
-    "花言葉は時代や文化で異なります。「この庭での意味」は創作です。学名は代表的な種・属を用いています。"
+  "「本花园寓意」为本园创作，学名介绍采用常见代表种或属。": [
+    "“Our garden's meaning” is original to this garden. Botanical notes use common representative species or genera.",
+    "「この庭での意味」は創作です。学名は代表的な種・属を用いています。"
   ],
   "在 Hindsight「设置 → 插件」中可选择独立窗口。紧凑模式会收起其他内容，留下一盆花。": [
     "Choose a separate window in Hindsight Settings → Plugins. Compact mode hides other content and leaves one pot.",
@@ -2118,9 +2114,9 @@
     "garden",
     "番"
   ],
-  "每座花园最多 25 株，种满后继续分园。按开花日期归入本地周一至周日；展示有花的周、本周和选中的空周。": [
-    "Each garden holds up to 25 flowers, then another garden opens. Blooms belong to their local Monday–Sunday week. Weeks with flowers, this week and the selected empty week are shown.",
-    "1庭25株までで、満開後は次の庭へ。開花日を現地の月曜〜日曜に分類し、花のある週・今週・選択した空の週を表示します。"
+  "每座花园最多 25 株，种满后继续分园；花朵按开花日期归入当周（周一至周日）。": [
+    "Each garden holds up to 25 flowers, then another garden opens. Flowers belong to the Monday–Sunday week they bloomed in.",
+    "1 つの庭は 25 株まで。満開になると次の庭へ。花は開花日の週（月曜〜日曜）に入ります。"
   ],
   "收藏成就与主题": [
     "Achievements and themes",
@@ -2130,9 +2126,9 @@
     "Effective growth records",
     "有効成長の記録"
   ],
-  "分类比例包含未分类与其他；最多单列 24 个分类，其后新分类汇总为「其他」。连续段在暂停、离开、不匹配或花开时结束。": [
-    "Shares include Unclassified and Other. Up to 24 categories are listed individually; later new categories join Other. Pause, time away, mismatch or bloom ends a stretch.",
-    "割合には未分類とその他も含みます。個別に記録するのは24分類までで、以降の新分類はその他にまとめます。停止・離席・不一致・開花で連続記録は終了します。"
+  "最多单列 24 个分类，之后的新分类汇总为「其他」。": [
+    "Up to 24 categories are listed individually; later new categories join Other.",
+    "個別に記録するのは 24 分類までで、以降の新しい分類は「その他」にまとめます。"
   ],
   "获得有效生长时间后，这里会显示分类比例。": [
     "Category shares appear after you gain effective growth time.",
@@ -2142,13 +2138,9 @@
     "More categories",
     "残りの分類を見る"
   ],
-  "点击查看各级条件与日期。徽章有白、蓝、紫、金、彩五档颜色；整组全部达成后，卡片才会填上淡黄色。": [
-    "Select a badge for each level's conditions and dates. Badges use white, blue, purple, gold and rainbow grades; a card turns pale yellow only when every level is earned.",
-    "バッジを選ぶと各段階の条件と日付が見られます。白・青・紫・金・虹の5段階で、全段階を達成したカードだけ淡い黄色になります。"
-  ],
-  "花朵收藏成就按现存档案核验，已删除的旧花无法还原；有效生长成就只从上方统计起点开始。已获得等级永久保留，删除花朵不撤回。": [
-    "Flower achievements are verified from existing records; previously deleted flowers cannot be restored. Time achievements begin at the statistics start above. Earned levels are permanent, even if flowers are removed.",
-    "花の実績は現存する記録で確認し、削除済みの旧花は復元できません。時間の実績は上記の統計開始時点から。獲得済み段階は花を削除しても残ります。"
+  "点击查看各级条件与日期。徽章分白、蓝、紫、金、彩五档，整组达成后卡片会变成淡黄色。": [
+    "Select a badge for each level's conditions and dates. Badges come in white, blue, purple, gold and rainbow; a fully earned card turns pale yellow.",
+    "バッジを選ぶと各段階の条件と日付が見られます。白・青・紫・金・虹の 5 段階で、全段階を達成するとカードが淡い黄色になります。"
   ],
   "还没有符合筛选的成就，先从一朵花开始吧。": [
     "No achievements match this filter yet. Start with a flower.",
@@ -2158,9 +2150,9 @@
     "Give your garden a new mood",
     "庭の気分を変える"
   ],
-  "主题只改变颜色与装饰，不改变生长规则。新装饰由 AI 原创绘制。": [
-    "Themes change colors and decorations, never growth rules. New decorations are original AI artwork.",
-    "テーマは色と飾りのみを変え、成長ルールは変えません。新しい飾りはAIによるオリジナル作品です。"
+  "新装饰由 AI 原创绘制。": [
+    "New decorations are original AI artwork.",
+    "新しい飾りは AI によるオリジナル作品です。"
   ],
   "花园成就": [
     "Garden achievement",
@@ -2182,9 +2174,9 @@
     "Task note (may be empty)",
     "作業メモ（空欄可）"
   ],
-  "最多 280 个字符。只保存你填写的内容，不记录活动标题或浏览历史。": [
-    "Up to 280 characters. Only your text is saved; activity titles and browsing history are not recorded.",
-    "280文字まで。入力した内容のみ保存し、活動タイトルや閲覧履歴は記録しません。"
+  "最多 280 个字符。": [
+    "Up to 280 characters.",
+    "最大 280 文字です。"
   ],
   "保存备注": [
     "Save note",
@@ -2358,21 +2350,21 @@
     "Grow {0} hidden-color flowers. Every completed flower has an independent 5% chance of a hidden palette.",
     "夢色の花を累計 {0} 株咲かせる。開花ごとに独立した5%の確率で特別な色になります。"
   ],
-  "偶然遇到不同的颜色，也留住了同样认真积累的一段时间。删除花朵不撤回已获得的成就。": [
-    "A surprise color keeps the same carefully grown time. Removing flowers never revokes earned achievements.",
-    "偶然出会う特別な色にも、大切に育てた時間が宿ります。花を削除しても獲得した実績は残ります。"
+  "偶然遇到不同的颜色，也留住了同样认真积累的一段时间。": [
+    "A chance encounter with a different color, holding time grown just as carefully.",
+    "偶然出会った違う色にも、同じように積み重ねた時間が残っています。"
   ],
   "{0} 种梦色收藏": [
     "{0} hidden species",
     "夢色コレクション {0} 種"
   ],
-  "收集到 {0} 种曾经开花的隐藏配色植物。普通配色不计入隐藏品种数。": [
-    "Collect {0} species in their hidden palette. Ordinary colors do not count toward hidden species.",
-    "夢色の植物を {0} 種類集める。通常色は夢色の品種数に含みません。"
+  "收集到 {0} 种曾经开花的隐藏配色植物。": [
+    "Collect {0} species in their hidden palette.",
+    "夢色の植物を {0} 種類集める。"
   ],
-  "慢慢遇见不同品种的隐藏配色，不需要改变原本的种植节奏。": [
-    "Discover hidden palettes at your own pace, without changing the way you grow.",
-    "いつものペースで育てながら、さまざまな夢色に出会いましょう。"
+  "按自己的节奏种花，慢慢遇见不同品种的隐藏配色。": [
+    "Plant at your own pace and meet hidden palettes of different species.",
+    "自分のペースで植えながら、いろいろな品種の夢色に出会えます。"
   ],
   "梦色{0}初绽": [
     "First hidden {0}",
@@ -2382,9 +2374,9 @@
     "Let at least one {0} bloom in its hidden palette.",
     "{0}を1株以上咲かせ、夢色を手に入れる。"
   ],
-  "这株{0}留住了一次特别的相遇。旧版已开花的普通配色不会重新抽取。": [
-    "This {0} marks a special encounter. Flowers that bloomed in older versions are not rerolled.",
-    "この{0}は特別な出会いの記録です。旧版で開花した通常色の花は再抽選しません。"
+  "这株{0}留住了一次特别的相遇。": [
+    "This {0} kept a special encounter.",
+    "この{0}は、特別な出会いを残しました。"
   ],
   "隐藏配色随机签不正确，已停止操作以保留原数据。": [
     "Invalid hidden-color ticket. The operation stopped to preserve the original data.",
@@ -2466,13 +2458,13 @@
     "Hidden collection: {0} flowers · {1} / 8 species",
     "夢色コレクション：{0} 株 · {1} / 8 種"
   ],
-  "每次开花有 5% 概率遇见隐藏配色，花园与相册都会保留。旧花保持原色；隐藏结果不会因刷新或重启改变。": [
-    "Every bloom has a 5% chance of a hidden palette, kept in the garden and album. Older blooms retain their original colors. Refreshing or restarting never rerolls the result.",
-    "開花ごとに5%の確率で夢色になり、庭とアルバムに残ります。旧花は元の色のまま。更新や再起動で結果は変わりません。"
+  "每次开花有 5% 概率遇见隐藏配色。": [
+    "Each bloom has a 5% chance of a hidden palette.",
+    "開花ごとに 5% の確率で夢色に出会えます。"
   ],
-  "隐藏配色只在完成时揭晓，品种与目标时长不影响 5% 概率。一次结果会永久保存在花朵记录中；没有保底，也不需要重复抽取。": [
-    "Hidden colors are revealed at bloom. Species and duration do not change the 5% chance. The result is saved with the flower; there is no guaranteed drop or reroll.",
-    "夢色は開花時に分かります。品種や目標時間によらず確率は5%。結果は花とともに保存され、確定入手や再抽選はありません。"
+  "隐藏配色在开花时揭晓，每朵花都有 5% 的概率。": [
+    "Hidden palettes are revealed at bloom; every flower has a 5% chance.",
+    "夢色は開花のときに明らかになり、どの花にも 5% の確率があります。"
   ],
   "细雨落向草地，叶伞轻动，水面泛起微波": [
     "A light rain lands on the lawn, the leaf canopy sways, and the pond ripples",
@@ -2497,10 +2489,18 @@
   }
   const format = (value, values) => value.replace(/\{(\d+)\}/g, (match, index) =>
     Number(index) < values.length ? String(values[index]) : match);
+  // English templates spell the plural noun after a count. Only the template changes, so a
+  // substituted user name containing "1 flowers" is never rewritten.
+  const SINGULAR = { flowers: "flower", gardens: "garden", hours: "hour", categories: "category", groups: "group" };
+  const singular = (template, values) => template.replace(/\{(\d+)\} (flowers|gardens|hours|categories|groups)\b/g,
+    (match, index, noun) => String(values[index]) === "1" ? `{${index}} ${SINGULAR[noun]}` : match);
   function create(language) {
     const locale = resolveLanguage(language);
     const column = locale === "ja" ? 1 : 0;
-    const t = (key, ...values) => format(locale === "zh-CN" ? key : MESSAGES[key]?.[column] || MESSAGES[key]?.[0] || key, values);
+    const t = (key, ...values) => {
+      const template = locale === "zh-CN" ? key : MESSAGES[key]?.[column] || MESSAGES[key]?.[0] || key;
+      return format(locale === "en" ? singular(template, values) : template, values);
+    };
     const patterns = Object.keys(MESSAGES).filter(key => /\{\d+\}/.test(key))
       .sort((a, b) => b.replace(/\{\d+\}/g, "").length - a.replace(/\{\d+\}/g, "").length).map(key => {
       const indexes = [];
@@ -2531,7 +2531,7 @@
         if (flower && item.metric === "hiddenSpeciesBloom") {
           result.name = t("梦色{0}初绽", t(flower.name));
           result.condition = t("至少让一株{0}开花，并获得它的隐藏配色。", t(flower.name));
-          result.description = t("这株{0}留住了一次特别的相遇。旧版已开花的普通配色不会重新抽取。", t(flower.name));
+          result.description = t("这株{0}留住了一次特别的相遇。", t(flower.name));
         }
         if (flower && item.metric === "speciesBloom") {
           result.name = t("{0}初绽", t(flower.name));

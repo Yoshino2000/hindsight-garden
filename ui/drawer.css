@@ -29,7 +29,8 @@
   padding: 17px 18px 20px;
 }
 .flower-detail-title { font-size: 21px; overflow-wrap: anywhere; }
-.flower-drawer .flower-detail-art { height: 170px; margin-top: 6px; }
+/* The drawer shows the 135px garden artwork; a fixed sprite-sized box left a blank band below it. */
+.flower-drawer .flower-detail-art { height: auto; margin-top: 6px; }
 .flower-drawer .flower-detail-art .plant-sprite { width: calc(170px * var(--sprite-ratio, .5)); }
 .flower-drawer .action-row { flex-wrap: wrap; }
 .flower-drawer .action-panel { padding: 14px; margin: 18px 0 0; border-radius: 14px; }

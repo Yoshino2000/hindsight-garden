@@ -8,6 +8,9 @@ const store = GardenStore.createStore((method, params) =>
 );
 const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const TICK_MS = 2000;
+// While nothing but the clock changes, the saved heartbeat may lag by up to this long. It stays
+// below the 10 s unobserved gap and the page's 12 s freshness check, with a full tick of margin.
+const IDLE_WRITE_MS = 6000;
 let queue = Promise.resolve();
 let started = false;
 let bootAttempted = false;
@@ -47,9 +50,21 @@ async function boot() {
   return true;
 }
 
-async function run(input) {
+// A tick that only moves lastAt/heartbeatAt need not rewrite the whole row every 2 s. Any other
+// change (growth, a penalty, a gap reset, an upgrade) is written at once, and the older of the two
+// saved clocks is never allowed to pass IDLE_WRITE_MS. A clock behind the saved one always writes.
+function clockOnly(saved, next, now) {
+  const persisted = Math.min(saved.lastAt ?? -Infinity, saved.heartbeatAt ?? -Infinity);
+  const age = now - persisted;
+  if (!(age >= 0 && age + TICK_MS <= IDLE_WRITE_MS)) return false;
+  const rest = (state) => JSON.stringify(state, (key, value) =>
+    key === "lastAt" || key === "heartbeatAt" ? undefined : value);
+  return rest(saved) === rest(next);
+}
+
+async function run(input, options) {
   if (!(await boot())) return;
-  const result = await store.apply({ ...input, sessionId });
+  const result = await store.apply({ ...input, sessionId }, undefined, options);
   if (result.state.sessionId !== sessionId) { superseded = true; return; }
   for (const note of result.notes) {
     try {
@@ -105,9 +120,13 @@ later(boot);
 setInterval(() => {
   if (ticking || superseded) return;
   ticking = true;
+  const queuedAfter = focusSequence;
   later(async () => {
     try {
-      await run({ type: "tick" });
+      // A focus change that arrived while this tick waited settles the clock itself. Ticking
+      // first would stamp a later time and make that queued observation look stale.
+      if (focusSequence !== queuedAfter) return;
+      await run({ type: "tick" }, { skip: clockOnly });
     } finally {
       ticking = false;
     }

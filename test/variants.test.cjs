@@ -227,7 +227,10 @@ test("two upgrading stores use the winning saved ticket without repeatedly sampl
 
 test("hidden milestones are permanent and leave all prior thirty-six definitions untouched", () => {
   const old = oldRuntime();
-  assert.deepEqual(core.ACHIEVEMENTS.slice(0, 36), JSON.parse(JSON.stringify(old.GardenCore.ACHIEVEMENTS)));
+  // Identity, names and thresholds are persistent; condition and description are display copy.
+  const persistent = ({ condition, description, ...item }) => item;
+  assert.deepEqual(core.ACHIEVEMENTS.slice(0, 36).map(persistent),
+    JSON.parse(JSON.stringify(old.GardenCore.ACHIEVEMENTS)).map(persistent));
   assert.equal(core.ACHIEVEMENTS.length, 52);
   let state = change(null, { type: "boot", sessionId: SID });
   for (const [index, item] of core.SPECIES.entries())

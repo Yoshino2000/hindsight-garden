@@ -35,6 +35,7 @@ The reference plugin is [Focus](https://github.com/Tomotsugu-dev/hindsight-focus
 | `assets/garden/*.png` | Eight independently generated, simpler ground-planted garden sprites |
 | `assets/ambience/*.png` | Original layered swing, three bird pose atlases and butterfly variants |
 | `assets/collection/*.png` | Original milestone/theme illustrations and 0.12.0 three-prop theme atlases |
+| `assets-source/` | Full-size original artwork. Not packaged; `python -X utf8 scripts/resize-assets.py` regenerates the runtime copies in `assets/` |
 | `test/*.test.cjs` | Isolated deterministic rules/store/worker tests |
 | `scripts/preview.py` | Local simulated host, actual extracted bridges and temporary SQLite |
 | `scripts/package.py` | Allowlisted, deterministic installable ZIP and release metadata |
@@ -68,6 +69,8 @@ In 0.12.0 `GardenCollection.planLabel` formats choices as the saved custom name,
 ## Timing decisions
 
 Only matching, not-away foreground stretches observed by the running worker earn time. No sleep or offline catch-up. A backwards clock or gap over ten seconds invalidates the observed focus and pending penalty. Boot also clears them. Page commands do not invent elapsed time.
+
+The worker still ticks every 2 s, but a tick that changes only `lastAt`/`heartbeatAt` is kept in memory until the older of those two saved clocks would pass 6 s (`IDLE_WRITE_MS`). Growth, a deduction, a gap reset, an upgrade or a clock behind the saved one is written on that same tick. Idle time (no pot, paused, away or non-matching) therefore writes once per 6 s instead of once per 2 s. The saved clock stays within the 10 s unobserved gap and the page's 12 s freshness check. A focus change that arrives while a tick waits in the queue settles the clock itself; the waiting tick is skipped.
 
 Category rules use the `category.id` or `category.superCategory.id` in `focus.changed`. The page reads `categories.list` and `super_categories.list` to display choices. It never copies application membership lists or infers categories from names. IDs are opaque, case-sensitive values; stored labels are optional display snapshots, not matching keys. A rules-only page command preserves the active plant and its progress and clears pending interruption, so changing a rule cannot itself charge a penalty. Existing schema-1 app/domain gardens from 0.1.0 enter through the atomic migration described above.
 
@@ -182,3 +185,11 @@ The page opts into `createStore(..., { readonlyArchive: true })`. An unchanged a
 `GardenBreeze.createBreeze` alternates a random 3–10-second resting stage with a 4,500 ms gust, using at most one shared timeout at any instant. All normal/hidden flower wrappers inherit a common signed 1.2–2-degree angle. Alternating `a`/`b` animation names restart flowers and their separate `::before` coarse ground shadows together; the hidden marker stays in `::after`. Shadow translation is only ±3% of its ellipse width, with small scale changes. There is no per-flower timer, `requestAnimationFrame`, forced-layout restart, new image or dynamic projection model. Page changes clear the current gust and start one common wait; motion-off, invisibility, other tabs, compact view and reduced motion stop it. Miniatures do not match the animated selectors.
 
 The date lookup validates 1970–9999 and samples the chosen local date at 18:00, so January 1, 1970 also works in UTC+13/+14 before resolving its Monday. Generated empty-category-name placeholders are localized while actual category names remain verbatim. Regressions execute the actual render functions in a small VM tree and run date boundaries in UTC and Pacific/Tongatapu; they do not simulate browser paint. Tests and the optional synthetic SQLite benchmark are source-repository tools, not ZIP runtime files. The full final counts and browser checks belong in verification.
+
+## 0.18.0 artwork sizes, idle writes and copy
+
+See [feature notes](features-0180.md). Schema 2, achievement revision 4, seven permissions and 64 MB are unchanged; achievement IDs, names and thresholds are unchanged, while condition and description copy was shortened.
+
+### Runtime artwork sizes
+
+The original artwork stays byte-for-byte in `assets-source/`. `scripts/resize-assets.py` writes the runtime copies in `assets/`, each sized for its largest on-screen use at 3× device pixels: the 200 px pot strips, the 135 px flower drawer, the 790 px wide scene props, 87 px theme art, 78 × 104 px milestone badges, 28 px birds and 32 px butterflies. CSS and SVG address artwork by proportion or by source coordinates, so the resize changes resolution only. Resampling uses premultiplied alpha, so outlines gain no halo. The swing keeps its original pixels because its foot shadows are tested against exact atlas pixels. The unused legacy `assets/ambience/bird.png` is no longer packaged. After regenerating, run `npm test` and compare scenes in the preview.

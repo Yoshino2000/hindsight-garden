@@ -411,12 +411,12 @@
   }
 
   function penaltyText(penalty) {
-    if (!penalty?.enabled) return t("累计模式：切到其他活动只暂停，不扣进度。");
+    if (!penalty?.enabled) return t("累计模式：切到其他活动时暂停生长。");
     const amount =
       penalty.kind === "minutes"
         ? t("{0} 分钟", penalty.amount)
         : t("当时已有进度的 {0}%", penalty.amount);
-    return t("中断惩罚：宽限 {0} 秒后扣减{1}，每次中断只扣一次。手动暂停和离开电脑不扣。", penalty.graceSeconds, amount);
+    return t("中断惩罚：离开符合规则的活动超过 {0} 秒，扣减{1}，每次中断扣一次。", penalty.graceSeconds, amount);
   }
 
   function idFor(prefix) {
@@ -493,7 +493,7 @@
     $("penalty-grace").value = String(plan.penalty.graceSeconds);
     $("penalty-options").hidden = !plan.penalty.enabled;
     for (const input of $("penalty-options").querySelectorAll("input, select")) input.disabled = !plan.penalty.enabled;
-    notice(t("已载入设置。{0}花名与任务备注由你填写，确认后再播种。", plan.penalty.enabled ? t("本方案启用了中断惩罚，请检查扣减设置。") : t("累计模式，中断只暂停。")));
+    notice(t("已载入设置。{0}填好花名和任务备注后即可播种。", plan.penalty.enabled ? t("本方案启用了中断惩罚，请检查扣减设置。") : t("累计模式，中断只暂停。")));
     // Loading a preset changes settings, never starts a plant or copies an old task.
     $("plant-name-input").focus();
   }
@@ -525,8 +525,14 @@
       item.append(el("dt", "", label), el("dd", "", value));
       return item;
     }));
-    $("week-review-note").textContent = t("按开花日期归周；跨周生长的花，目标时长全部归到开花周。这不是当周实际活动时长，当前盆栽不计入。");
-    $("week-review-species").replaceChildren(...review.species.map((item) =>
+    $("week-review-note").textContent = t("按开花日期归周，跨周生长的花计入开花那一周。");
+    // Follow the planting picker's order rather than the internal English IDs.
+    const order = (id) => {
+      const index = C.SPECIES.findIndex((item) => item.id === id);
+      return index === -1 ? C.SPECIES.length : index;
+    };
+    $("week-review-species").replaceChildren(...[...review.species].sort((first, second) =>
+      order(first.id) - order(second.id)).map((item) =>
       el("span", "", `${species(item.id).name} ${item.count}`),
     ));
   }
@@ -556,7 +562,7 @@
     if (signature === focusSignature) return;
     focusSignature = signature;
     const summary = C.focusSummary(state);
-    $("focus-statistics-since").textContent = t("{0} · 只统计养花且匹配规则时的有效生长时间，历史花朵不回推。", summary.startedAt === null ? t("从升级后首次记录开始") : t("{0} 起记录", date(summary.startedAt)));
+    $("focus-statistics-since").textContent = t("{0} · 统计养花且符合规则时的有效生长时间。", summary.startedAt === null ? t("从升级后首次记录开始") : t("{0} 起记录", date(summary.startedAt)));
     $("focus-statistics-summary").replaceChildren(...[
       [t("累计有效生长"), summary.totalMs], [t("最长连续"), summary.longestMs], [t("本次连续"), summary.streakMs],
     ].map(([label, value]) => {
@@ -731,14 +737,14 @@
       const rewards = GardenCollection.THEMES.filter((theme) => theme.achievement === tier.id).map((theme) => theme.name);
       row.append(el("strong", "", `${item.tiers.length > 1 ? `${tier.levelName} · ` : ""}${tier.name}`),
         el("p", "", tier.condition),
-        el("small", "", tier.earnedAt !== null ? t("已获得 · {0}（获得/核验日）", date(tier.earnedAt)) : t("尚未获得 · {0}", achievementProgressText(tier))));
+        el("small", "", tier.earnedAt !== null ? t("已获得 · {0}", date(tier.earnedAt)) : t("尚未获得 · {0}", achievementProgressText(tier))));
       if (rewards.length) row.append(el("small", "", t("解锁「{0}」主题", rewards.join("、"))));
       tiers.append(row);
     }
     $("achievement-details").replaceChildren(title, art, el("p", "achievement-description", item.displayTier.description), stats, tiers,
-      el("p", "note-privacy", item.metric.startsWith("hidden") ? t("隐藏配色只在完成时揭晓，品种与目标时长不影响 5% 概率。一次结果会永久保存在花朵记录中；没有保底，也不需要重复抽取。") : item.metric.startsWith("focus")
-        ? t("只统计升级后统计起点以来实际获得的有效生长时间，不回推旧花、目标时长或升级前进度。未分类与其他计入总量；分类比例变化不会撤回已获等级。连续段在暂停、离开、不匹配、花开或未观察到的时间间隔后结束。")
-        : t("等级只是合并展示，原有条件与获得日期都保留。累计从首次核验时仍保留的收藏开始，此后新开花继续计入，删除不扣回。新成就可能按永久计数补授；获得日期可能为核验日，旧版本已删除的花不能还原。")));
+      el("p", "note-privacy", item.metric.startsWith("hidden") ? t("隐藏配色在开花时揭晓，每朵花都有 5% 的概率。") : item.metric.startsWith("focus")
+        ? t("统计从记录起点开始的有效生长时间，未分类与「其他」也计入总量。连续段在暂停、离开、切到不匹配的活动或开花时结束。")
+        : t("每开一朵花都会计入，已获得的等级会永久保留。")));
     for (const button of $("achievement-list").children)
       button.setAttribute("aria-expanded", String(button.dataset.achievement === item.id));
     $("achievement-drawer").hidden = false;
@@ -778,12 +784,12 @@
     if ($("notification-settings").parentElement !== notificationSlot)
       notificationSlot.append($("notification-settings"));
     $("connection").textContent = fresh
-      ? t("后台运行中 · 只累计符合规则的前台时间")
+      ? t("后台运行中 · 累计符合规则的前台时间")
       : t("等待后台连接或新的活动信息");
     if (!plant) {
       $("plant-form-hint").textContent = state.paused
         ? t("选品种、设置规则和累计时长，然后直接播种。当前处于暂停状态，播种后可点击「继续生长」。")
-        : t("选品种、设置生长规则和累计时长，然后直接播种。默认切换活动只暂停，不扣进度。");
+        : t("选品种、设置生长规则和累计时长，然后直接播种。");
       sprite($("hero-sprite"), "sunflower", 0);
       $("growth-status").textContent = state.paused ? t("已暂停") : t("等待播种");
       $("stage-name").textContent = t("从一颗种子开始");
@@ -809,7 +815,7 @@
     $("plant-caption").textContent =
       t("{0} · 一点点长大，也很好", species(plant.species).name);
     $("current-plan-summary").textContent =
-      t("累计 {0} 开花 · {1}", minutes(plant.targetMs), plant.penalty.enabled ? t("已开启中断惩罚") : t("累计模式，中断不扣进度"));
+      t("累计 {0} 开花 · {1}", minutes(plant.targetMs), plant.penalty.enabled ? t("已开启中断惩罚") : t("累计模式，中断时暂停"));
     const rules = plant.rules.map(ruleText);
     $("current-rule-summary").textContent =
       t("生长规则：{0}{1}", rules.slice(0, 2).join("；"), rules.length > 2 ? t(" 等 {0} 条", rules.length) : "");
@@ -1077,8 +1083,6 @@
     heading.id = "flower-detail-title";
     const metadata = el("dl", "flower-metadata");
     const artwork = el("div", "flower-detail-art");
-    const picture = el("div", "plant-sprite");
-    picture.setAttribute("aria-hidden", "true");
     artwork.append(gardenArtwork(plant.species, C.variantOf(plant)));
     for (const [label, value] of [
       [t("种下"), date(plant.createdAt)],
@@ -1105,7 +1109,7 @@
     editNote.type = "button";
     editNote.addEventListener("click", () => openNote(plant));
     memoryHeading.append(el("h3", "", t("这段时间的记忆")), editNote);
-    memory.append(memoryHeading, el("p", "task-copy", plant.taskNote || t("这朵花还没有任务备注。旧记录不会自动补写任务。")));
+    memory.append(memoryHeading, el("p", "task-copy", plant.taskNote || t("这朵花还没有任务备注。")));
     actions.append(rename, remove);
     const hiddenBadge = C.variantOf(plant) === "hidden" ? [el("span", "variant-badge", t("✧ {0}", t("隐藏配色")))] : [];
     $("flower-details").replaceChildren(heading, ...hiddenBadge, artwork, metadata, memory, actions);
@@ -1218,7 +1222,7 @@
     if (state.lastPenalty && state.lastPenalty.at !== seenPenalty) {
       if (!firstRender && state.active?.id === state.lastPenalty.plantId)
         notice(
-          t("本次中断扣减了 {0}。剩余进度已保存。", minutes(state.lastPenalty.lostMs)),
+          t("本次中断扣减了 {0}。", minutes(state.lastPenalty.lostMs)),
         );
       seenPenalty = state.lastPenalty.at;
     }
@@ -1487,7 +1491,7 @@
     await command({ type: "rules", id: editPlantId, rules }, () => {
       $("rules-edit-panel").hidden = true;
       editPlantId = null;
-      notice(t("生长规则已更新，已有进度、开花目标和惩罚设置都已保留。"));
+      notice(t("生长规则已更新。"));
     });
   }
 
@@ -1661,7 +1665,7 @@
     await command({ type: "deletePlan", id: plan.id }, () => {
       $("plan-delete-confirm").hidden = true;
       $("plan-name").value = "";
-      notice(t("已删除方案，花朵与任务记忆已保留。"));
+      notice(t("已删除方案。"));
     });
   });
   $("garden-week-locate").addEventListener("click", locateWeek);

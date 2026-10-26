@@ -1,10 +1,20 @@
 # Verification
 
-Version: **0.17.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.18.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified across 2026-10-25/26 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.17.0 results
+## Current 0.18.0 results
+
+Verified on 2026-10-26 using Node 24.15.0, Python 3.14.4, extracted host bridges, strict CSP and connected Chrome, with synthetic data only.
+
+- **239 automated tests pass, zero skipped.** New cases cover a focus change queued behind a waiting tick, idle write throttling (60 s idle writes 10 times; the saved clock never exceeds 6 s; page freshness and page actions hold at the 5.999 s boundary), penalties applied on the same tick as before, and immediate writes after a clock reversal or sleep gap. With the throttle removed, those cases fail only on write-count and saved-clock assertions.
+- A real browser worker wrote 6 times in 30.6 idle seconds (maximum saved-clock age 5.55 s) and 6 times in 12 growing seconds, gaining 12.0 s of progress.
+- Resized runtime artwork was compared with the originals side by side in Chrome (scene, benches, flowers, pot sprite, badges, theme cards, hidden palettes): mean per-pixel difference 0.6–1.5 / 255. The package measured 12.1 MB in an in-memory build.
+
+The 0.18.0 ZIP has **not** been installed in native Hindsight; native worker timer cadence, OS notifications and long-running behavior remain unverified.
+
+## Previous 0.17.0 results
 
 Verified on 2026-10-26 using Node 24.15.0, Python 3.14.4, extracted host bridges, strict CSP and connected Chrome. All data was synthetic and isolated; no personal Hindsight database or native app UI was accessed. See the [audit](audit-0170.md) for reproductions, source/test pointers, measurements and remaining limits.
 
