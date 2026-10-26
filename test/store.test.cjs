@@ -673,3 +673,23 @@ test("archive edit depth accounts for the hot delta wrapper and keeps every supp
     }
   }
 });
+
+test("a pot replanted at bloom is archived and saved with its own persistent ticket", async (t) => {
+  const host = hostFor();
+  t.after(() => host.db.close());
+  const rolls = [0.9, 0.01];
+  const store = createStore(host.call, { random: () => rolls.shift() });
+  await store.apply({ type: "boot", sessionId: "worker" }, 0);
+  await store.apply({ type: "plant", id: "p1", plant: { ...plant(), autoReplant: true } }, 0);
+  await store.apply({ type: "focus", sessionId: "worker", event: { app: "reader" } }, 0);
+  for (let now = 10000; now <= 60000; now += 10000)
+    await store.apply({ type: "tick", sessionId: "worker" }, now);
+  const reader = createStore(host.call, { readonlyArchive: true });
+  const state = await reader.load();
+  assert.deepEqual(state.garden.map((flower) => [flower.id, flower.variant]), [["p1", "normal"]]);
+  assert.notEqual(state.active.id, "p1");
+  assert.equal(state.active.autoReplant, true);
+  assert.equal(state.active.variantRoll, 0.01, "the new pot draws its own ticket once");
+  await store.apply({ type: "tick", sessionId: "worker" }, 70000);
+  assert.equal((await reader.load()).active.variantRoll, 0.01, "later ticks keep the saved ticket");
+});

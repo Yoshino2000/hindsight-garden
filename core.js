@@ -335,6 +335,7 @@
         amount,
         graceSeconds,
       },
+      ...(value.autoReplant === true ? { autoReplant: true } : {}),
     };
   }
 
@@ -634,7 +635,8 @@
       variantFromRoll(value.variantRoll);
       base.variantRoll = value.variantRoll;
     }
-    return { ...base, taskNote: settings.taskNote, rules: settings.rules, penalty: settings.penalty };
+    return { ...base, taskNote: settings.taskNote, rules: settings.rules, penalty: settings.penalty,
+      ...(settings.autoReplant ? { autoReplant: true } : {}) };
   }
 
   function cleanCategory(value, includeParent = true) {
@@ -786,7 +788,20 @@
       if (!state.hiddenCollection.species.includes(mature.species))
         state.hiddenCollection.species.push(mature.species);
     }
-    state.active = null;
+    // An opted-in pot is followed by the same species, rules, target and penalty at the bloom
+    // instant. The name carries over; the task memory starts empty. The store draws its ticket.
+    state.active = plant.autoReplant ? {
+      id: `${plant.id.slice(0, 100)}~${now.toString(36)}`,
+      name: plant.name,
+      species: plant.species,
+      targetMs: plant.targetMs,
+      progressMs: 0,
+      createdAt: now,
+      taskNote: "",
+      rules: plant.rules.map((rule) => ({ ...rule })),
+      penalty: { ...plant.penalty },
+      autoReplant: true,
+    } : null;
     state.interruption = null;
     endFocusStreak(state);
     state.lastBloom = { id: mature.id, at: now };
@@ -835,11 +850,17 @@
       return;
     }
     if (growing(state)) {
-      const credited = Math.min(elapsed, state.active.targetMs - state.active.progressMs);
-      state.active.progressMs += credited;
-      creditFocus(state, credited);
-      bloom(state, now, notes);
-      awardAchievements(state, now);
+      // Time past a bloom continues on an automatically replanted pot. A target is at least one
+      // minute and a settled interval at most MAX_GAP_MS, so this runs at most twice.
+      let remaining = elapsed;
+      while (remaining > 0 && growing(state)) {
+        const credited = Math.min(remaining, state.active.targetMs - state.active.progressMs);
+        state.active.progressMs += credited;
+        creditFocus(state, credited);
+        remaining -= credited;
+        bloom(state, now, notes);
+        awardAchievements(state, now);
+      }
     } else {
       endFocusStreak(state);
       applyPenalty(state, now);
@@ -949,6 +970,14 @@
         endFocusStreak(state);
         break;
       }
+      case "replant":
+        if (!state.active || state.active.id !== input.id)
+          throw new Error("这株植物已不在生长，请刷新后重试。");
+        if (typeof input.enabled !== "boolean")
+          throw new Error("自动续种设置不正确。");
+        if (input.enabled) state.active.autoReplant = true;
+        else delete state.active.autoReplant;
+        break;
       case "pause":
         if (typeof input.paused !== "boolean")
           throw new Error("暂停状态不正确。");

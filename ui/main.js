@@ -109,6 +109,9 @@
   let seenPenalty = null;
   let seenBloom = null;
   let bloomReturnFocus = null;
+  let plantedNotice = false;
+  let explainedPlant = null;
+  let explainedGrowing = null;
   let firstRender = true;
   let gardenSignature = "";
   let gardenPage = 0;
@@ -221,6 +224,7 @@
   function currentTab() { return $("view-garden").hidden ? "current" : "garden"; }
 
   function notice(text) {
+    plantedNotice = false;
     $("notice").textContent = text;
     $("notice").hidden = !text || (commandScope !== null && commandScope !== currentTab());
   }
@@ -776,6 +780,7 @@
         [type, catalog.loaded && !catalog.error ? catalog.items : null])),
     });
     const { fresh, growing } = explanation;
+    if (plantedNotice && (growing || !plant)) notice("");
     $("growth-status").classList.toggle("growing", growing);
     document.querySelector(".hero").classList.toggle("growing", growing);
     $("current-hero").hidden = !plant;
@@ -787,6 +792,7 @@
     $("start-plant").hidden = true;
     $("pause").hidden = !plant;
     $("notify").checked = state.notify;
+    if (plant) $("auto-replant").checked = plant.autoReplant === true;
     const notificationSlot = $(plant ? "active-notification-slot" : "plant-notification-slot");
     if ($("notification-settings").parentElement !== notificationSlot)
       notificationSlot.append($("notification-settings"));
@@ -822,7 +828,8 @@
     $("plant-caption").textContent =
       t("{0} · 一点点长大，也很好", species(plant.species).name);
     $("current-plan-summary").textContent =
-      t("累计 {0} 开花 · {1}", minutes(plant.targetMs), plant.penalty.enabled ? t("已开启中断惩罚") : t("累计模式，中断时暂停"));
+      t("累计 {0} 开花 · {1}", minutes(plant.targetMs), plant.penalty.enabled ? t("已开启中断惩罚") : t("累计模式，中断时暂停")) +
+      (plant.autoReplant ? t(" · 开花后自动续种") : "");
     const rules = plant.rules.map(ruleText);
     $("current-rule-summary").textContent =
       t("生长规则：{0}{1}", rules.slice(0, 2).join("；"), rules.length > 2 ? t(" 等 {0} 条", rules.length) : "");
@@ -833,11 +840,17 @@
     $("progress").setAttribute("aria-valuenow", String(Math.round(ratio)));
     $("progress-time").textContent =
       `${minutes(plant.progressMs)} / ${minutes(plant.targetMs)}`;
-    $("progress-percent").textContent = `${Math.floor(ratio)}%`;
+    $("progress-percent").textContent = ratio > 0 && ratio < 1 ? "<1%" : `${Math.floor(ratio)}%`;
+    $("progress-next").textContent = progressNext(plant.progressMs, plant.targetMs);
     $("pause").textContent = state.paused ? t("继续生长") : t("暂停生长");
     $("growth-status").textContent = growing ? t("正在生长") : explanation.title;
     $("growth-hint").textContent = explanation.summary;
     $("growth-explanation").dataset.status = explanation.code;
+    if (explainedPlant !== plant.id || explainedGrowing !== growing) {
+      $("growth-explanation").open = !growing;
+      explainedPlant = plant.id;
+      explainedGrowing = growing;
+    }
     $("growth-explanation-title").textContent = growing ? t("为什么正在生长") : t("为什么暂时没生长");
     $("growth-explanation-summary").textContent = explanation.title;
     $("growth-observation").replaceChildren(...explanation.observations.flatMap(([label, value]) =>
@@ -849,6 +862,20 @@
     $("penalty-summary").textContent = penaltyText(plant.penalty);
     $("active-task-note").textContent = plant.taskNote || t("还没有任务记忆。可以留下一句话，等花开时再回看。");
     $("planted-at").textContent = t("{0} 种下", date(plant.createdAt));
+  }
+
+  // Remaining time rounds up to whole minutes; stages split the target into quarters.
+  function remainingText(ms) {
+    return ms < 60000 ? t("{0} 秒", Math.max(1, Math.ceil(ms / 1000))) : t("{0} 分钟", Math.ceil(ms / 60000));
+  }
+
+  function progressNext(progressMs, targetMs) {
+    const left = targetMs - progressMs;
+    if (!(left > 0)) return "";
+    const stage = C.stage(progressMs, targetMs);
+    if (stage >= 3) return t("还需 {0}开花", remainingText(left));
+    const toNext = Math.ceil(((stage + 1) * targetMs) / 4) - progressMs;
+    return t("还需 {0}开花 · {1}后{2}", remainingText(left), remainingText(toNext), STAGES[stage + 1]);
   }
 
   function renderGarden() {
@@ -1263,6 +1290,7 @@
     $("bloom-reveal-art").replaceChildren(gardenArtwork(plant.species, variant));
     $("bloom-reveal-title").textContent = plant.name;
     $("bloom-reveal-meta").textContent = t("{0} · 累计 {1}", species(plant.species).name, minutes(plant.targetMs));
+    $("bloom-reveal-next").hidden = !(state.active?.autoReplant && state.active.createdAt === plant.bloomAt);
     $("bloom-reveal-variant").hidden = !palette;
     $("bloom-reveal-variant").textContent = palette ? t("✧ 遇见隐藏配色：{0}", t(palette.name)) : "";
     reveal.dataset.plantId = plant.id;
@@ -1466,6 +1494,7 @@
         C.SPECIES[0].id,
       targetMinutes: Number($("target-minutes").value),
       rules: readRules("rules"),
+      autoReplant: $("auto-replant").checked,
       penalty: {
         enabled: $("penalty-enabled").checked,
         kind: $("penalty-kind").value,
@@ -1536,6 +1565,7 @@
     await command({ type: "plant", id, plant: input }, () => {
       closePlant();
       notice(t("种好了。回到符合分类或规则的活动，它就会开始生长。"));
+      plantedNotice = true;
     });
   }
 
@@ -1837,6 +1867,12 @@
     "click",
     () => state && command({ type: "pause", paused: !state.paused }),
   );
+  $("auto-replant").addEventListener("change", async () => {
+    // Before planting this is a form choice; on a growing pot it is saved immediately.
+    if (!state?.active) return;
+    if (!(await command({ type: "replant", id: state.active.id, enabled: $("auto-replant").checked })) && state?.active)
+      $("auto-replant").checked = state.active.autoReplant === true;
+  });
   $("notify").addEventListener("change", async () => {
     if (
       !(await command({

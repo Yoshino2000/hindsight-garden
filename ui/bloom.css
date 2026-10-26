@@ -36,6 +36,7 @@
 .bloom-reveal-card h2 { margin: 2px 0 6px; font-size: 19px; overflow-wrap: anywhere; }
 .bloom-reveal-card .variant-badge { margin: 0 0 6px; }
 .bloom-reveal-meta { margin: 0 0 16px; color: #7b8873; font-size: 12px; }
+.bloom-reveal-next { margin: -10px 0 16px; color: #5f7457; font-size: 12px; font-weight: 600; }
 .bloom-reveal-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
 .bloom-reveal-stage { position: relative; width: 168px; height: 168px; margin: 6px auto 8px; }
 .bloom-reveal-art { position: absolute; inset: 6px 14px 0; transform-origin: 50% 100%; }
@@ -94,3 +95,8 @@
 @media (prefers-reduced-motion: reduce) {
   .bloom-reveal *, .bloom-reveal-card { animation: none !important; }
 }
+
+/* Remaining-time line under the active pot's progress, and the second notification-box option. */
+.progress-next { margin: 6px 0 0; color: #7b8873; font-size: 11px; font-variant-numeric: tabular-nums; }
+.progress-next:empty { display: none; }
+.notification-settings .check-row + .check-row { margin-top: 10px; }

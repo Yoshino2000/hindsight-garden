@@ -341,3 +341,16 @@ test("duration shortcuts mark only the button that matches the typed minutes", (
   vm.runInContext("syncMinutePresets()", scope);
   assert.deepEqual(buttons.map(button => button.attributes.get("aria-pressed")), ["false", "false", "false"]);
 });
+
+test("the active pot shows whole minutes left and the next quarter stage", () => {
+  const scope = { C: core, t: i18n.create("zh-CN").t, STAGES: ["种子", "发芽", "长叶", "花苞", "开花"] };
+  vm.createContext(scope);
+  vm.runInContext(productionFunction("remainingText") + "\n" + productionFunction("progressNext"), scope);
+  const next = (progress, target) => vm.runInContext(`progressNext(${progress}, ${target})`, scope);
+  assert.equal(next(24000, 3600000), "还需 60 分钟开花 · 15 分钟后发芽");
+  assert.equal(next(900000, 3600000), "还需 45 分钟开花 · 15 分钟后长叶");
+  assert.equal(next(2700000, 3600000), "还需 15 分钟开花");
+  assert.equal(next(3599500, 3600000), "还需 1 秒开花");
+  assert.equal(next(3600000, 3600000), "");
+  assert.equal(i18n.create("en").t("还需 {0}开花 · {1}后{2}", "60 minutes", "15 minutes", "Sprout"), "60 minutes to bloom · Sprout in 15 minutes");
+});

@@ -713,3 +713,46 @@ test("a completed-counter overflow leaves all prior plant and effective-time dat
   assert.throws(() => tick(state, 10001), /超出可保存范围/);
   assert.equal(JSON.stringify(state), before);
 });
+
+test("an auto-replanted pot continues at bloom with the same settings and the leftover time", () => {
+  let state = focus(planted({ autoReplant: true, taskNote: "第一章", penalty: strict }), "reader", 0);
+  assert.equal(state.active.autoReplant, true);
+  state = grow(state, 0, 59000);
+  const result = core.reduce(state, { type: "tick", sessionId: SID }, 61000);
+  const next = result.state.active;
+  assert.equal(result.state.garden.length, 1);
+  assert.equal(result.state.garden[0].id, "plant-1");
+  assert.equal(result.state.garden[0].autoReplant, undefined, "the archive keeps no settings");
+  assert.deepEqual(result.state.lastBloom, { id: "plant-1", at: 61000 });
+  assert.equal(result.notes.length, 1);
+  assert.notEqual(next.id, "plant-1");
+  assert.ok(next.id.length <= 128);
+  assert.deepEqual(
+    { name: next.name, species: next.species, targetMs: next.targetMs, rules: next.rules, penalty: next.penalty,
+      taskNote: next.taskNote, autoReplant: next.autoReplant, createdAt: next.createdAt, variantRoll: next.variantRoll },
+    { name: "阅读绣球", species: "hydrangea", targetMs: 60000, rules: state.active.rules, penalty: state.active.penalty,
+      taskNote: "", autoReplant: true, createdAt: 61000, variantRoll: undefined },
+  );
+  assert.equal(next.progressMs, 1000, "the second past the target grows the next pot");
+  assert.equal(core.matches(next.rules, result.state.focus), true, "the same activity keeps growing it");
+  const reloaded = core.normalizeState(JSON.parse(JSON.stringify(result.state)));
+  assert.equal(reloaded.active.autoReplant, true, "the flag survives saving");
+  const later = grow(result.state, 61000, 121000);
+  assert.equal(later.garden.length, 2);
+  assert.equal(later.active.autoReplant, true);
+  assert.equal(new Set([later.active.id, ...later.garden.map((plant) => plant.id)]).size, 3);
+});
+
+test("auto-replant is off by default and can be switched on or off for the growing pot only", () => {
+  let state = planted();
+  assert.equal(Object.hasOwn(state.active, "autoReplant"), false);
+  state = change(state, { type: "replant", id: "plant-1", enabled: true }, 1000);
+  assert.equal(state.active.autoReplant, true);
+  state = change(state, { type: "replant", id: "plant-1", enabled: false }, 2000);
+  assert.equal(Object.hasOwn(state.active, "autoReplant"), false);
+  assert.throws(() => change(state, { type: "replant", id: "other", enabled: true }, 3000), /不在生长/);
+  assert.throws(() => change(state, { type: "replant", id: "plant-1", enabled: "yes" }, 3000), /自动续种/);
+  state = grow(focus(state, "reader", 3000), 3000, 64000);
+  assert.equal(state.active, null, "without the flag a bloom leaves the pot empty");
+  assert.equal(Object.hasOwn(core.validatePlant(settings()), "autoReplant"), false);
+});

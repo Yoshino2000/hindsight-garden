@@ -103,6 +103,7 @@
               <span id="progress-time"></span
               ><span id="progress-percent"></span>
             </div>
+            <p id="progress-next" class="progress-next"></p>
           </div>
           <p id="growth-hint" class="hint">
             符合规则时慢慢生长，离开时安心暂停。
@@ -134,12 +135,11 @@
             </div>
           </div>
           <p id="active-target-summary" class="hint"></p>
-          <section id="growth-explanation" class="growth-explanation" aria-labelledby="growth-explanation-title">
-            <h3 id="growth-explanation-title">当前生长状态</h3>
-            <p id="growth-explanation-summary"></p>
+          <details id="growth-explanation" class="growth-explanation" open>
+            <summary><h3 id="growth-explanation-title">当前生长状态</h3><span id="growth-explanation-summary"></span></summary>
             <dl id="growth-observation" class="growth-observation"></dl>
             <p id="growth-advice" class="growth-advice"></p>
-          </section>
+          </details>
           <p class="hint field-intro">满足以下任意一条规则时累计时间。</p>
           <ul id="active-rules" class="rule-summary"></ul>
           <p id="penalty-summary" class="hint"></p>
@@ -350,6 +350,10 @@
                 <label class="check-row" for="notify">
                   <input id="notify" type="checkbox" checked />
                   <span>花开时告诉我<span class="subtle block">发送一条无声的系统通知。</span></span>
+                </label>
+                <label class="check-row" for="auto-replant">
+                  <input id="auto-replant" type="checkbox" />
+                  <span>开花后自动续种<span class="subtle block">用同样的品种、规则和时长接着种一盆，花名沿用，任务记忆留空。</span></span>
                 </label>
               </div>
             </div>
@@ -849,6 +853,7 @@
           <h2 id="bloom-reveal-title"></h2>
           <p id="bloom-reveal-variant" class="variant-badge" hidden></p>
           <p id="bloom-reveal-meta" class="bloom-reveal-meta"></p>
+          <p id="bloom-reveal-next" class="bloom-reveal-next" hidden>下一盆已经种下，接着生长。</p>
           <div class="bloom-reveal-actions">
             <button id="bloom-reveal-garden" class="button primary" type="button">去花园看看</button>
             <button id="bloom-reveal-close" class="button quiet" type="button">好的</button>

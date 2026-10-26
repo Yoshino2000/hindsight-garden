@@ -93,3 +93,7 @@ Publish 0.19.0 as a development prerelease from `main`, attaching the ZIP and it
 ## 0.20.0 publication
 
 Publish 0.20.0 as a development prerelease from `main`, attaching the ZIP and its `.sha256`. Link [feature notes](features-0200.md). Describe the 30/60/90/120/180-minute shortcuts and the bloom card (once per bloom, a catch-up reveal on the next visit, a still card with motion off, hidden-palette treatment, **Visit the garden**). `ui/bloom.css` and `docs/features-0200.md` join the allowlist. Data, permissions, quota and artwork are unchanged; the last revealed bloom is a local browser preference only. Native installation remains unverified; market listing updates are a separate step.
+
+## 0.21.0 publication
+
+Publish 0.21.0 as a development prerelease from `main`, attaching the ZIP and its `.sha256`. Link [feature notes](features-0210.md). Describe optional auto-replant (same settings, carried name, empty note, a fresh hidden-palette ticket, leftover seconds credited, switchable on a growing pot, not stored in plans), the remaining-time/next-stage line and the folding growth diagnosis. `docs/features-0210.md` joins the allowlist. Schema 2, achievement revision 4, permissions and quota are unchanged; `autoReplant` is an optional active-pot flag omitted when off. Native installation remains unverified; market listing updates are a separate step.

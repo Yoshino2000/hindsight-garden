@@ -6,9 +6,9 @@
 
 Let a little everyday time become a garden. A third-party [Hindsight](https://github.com/Tomotsugu-dev/Hindsight) plugin that grows flowers from matching foreground activity, using your existing categories.
 
-**[Download 0.20.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.20.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
+**[Download 0.21.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.21.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
 
-Version 0.20.0 adds one-click target durations and a bloom card that appears the moment a flower opens, with its own reveal for hidden palettes.
+Version 0.21.0 can replant automatically at bloom so no growing time is lost, and shows the time left to bloom and to the next stage.
 
 ![A complete garden with its own furniture, compact navigation and motion controls](docs/screenshots/garden.jpg)
 

@@ -2454,6 +2454,34 @@
     "✧ {0}",
     "✧ {0}"
   ],
+  "开花后自动续种": [
+    "Replant after it blooms",
+    "開花後に自動で植え直す"
+  ],
+  "用同样的品种、规则和时长接着种一盆，花名沿用，任务记忆留空。": [
+    "Plants the same species, rules and target again. The name carries over; the task memory starts empty.",
+    "同じ品種・ルール・時間でもう一鉢植えます。名前は引き継ぎ、タスクメモは空になります。"
+  ],
+  "下一盆已经种下，接着生长。": [
+    "The next pot is already planted and growing.",
+    "次の鉢はもう植えてあり、そのまま育ちます。"
+  ],
+  " · 开花后自动续种": [
+    " · replants after bloom",
+    " · 開花後に自動で植え直し"
+  ],
+  "还需 {0}开花": [
+    "{0} to bloom",
+    "開花まで {0}"
+  ],
+  "还需 {0}开花 · {1}后{2}": [
+    "{0} to bloom · {2} in {1}",
+    "開花まで {0} · {1}後に{2}"
+  ],
+  "自动续种设置不正确。": [
+    "The auto-replant setting is invalid.",
+    "自動植え直しの設定が正しくありません。"
+  ],
   "常用时长": [
     "Common durations",
     "よく使う時間"

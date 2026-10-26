@@ -1,10 +1,20 @@
 # Verification
 
-Version: **0.20.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.21.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified across 2026-10-25/26 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.20.0 results
+## Current 0.21.0 results
+
+Verified on 2026-10-26 using Node 24.15.0, Python 3.14.4 and the simulated host in the Claude desktop browser pane, with synthetic data only.
+
+- **246 automated tests pass, zero skipped.** New cases cover auto-replant in the reducer (same species, rules, target and penalty; carried name; empty note; the second past the target credited to the new pot; a fresh ID; the flag surviving a save; a second bloom), the replant command and its default-off behavior, the store drawing exactly one persisted ticket for the replanted pot through real SQLite, and the remaining-time/next-stage text.
+- A real one-minute tulip with auto-replant bloomed in the worker: one archived flower, one notification, the bloom card reporting the next pot, and a new pot with the same name, an empty note and continuing growth. Switching auto-replant off on the growing pot persisted across polls.
+- The planting notice cleared once growth started. The diagnosis folded to one line while growing; a manual expand stayed open across refreshes. The progress line read "还需 51 秒开花 · 8 秒后发芽" at 9%.
+
+The 0.21.0 ZIP has **not** been installed in native Hindsight; OS notifications and native timer cadence remain unverified.
+
+## Previous 0.20.0 results
 
 Verified on 2026-10-26 using Node 24.15.0, Python 3.14.4 and the simulated host in the Claude desktop browser pane, with synthetic data only.
 

@@ -23,7 +23,7 @@ FILES = [
     "README.md", "README.en.md", "intro/zh/README.md", "docs/usage.zh-CN.md", "docs/usage.en.md", "docs/development.md",
     "docs/verification.md", "docs/releasing.md", "docs/artwork.md", "docs/artwork-ambience.md", "docs/artwork-ambience-070.md", "docs/plant-guide-sources.md", "docs/design-notes-forest.md", "docs/features-0110.md", "docs/artwork-collection-0110.md", "docs/features-0120.md", "docs/artwork-themes-0120.md",
     "docs/features-0130.md", "docs/features-0140.md", "docs/features-0150.md", "docs/screenshots/why-growth.jpg", "docs/screenshots/empty-garden.jpg", "docs/screenshots/meadow.jpg",
-    "docs/features-0160.md", "docs/features-0170.md", "docs/features-0180.md", "docs/features-0200.md", "docs/audit-0170.md", "docs/screenshots/breeze.jpg", "docs/screenshots/hidden-colors.jpg", "docs/screenshots/hidden-detail.jpg", "docs/screenshots/interface-en.jpg", "docs/screenshots/interface-ja.jpg",
+    "docs/features-0160.md", "docs/features-0170.md", "docs/features-0180.md", "docs/features-0200.md", "docs/features-0210.md", "docs/audit-0170.md", "docs/screenshots/breeze.jpg", "docs/screenshots/hidden-colors.jpg", "docs/screenshots/hidden-detail.jpg", "docs/screenshots/interface-en.jpg", "docs/screenshots/interface-ja.jpg",
     "docs/screenshots/garden.jpg", "docs/screenshots/album.jpg", "docs/screenshots/drawer.png", "docs/screenshots/current.png", "docs/screenshots/guide.png", "docs/screenshots/collection.jpg", "docs/screenshots/growing.png", "docs/screenshots/achievement.jpg", "docs/screenshots/rain.jpg", "docs/screenshots/dusk.jpg", "LICENSE",
 ]
 

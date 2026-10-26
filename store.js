@@ -322,6 +322,10 @@
         const result = root.GardenCore.reduce(state, action, now);
         if (result.ignored) return { ...result, partial: true };
         if (options.skip?.(state, result.state, now)) return { ...result, partial: true, skipped: true };
+        // A pot replanted at bloom receives its ticket here, kept across failed CAS attempts.
+        if (input.type !== "plant" && result.state.active && result.state.active.variantRoll === undefined &&
+            result.state.active.id !== state.active?.id)
+          result.state = withActiveRoll(result.state);
         if (input.type === "plant" && await findFlower(result.state.active.id)) throw new Error("植物标识重复。");
         if (input.type === "plant" && plantRoll === undefined) {
           plantRoll = drawRoll();
