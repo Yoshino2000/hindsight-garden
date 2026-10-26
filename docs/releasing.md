@@ -77,3 +77,11 @@ The audit must distinguish controlled reproductions from native-device observati
 State benchmark scope explicitly. The SQLite results use synthetic in-memory Node SQLite, one active plant and no saved plans; they exclude the native bridge, disk and UI. Cached read-only loads and selector hits are faster in those measurements, while first loads and archive/page/scope changes still perform collection work. Do not turn these measurements into an overall CPU-saving percentage or a proven GPU result.
 
 No personal Hindsight database was accessed. The final ZIP has not been installed in native Hindsight, and OS notification delivery and long-running GPU performance remain unverified. Page-language overrides do not establish the worker's notification language; independent VM notification checks remain separate. Recheck upstream requirements and PR state, validate the final public ZIP/hash and listing entry, and preserve all prior releases without reusing their validation as evidence for this ZIP.
+
+## 0.18.0 publication
+
+Publish 0.18.0 as a development prerelease from `main`, attaching the ZIP and its `.sha256`. Link [feature notes](features-0180.md) and the final [verification record](verification.md).
+
+Describe the resized runtime artwork (originals in `assets-source/`, not packaged; the swing atlas stays original), the 29.3 → 12.1 MB package, the 6-second idle write throttle with immediate writes for growth, penalties, gap resets and reversed clocks, the queued-focus race fix, the bench/blossom layout fixes and the shortened copy. Schema 2, achievement revision 4 (IDs, names and thresholds), seven permissions, 64 MB and the icon are unchanged.
+
+The final ZIP has not been installed in native Hindsight; native worker timer cadence, OS notification delivery and long-running GPU behavior remain unverified. Market listing updates are a separate step.
