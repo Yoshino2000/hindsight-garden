@@ -10,6 +10,8 @@ const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const TICK_MS = 2000;
 let queue = Promise.resolve();
 let started = false;
+let bootAttempted = false;
+let superseded = false;
 let ticking = false;
 let focusSequence = 0;
 let acceptFocusAfter = 0;
@@ -34,14 +36,21 @@ async function notify(body) {
 }
 
 async function boot() {
-  if (started) return;
-  await store.apply({ type: "boot", sessionId });
+  if (superseded) return false;
+  if (started) return true;
+  const recovering = bootAttempted;
+  bootAttempted = true;
+  const result = await store.apply({ type: "boot", sessionId,
+    ...(recovering ? { recoverSessionId: sessionId } : {}) });
+  if (result.state.sessionId !== sessionId) { superseded = true; return false; }
   started = true;
+  return true;
 }
 
 async function run(input) {
-  await boot();
+  if (!(await boot())) return;
   const result = await store.apply({ ...input, sessionId });
+  if (result.state.sessionId !== sessionId) { superseded = true; return; }
   for (const note of result.notes) {
     try {
       await notify(GardenI18n.message(note.body));
@@ -49,6 +58,7 @@ async function run(input) {
       // The bloom is already saved. Never resend after a timeout: delivery may have succeeded.
       await store.apply({
         type: "error",
+        sessionId,
         message: String(error.message || error),
       });
     }
@@ -64,6 +74,7 @@ function later(job) {
     try {
       await store.apply({
         type: "error",
+        sessionId,
         message: String(error.message || error),
       });
     } catch (saveError) {
@@ -75,22 +86,24 @@ function later(job) {
 
 // Register before opening SQLite, so startup focus events are queued rather than dropped.
 hindsight.on("focus.changed", (event) => {
+  if (superseded) return;
   const sequence = ++focusSequence;
   const receivedAt = Date.now();
   later(async () => {
     // A queued observation from before a storage failure is not a fresh focus after recovery.
     if (sequence < acceptFocusAfter) return;
-    if (Date.now() - receivedAt > GardenCore.MAX_GAP_MS) {
+    const age = Date.now() - receivedAt;
+    if (age < 0 || age > GardenCore.MAX_GAP_MS) {
       started = false;
       await boot();
       return;
     }
-    await run({ type: "focus", event });
+    await run({ type: "focus", event, observedAt: receivedAt });
   });
 });
 later(boot);
 setInterval(() => {
-  if (ticking) return;
+  if (ticking || superseded) return;
   ticking = true;
   later(async () => {
     try {

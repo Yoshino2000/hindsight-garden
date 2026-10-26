@@ -511,3 +511,165 @@ test("single-statement migration and archive deltas work with actual host SQLite
   });
   assert.equal(result.status, 0, result.stderr || result.error?.message);
 });
+
+test("a hot-row version at the exact integer limit remains readable and refuses an overflowing write", async (t) => {
+  const host = hostFor();
+  t.after(() => host.db.close());
+  const store = createStore(host.call);
+  await store.load();
+  host.db.prepare("UPDATE garden_store SET version = ? WHERE key = 'state'").run(Number.MAX_SAFE_INTEGER);
+  const before = host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get();
+  await assert.rejects(store.apply({ type: "notifications", enabled: false }, 0), /上限/);
+  assert.deepEqual(host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get(), before);
+  assert.equal((await store.load()).notify, true);
+});
+
+test("an archive revision at its exact integer limit refuses edits without losing the last readable snapshot", async (t) => {
+  const host = hostFor();
+  t.after(() => host.db.close());
+  const store = createStore(host.call);
+  await store.load();
+  seedArchive(host, 1);
+  host.db.prepare("UPDATE garden_archive_meta SET version = ? WHERE key = 'archive'").run(Number.MAX_SAFE_INTEGER);
+  const before = host.db.prepare("SELECT value FROM garden_plants").get().value;
+  await assert.rejects(store.apply({ type: "rename", id: "flower-000000", name: "不能溢出" }, 0), /上限/);
+  assert.equal(host.db.prepare("SELECT value FROM garden_plants").get().value, before);
+  assert.equal((await store.load()).garden[0].name, "收藏0");
+});
+
+test("readonly archives reuse an immutable snapshot and invalidate it only when archived flowers change", async (t) => {
+  const host = hostFor();
+  t.after(() => host.db.close());
+  const writer = createStore(host.call);
+  await writer.load();
+  seedArchive(host, 1, { legacy: { items: [{ value: "原始嵌套数据" }] } });
+  const mutable = (await writer.load()).garden;
+  mutable[0].legacy.items[0].value = "调用方改自己的副本";
+  assert.equal((await writer.load()).garden[0].legacy.items[0].value, "原始嵌套数据");
+  await prepare(writer);
+  const reader = createStore(host.call, { readonlyArchive: true });
+  const [one, two] = await Promise.all([reader.load(), reader.load()]);
+  const first = one.garden;
+  assert.equal(first, two.garden, "Overlapping cold loads publish one snapshot identity");
+  assert.equal((await reader.load()).garden, first);
+  assert.ok(Object.isFrozen(first) && Object.isFrozen(first[0]) && Object.isFrozen(first[0].legacy.items[0]));
+  assert.throws(() => first.push(mature(2)), TypeError);
+  assert.throws(() => { first[0].name = "不能改"; }, TypeError);
+  assert.throws(() => { first[0].legacy.items[0].value = "不能改嵌套值"; }, TypeError);
+  await writer.apply({ type: "rename", id: "flower-000000", name: "已改名" }, 0);
+  const renamed = (await reader.load()).garden;
+  assert.notEqual(renamed, first);
+  assert.equal(renamed[0].name, "已改名");
+  assert.equal(first[0].name, "收藏0");
+  await writer.apply({ type: "note", id: "flower-000000", note: "新任务记忆" }, 0);
+  const noted = (await reader.load()).garden;
+  assert.notEqual(noted, renamed);
+  assert.equal(noted[0].taskNote, "新任务记忆");
+  assert.equal(renamed[0].taskNote, undefined);
+  await writer.apply({ type: "delete", id: "flower-000000" }, 0);
+  const removed = (await reader.load()).garden;
+  assert.notEqual(removed, noted);
+  assert.equal(removed.length, 0);
+  assert.equal(noted.length, 1);
+  for (let now = 10000; now <= 60000; now += 10000) await writer.apply({ type: "tick", sessionId: "worker" }, now);
+  const bloomed = (await reader.load()).garden;
+  assert.notEqual(bloomed, removed);
+  assert.equal(bloomed.length, 1);
+  assert.equal(bloomed[0].id, "p1");
+  await writer.apply({ type: "notifications", enabled: false }, 60000);
+  assert.equal((await reader.load()).garden, bloomed, "Hot-only writes keep archive identity");
+  const hot = JSON.parse(host.db.prepare("SELECT value FROM garden_store WHERE key = 'state'").get().value);
+  assert.deepEqual(hot.garden, []);
+  for (const key of ["readonlyArchive", "archiveCache", "archiveVersion"]) assert.equal(Object.hasOwn(hot, key), false);
+});
+
+test("large legacy metadata can be frozen and copied without recursion-stack failure", async (t) => {
+  const host = hostFor();
+  t.after(() => host.db.close());
+  await createStore(host.call).load();
+  const depth = 18000;
+  const raw = JSON.stringify(mature(0)).slice(0, -1) + ',"legacy":' + '{"child":'.repeat(depth) + '{"value":1}' + "}".repeat(depth) + "}";
+  assert.ok(Buffer.byteLength(raw, "utf8") < 220000);
+  host.db.prepare("INSERT INTO garden_plants VALUES (?, ?)").run("flower-000000", raw);
+  for (const readonlyArchive of [true, false]) {
+    const record = (await createStore(host.call, { readonlyArchive }).load()).garden[0];
+    let value = record.legacy;
+    for (let index = 0; index < depth; index++) value = value.child;
+    assert.equal(value.value, 1);
+    assert.equal(Object.isFrozen(value), readonlyArchive);
+  }
+});
+
+test("stale worker actions do not consume state versions or overwrite the active owner", async (t) => {
+  const host = hostFor();
+  t.after(() => host.db.close());
+  const store = createStore(host.call);
+  await prepare(store);
+  const before = host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get();
+  for (const action of [
+    { type: "tick", sessionId: "stale" },
+    { type: "focus", sessionId: "stale", event: { app: "other" } },
+    { type: "error", sessionId: "stale", message: "旧后台错误" },
+    { type: "boot", sessionId: "stale", recoverSessionId: "stale" },
+  ]) {
+    const result = await store.apply(action, 1000);
+    assert.equal(result.ignored, true);
+    assert.deepEqual(host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get(), before);
+  }
+});
+
+test("extremely deep old metadata stays readable and deletable while edits fail clearly without changing stored bytes", async (t) => {
+  const host = hostFor();
+  t.after(() => host.db.close());
+  const store = createStore(host.call);
+  await store.load();
+  const raw = JSON.stringify(mature(0)).slice(0, -1) + ',"legacy":' + '{"child":'.repeat(18000) + '{"value":1}' + "}".repeat(18000) + "}";
+  host.db.prepare("INSERT INTO garden_plants VALUES (?, ?)").run("flower-000000", raw);
+  assert.equal((await store.load()).garden.length, 1);
+  const hotBefore = host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get();
+  const archiveBefore = host.db.prepare("SELECT version FROM garden_archive_meta WHERE key = 'archive'").get().version;
+  const errors = [];
+  for (const action of [
+    { type: "rename", id: "flower-000000", name: "深层改名" },
+    { type: "note", id: "flower-000000", note: "深层备注" },
+  ]) {
+    try { await store.apply(action, 0); } catch (error) { errors.push(error); }
+    assert.equal(host.db.prepare("SELECT value FROM garden_plants WHERE id = 'flower-000000'").get().value, raw);
+    assert.deepEqual(host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get(), hotBefore);
+    assert.equal(host.db.prepare("SELECT version FROM garden_archive_meta WHERE key = 'archive'").get().version, archiveBefore);
+  }
+  await store.apply({ type: "delete", id: "flower-000000" }, 0);
+  assert.equal((await store.load()).garden.length, 0);
+  assert.equal(errors.length, 2);
+  for (const error of errors) assert.match(error.message, /额外数据嵌套过深/);
+});
+
+test("archive edit depth accounts for the hot delta wrapper and keeps every supported nested field", async (t) => {
+  const host = hostFor();
+  t.after(() => host.db.close());
+  const store = createStore(host.call);
+  await store.load();
+  for (const [index, depth] of [[0, 994], [1, 995]]) {
+    const flower = mature(index);
+    const record = JSON.stringify(flower).slice(0, -1) + ',"legacy":' + '{"child":'.repeat(depth) + '{"value":1,"__proto__":{"kept":true}}' + "}".repeat(depth) + "}";
+    host.db.prepare("INSERT INTO garden_plants VALUES (?, ?)").run(flower.id, record);
+    const wrapped = '{"_archive":{"upserts":[' + record + '],"deleted":[]}}';
+    assert.equal(host.db.prepare("SELECT json_valid(?) AS valid").get(wrapped).valid, index === 0 ? 1 : 0);
+    if (index === 0) {
+      await store.apply({ type: "rename", id: flower.id, name: "可写边界" }, 0);
+      await store.apply({ type: "note", id: flower.id, note: "保留全部嵌套字段" }, 0);
+      const updated = JSON.parse(host.db.prepare("SELECT value FROM garden_plants WHERE id = ?").get(flower.id).value);
+      let leaf = updated.legacy;
+      for (let level = 0; level < depth; level++) leaf = leaf.child;
+      assert.equal(leaf.value, 1);
+      assert.deepEqual(Object.getOwnPropertyDescriptor(leaf, "__proto__").value, { kept: true });
+      assert.equal(updated.name, "可写边界");
+      assert.equal(updated.taskNote, "保留全部嵌套字段");
+    } else {
+      const before = host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get();
+      await assert.rejects(store.apply({ type: "rename", id: flower.id, name: "不支持的深度" }, 0), /额外数据嵌套过深/);
+      assert.equal(host.db.prepare("SELECT value FROM garden_plants WHERE id = ?").get(flower.id).value, record);
+      assert.deepEqual(host.db.prepare("SELECT value, version FROM garden_store WHERE key = 'state'").get(), before);
+    }
+  }
+});

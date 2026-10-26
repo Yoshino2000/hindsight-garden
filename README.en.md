@@ -6,9 +6,15 @@
 
 Let a little everyday time become a garden. A third-party [Hindsight](https://github.com/Tomotsugu-dev/Hindsight) plugin that grows flowers from matching foreground activity, using your existing categories.
 
-**[Download 0.16.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.16.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
+**[Download 0.17.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.17.0)** · [Install and use](docs/usage.en.md) · [Verification](docs/verification.md)
 
 ![A complete garden with its own furniture, compact navigation and motion controls](docs/screenshots/garden.jpg)
+
+## A breeze through the flowers
+
+All eight flowers and their hidden palettes sway together, with small ground shadows following along. Each gust lasts 4.5 seconds, followed by 3–10 seconds of rest. Motion is optional and album previews stay still. Version 0.17.0 also fixes slow-write timing and old-worker recovery, while reducing repeated work for large collections.
+
+![Version 0.17.0: flowers and ground shadows sharing one gentle breeze](docs/screenshots/breeze.jpg)
 
 ## A little surprise at bloom
 
@@ -72,6 +78,6 @@ The interface follows the environment language: Simplified Chinese, English or J
 
 Download the ZIP and install it in Hindsight **Settings → Plugins**, then open **时光花园**. Requires Hindsight 0.10.0+; market installation requires 0.10.2+. Back up your data before updating. See the [detailed guide](docs/usage.en.md) for compatibility and rollback information.
 
-**Development is ongoing. Basic functionality is usable, but testing is not exhaustive and problems or risks may remain.** All 194 automated tests pass. Screenshots show the actual plugin UI in connected Chrome with an isolated simulated host and demonstration data. The new English and Japanese captures show the localized UI; some earlier planting, growth and guide examples remain Chinese. The final ZIP has not been installed in native Hindsight, and OS notification delivery is unverified. The runtime makes no network requests and stores data locally. Removing plugin data during uninstall removes the garden too.
+**Development is ongoing. Basic functionality is usable, but testing is not exhaustive and problems or risks may remain.** See [verification](docs/verification.md) and the [0.17.0 audit](docs/audit-0170.md) for this round's checks and final test results. Screenshots use an isolated simulated host and demonstration data. Apart from this version's breeze capture, images retain actual Chrome examples from 0.16.0 and earlier; some older examples remain Chinese. The final ZIP has not been installed in native Hindsight. OS notification delivery and long-running GPU performance are unverified. The runtime makes no network requests and stores data locally. Removing plugin data during uninstall removes the garden too.
 
 [Permissions and data](docs/usage.en.md#data-and-permissions) · [Development](docs/development.md) · [Artwork](docs/artwork.md) · [Verification](docs/verification.md) · [MIT](LICENSE)

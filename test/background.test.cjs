@@ -423,3 +423,246 @@ test("background bloom notifications follow English, Japanese and fallback syste
     assert.equal((await live.store.load()).garden[0].name, "阅读绣球");
   }
 });
+
+test("queued focus changes settle at reception time instead of crediting the previous app during a slow write", async (t) => {
+  const host = hostFor(t);
+  await seeded(host);
+  const live = worker(host);
+  t.after(() => live.close());
+  await live.focus({ app: "reader" });
+  await live.tick(2000);
+  let release;
+  let entered;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const waiting = new Promise((resolve) => { entered = resolve; });
+  let blocked = false;
+  host.beforeCall = async (method, params) => {
+    if (!blocked && method === "db.execute" && params.sql.startsWith("UPDATE")) {
+      blocked = true;
+      entered();
+      await gate;
+    }
+  };
+  const pending = live.tick(4000);
+  await waiting;
+  live.clock.now = 5000;
+  live.listeners.get("focus.changed")({ app: "other" });
+  live.clock.now = 12000;
+  release();
+  await pending;
+  await live.flush();
+  const state = await live.store.load();
+  assert.equal(state.active.progressMs, 5000);
+  assert.equal(state.focusStats.totalMs, 5000);
+  assert.equal(state.focus.app, "other");
+});
+
+test("a queued observation from before a clock reversal cannot reactivate focus", async (t) => {
+  const host = hostFor(t);
+  await seeded(host);
+  let release;
+  let entered;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const waiting = new Promise((resolve) => { entered = resolve; });
+  let blocked = false;
+  host.beforeCall = async (method, params) => {
+    if (!blocked && method === "db.execute" && params.sql.startsWith("CREATE")) {
+      blocked = true;
+      entered();
+      await gate;
+    }
+  };
+  const live = worker(host, 10000);
+  t.after(() => live.close());
+  live.listeners.get("focus.changed")({ app: "reader" });
+  await waiting;
+  live.clock.now = 0;
+  release();
+  await live.flush();
+  await live.tick(2000);
+  const state = await live.store.load();
+  assert.equal(state.focus, null);
+  assert.equal(state.active.progressMs, 0);
+});
+
+test("a replaced worker's delayed failure cannot clear the new worker or reclaim its session", async (t) => {
+  const host = hostFor(t);
+  await seeded(host);
+  const first = worker(host, 0, .1);
+  t.after(() => first.close());
+  await first.focus({ app: "reader" });
+  await first.grow(10000);
+  let release;
+  let entered;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const waiting = new Promise((resolve) => { entered = resolve; });
+  let blocked = false;
+  host.beforeCall = async (method, params) => {
+    if (!blocked && method === "db.execute" && params.sql.startsWith("UPDATE")) {
+      blocked = true;
+      entered();
+      await gate;
+      throw new Error("old worker delayed failure");
+    }
+  };
+  const pending = first.tick(12000);
+  await waiting;
+  const second = worker(host, 13000, .2);
+  t.after(() => second.close());
+  await second.focus({ app: "reader" });
+  await second.tick(15000);
+  const session = (await second.store.load()).sessionId;
+  first.clock.now = 16000;
+  release();
+  await pending;
+  await first.flush();
+  assert.equal((await second.store.load()).focus?.app, "reader");
+  await first.tick(18000);
+  await second.tick(19000);
+  const state = await second.store.load();
+  assert.equal(state.sessionId, session);
+  assert.equal(state.active.progressMs, 16000);
+});
+
+test("a first boot with a lost acknowledgement cannot reclaim a session after a replacement worker starts", async (t) => {
+  const host = hostFor(t);
+  await seeded(host);
+  let release;
+  let entered;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const waiting = new Promise((resolve) => { entered = resolve; });
+  let blocked = false;
+  host.beforeCall = async (method, params) => {
+    if (!blocked && method === "db.execute" && params.sql.startsWith("UPDATE")) {
+      blocked = true;
+      host.db.prepare(params.sql).run(...params.params);
+      entered();
+      await gate;
+      throw new Error("first boot committed but acknowledgement was lost");
+    }
+  };
+  const first = worker(host, 0, .1);
+  t.after(() => first.close());
+  await waiting;
+  const second = worker(host, 1000, .2);
+  t.after(() => second.close());
+  await second.focus({ app: "reader" });
+  await second.tick(3000);
+  const session = (await second.store.load()).sessionId;
+  first.clock.now = 4000;
+  release();
+  await first.flush();
+  await first.tick(5000);
+  await first.focus({ app: "other" }, 6000);
+  await second.tick(7000);
+  const state = await second.store.load();
+  assert.equal(state.sessionId, session);
+  assert.equal(state.focus.app, "reader");
+  assert.equal(state.active.progressMs, 6000);
+});
+
+test("a failed first boot can retry its known former owner without blocking a legitimate replacement", async (t) => {
+  const host = hostFor(t);
+  const seed = await seeded(host);
+  await seed.apply({ type: "boot", sessionId: "previous-owner" }, 0);
+  let failed = false;
+  host.beforeCall = async (method, params) => {
+    if (!failed && method === "db.execute" && params.sql.startsWith("UPDATE")) {
+      failed = true;
+      throw new Error("first boot did not commit");
+    }
+  };
+  const live = worker(host, 1000, .3);
+  t.after(() => live.close());
+  await live.flush();
+  await live.focus({ app: "reader" }, 2000);
+  await live.tick(4000);
+  const state = await live.store.load();
+  assert.notEqual(state.sessionId, "previous-owner");
+  assert.equal(state.active.progressMs, 2000);
+});
+
+for (const failedStatement of ["CREATE", "SELECT"]) {
+  test(`a first-install ${failedStatement} failure recovers on fresh focus when no owner has claimed the database`, async (t) => {
+    const host = hostFor(t);
+    let failed = false;
+    host.beforeCall = async (_method, params) => {
+      if (!failed && params.sql.startsWith(failedStatement)) {
+        failed = true;
+        throw new Error("temporary first " + failedStatement + " failure");
+      }
+    };
+    const live = worker(host, 0, .1);
+    t.after(() => live.close());
+    await live.flush();
+    assert.equal(failed, true);
+    assert.equal((await live.store.load()).sessionId, null);
+    await live.store.apply({ type: "plant", id: "first-pot", plant: {
+      name: "首次安装", species: "daisy", targetMinutes: 1,
+      rules: [{ type: "app", value: "reader", exact: true }],
+    } }, 0);
+    await live.focus({ app: "reader" }, 2000);
+    await live.tick(4000);
+    const state = await live.store.load();
+    assert.notEqual(state.sessionId, null);
+    assert.equal(state.focus.app, "reader");
+    assert.equal(state.active.progressMs, 2000);
+    assert.equal(state.focusStats.totalMs, 2000);
+  });
+
+  test(`an unclaimed worker after a ${failedStatement} failure yields when a later owner has started`, async (t) => {
+    const host = hostFor(t);
+    let failed = false;
+    host.beforeCall = async (_method, params) => {
+      if (!failed && params.sql.startsWith(failedStatement)) {
+        failed = true;
+        throw new Error("temporary first " + failedStatement + " failure");
+      }
+    };
+    const first = worker(host, 0, .1);
+    t.after(() => first.close());
+    await first.flush();
+    assert.equal(failed, true);
+    await first.store.apply({ type: "plant", id: "first-pot", plant: {
+      name: "新后台接管", species: "daisy", targetMinutes: 1,
+      rules: [{ type: "app", value: "reader", exact: true }],
+    } }, 0);
+    const second = worker(host, 1000, .2);
+    t.after(() => second.close());
+    await second.focus({ app: "reader" });
+    await second.tick(3000);
+    const owner = (await second.store.load()).sessionId;
+    await first.tick(4000);
+    await first.focus({ app: "other" }, 5000);
+    await second.tick(7000);
+    const state = await second.store.load();
+    assert.equal(state.sessionId, owner);
+    assert.equal(state.focus.app, "reader");
+    assert.equal(state.active.progressMs, 6000);
+  });
+}
+
+test("a first-read failure with an unknown old owner conservatively requires a genuinely new worker to take over", async (t) => {
+  const host = hostFor(t);
+  const page = await seeded(host);
+  await page.apply({ type: "boot", sessionId: "unknown-former-owner" }, 0);
+  let failed = false;
+  host.beforeCall = async (_method, params) => {
+    if (!failed && params.sql.startsWith("CREATE")) {
+      failed = true;
+      throw new Error("failed before learning the former owner");
+    }
+  };
+  const first = worker(host, 1000, .1);
+  t.after(() => first.close());
+  await first.flush();
+  await first.focus({ app: "reader" }, 2000);
+  assert.equal((await page.load()).sessionId, "unknown-former-owner");
+  const reopened = worker(host, 3000, .2);
+  t.after(() => reopened.close());
+  await reopened.focus({ app: "reader" });
+  await reopened.tick(5000);
+  const state = await page.load();
+  assert.notEqual(state.sessionId, "unknown-former-owner");
+  assert.equal(state.active.progressMs, 2000);
+});

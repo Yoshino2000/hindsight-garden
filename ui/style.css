@@ -991,7 +991,7 @@ legend {
   transform: translate(-50%, -100%) rotate(var(--flower-rotation, 0deg));
   -webkit-tap-highlight-color: #d6e9af;
 }
-.garden-flower::after {
+.garden-flower::before {
   content: "";
   position: absolute;
   left: 7%;

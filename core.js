@@ -856,7 +856,13 @@
       state = refreshAchievements(state, now);
     if (!input || typeof input !== "object")
       throw new Error("花园操作不正确。");
+    if (input.type === "error" && input.sessionId !== undefined && input.sessionId !== state.sessionId)
+      return { state, notes, ignored: true };
     if (input.type === "boot") {
+      if (input.recoverSessionId !== undefined && input.recoverSessionId !== state.sessionId &&
+          state.sessionId !== null &&
+          !(Object.hasOwn(input, "expectedPreviousSessionId") && input.expectedPreviousSessionId === state.sessionId))
+        return { state, notes, ignored: true };
       state.sessionId = validId(input.sessionId);
       state.focus = null;
       state.interruption = null;
@@ -868,11 +874,26 @@
     }
     if (input.type === "tick" || input.type === "focus") {
       if (!state.sessionId || input.sessionId !== state.sessionId)
-        return { state, notes };
+        return { state, notes, ignored: true };
+      let observedAt = now;
+      if (input.type === "focus" && input.observedAt !== undefined) {
+        observedAt = timestamp(input.observedAt);
+        // Worker reception time is different from an untrusted event's own timestamp. Drop
+        // queued observations that predate a newer page action, or crossed a clock reversal.
+        if (observedAt > now || now - observedAt > MAX_GAP_MS ||
+            (state.lastAt !== null && observedAt < state.lastAt && now >= state.lastAt)) {
+          state.focus = null;
+          state.interruption = null;
+          state.lastAt = now;
+          state.heartbeatAt = now;
+          endFocusStreak(state);
+          return { state, notes };
+        }
+      }
       // An away event cancels any pending penalty before the next clock settlement.
       if (input.type === "focus" && input.event?.away === true)
         state.interruption = null;
-      advance(state, now, notes);
+      advance(state, observedAt, notes);
       if (input.type === "focus") {
         const wasGrowing = growing(state);
         state.focus = cleanFocus(input.event);
@@ -886,8 +907,8 @@
         ) {
           state.interruption = null;
         } else if (wasGrowing && state.active.penalty.enabled) {
-          state.interruption = { startedAt: now, applied: false };
-          applyPenalty(state, now);
+          state.interruption = { startedAt: observedAt, applied: false };
+          applyPenalty(state, observedAt);
         }
       }
       state.heartbeatAt = now;

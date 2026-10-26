@@ -2,6 +2,10 @@
 (function (root) {
   "use strict";
   const MESSAGES = {
+  "这条旧收藏的额外数据嵌套过深，暂时只能查看或移除，无法改名或编辑备注；原始记录已保留。": [
+    "This older flower has deeply nested extra data. You can view or remove it, but cannot rename it or edit its note. The original record is preserved.",
+    "この古い花の追加データは階層が深すぎます。閲覧と削除はできますが、名前やメモは変更できません。元の記録は保持しています。"
+  ],
   "种子": [
     "Seed",
     "種"
@@ -2473,6 +2477,18 @@
   "细雨落向草地，叶伞轻动，水面泛起微波": [
     "A light rain lands on the lawn, the leaf canopy sways, and the pond ripples",
     "小雨が芝生に落ち、葉の傘が揺れ、池に波紋が広がります"
+  ],
+  "花园日期从 1970 年 1 月 1 日开始，请选择此日期或之后的日期。": [
+    "Garden dates start on January 1, 1970. Choose that date or later.",
+    "庭の日付は1970年1月1日からです。その日以降を選んでください。"
+  ],
+  "花园存储版本已到上限，已有记录已保留，请备份后检查。": [
+    "The garden storage version has reached its limit. Existing records are preserved; back up and inspect the data.",
+    "庭の保存バージョンが上限に達しました。既存記録は保持しています。バックアップして確認してください。"
+  ],
+  "花园归档版本已到上限，已有记录已保留，请备份后检查。": [
+    "The garden archive version has reached its limit. Existing records are preserved; back up and inspect the data.",
+    "庭のアーカイブバージョンが上限に達しました。既存記録は保持しています。バックアップして確認してください。"
   ]
 };
   function resolveLanguage(value) {

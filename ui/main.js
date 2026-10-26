@@ -80,7 +80,9 @@
   };
   const store = GardenStore.createStore((method, params) =>
     hindsight.call(method, params),
+    { readonlyArchive: true },
   );
+  const selectGardenView = GardenLayout.createViewSelector();
   let state = null;
   let busy = false;
   let polling = false;
@@ -91,6 +93,7 @@
   let planSignature = "";
   let collectionSignature = "";
   let reviewSignature = "";
+  let focusSignature = "";
   let gardenTheme = "meadow";
   let selectedAchievement = null;
   let achievementFilter = "all";
@@ -114,6 +117,7 @@
     document.querySelector(".ambience-bird"), document.querySelector(".ambience-butterfly"),
   );
   GardenAmbience.createThemeEffects(document.querySelector(".garden-scene:not(.garden-miniature)"));
+  const breeze = GardenBreeze.createBreeze($("garden-grid"));
   let errorSource = "";
   let editPlantId = null;
   let catalogRequest = null;
@@ -219,7 +223,7 @@
     if (name !== currentTab()) {
       $("notice").hidden = true;
       $("notice").textContent = "";
-      if (errorSource === "action") { $("error").hidden = true; $("error").textContent = ""; errorSource = ""; }
+      if (["action", "date"].includes(errorSource)) { $("error").hidden = true; $("error").textContent = ""; errorSource = ""; }
       closeFlowerActions();
       closeAchievementDrawer(false);
     }
@@ -242,6 +246,7 @@
     $("garden-ambience").dataset.running = String(running);
     document.querySelector(".garden-scene:not(.garden-miniature)").dataset.motion = String(enabled && running);
     visitors.setRunning(enabled && running);
+    breeze.setRunning(enabled && running);
     $("garden-motion").checked = enabled;
     $("garden-motion").disabled = reducedMotion.matches;
     $("garden-motion-hint").textContent = reducedMotion.matches
@@ -547,6 +552,9 @@
   }
 
   function renderFocusStatistics() {
+    const signature = JSON.stringify(state.focusStats);
+    if (signature === focusSignature) return;
+    focusSignature = signature;
     const summary = C.focusSummary(state);
     $("focus-statistics-since").textContent = t("{0} · 只统计养花且匹配规则时的有效生长时间，历史花朵不回推。", summary.startedAt === null ? t("从升级后首次记录开始") : t("{0} 起记录", date(summary.startedAt)));
     $("focus-statistics-summary").replaceChildren(...[
@@ -559,6 +567,7 @@
     const colors = ["#7e9f79", "#87a6c0", "#b297c4", "#d0ad69", "#ce9f9b", "#8eb8ac"];
     const categoryColors = new Map((state.focusStats?.categories || []).map((bucket, index) =>
       [bucket.id, colors[index % colors.length]]));
+    const categoryNames = new Map((state.focusStats?.categories || []).map(bucket => [bucket.id, bucket.name]));
     const buckets = [...summary.buckets].sort((first, second) => second.ms - first.ms);
     const color = (bucket) => {
       if (bucket.kind !== "category") return bucket.kind === "other" ? "#a6afa2" : "#c5c9c1";
@@ -574,7 +583,7 @@
       const row = el("li");
       const dot = el("span", "focus-category-dot");
       dot.style.backgroundColor = color(bucket);
-      row.append(dot, el("span", "focus-category-name", bucket.kind === "category" ? bucket.name : I.message(bucket.name)),
+      row.append(dot, el("span", "focus-category-name", bucket.kind === "category" ? categoryNames.get(bucket.id) || t("未命名分类") : I.message(bucket.name)),
         el("span", "", `${Number(bucket.percent.toFixed(1))}% · ${focusTime(bucket.ms)}`));
       return row;
     });
@@ -830,11 +839,13 @@
   }
 
   function renderGarden() {
-    gardenView = GardenLayout.createView(state.garden, {
+    const nextView = selectGardenView(state.garden, {
       mode: gardenMode,
       week: gardenWeek,
       page: gardenPage,
     });
+    if (nextView === gardenView) return;
+    gardenView = nextView;
     const { layout } = gardenView;
     gardenMode = gardenView.mode;
     gardenWeek = gardenView.week;
@@ -872,10 +883,7 @@
     $("garden-page-label").textContent =
       t("第 {0} / {1} 座花园", layout.page + 1, layout.pageCount);
     const signature = JSON.stringify({
-      plants: state.garden,
-      page: gardenPage,
-      mode: gardenMode,
-      week: gardenWeek,
+      plots: layout.plots.map(({ plant }) => [plant.id, plant.name, plant.species, C.variantOf(plant)]),
     });
     $("garden-album-navigation").hidden = gardenView.albumPageCount <= 1;
     $("garden-album-prev").disabled = gardenView.albumPage === 0;
@@ -884,8 +892,8 @@
     $("garden-jump-control").hidden = layout.pageCount <= 1;
     $("garden-jump").max = String(layout.pageCount);
     if (!$("garden-jump").matches(":focus")) $("garden-jump").value = String(layout.page + 1);
-    renderAlbum(JSON.stringify({ plants: gardenView.gardens.map((garden) => garden.plots.map(({ plant }) => plant)), mode: gardenMode, week: gardenWeek, start: gardenView.albumStart }));
-    if (signature === gardenSignature) return;
+    renderAlbum(JSON.stringify({ plants: gardenView.gardens.map((garden) => garden.plots.map(({ plant }) => [plant.id, plant.species, C.variantOf(plant)])), mode: gardenMode, week: gardenWeek, start: gardenView.albumStart }));
+    if (signature === gardenSignature) { renderFlower(); return; }
     gardenSignature = signature;
     if (!layout.plots.some((plot) => plot.plant.id === selectedFlower))
       selectedFlower = null;
@@ -901,7 +909,9 @@
       button.style.top = `${y / 7.6}%`;
       button.style.zIndex = String(z + 1);
       button.style.setProperty("--flower-rotation", `${rotation}deg`);
-      button.append(gardenArtwork(plant.species, C.variantOf(plant)));
+      const bloom = el("span", "garden-flower-bloom");
+      bloom.append(gardenArtwork(plant.species, C.variantOf(plant)));
+      button.append(bloom);
       button.addEventListener("click", () => {
         closeFlowerActions();
         closeAchievementDrawer(false);
@@ -911,6 +921,7 @@
       return button;
     });
     $("garden-grid").replaceChildren(...flowers);
+    breeze.refresh();
     renderFlower();
   }
 
@@ -961,7 +972,9 @@
         flower.style.left = `${x / 10}%`;
         flower.style.top = `${y / 7.6}%`;
         flower.style.zIndex = String(z + 1);
-        flower.append(gardenArtwork(plant.species, C.variantOf(plant)));
+        const bloom = el("span", "garden-flower-bloom");
+        bloom.append(gardenArtwork(plant.species, C.variantOf(plant)));
+        flower.append(bloom);
         scene.append(flower);
       }
       const caption = el("span", "garden-album-caption");
@@ -1142,17 +1155,24 @@
   function locateWeek() {
     const value = $("garden-week-date").value;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      showError(new Error(t("请先选择一个日期。")));
+      showError(new Error(t("请先选择一个日期。")), "date");
       return;
     }
     const [year, month, day] = value.split("-").map(Number);
     const selected = new Date(0);
     selected.setFullYear(year, month - 1, day);
-    selected.setHours(12, 0, 0, 0);
+    // An afternoon sample keeps the minimum supported day after the Unix epoch even
+    // in UTC+13/+14. This is only a calendar lookup, never an activity timestamp.
+    selected.setHours(18, 0, 0, 0);
     if (!Number.isFinite(selected.getTime()) || selected.getFullYear() !== year || selected.getMonth() !== month - 1 || selected.getDate() !== day) {
-      showError(new Error(t("日期无法识别，请重新选择。")));
+      showError(new Error(t("日期无法识别，请重新选择。")), "date");
       return;
     }
+    if (year < 1970) {
+      showError(new Error(t("花园日期从 1970 年 1 月 1 日开始，请选择此日期或之后的日期。")), "date");
+      return;
+    }
+    if (errorSource === "date") { $("error").hidden = true; $("error").textContent = ""; errorSource = ""; }
     const view = GardenLayout.createView([], { mode: "week", now: selected.getTime() });
     changeGardenScope("week", view.week);
   }
@@ -1508,12 +1528,12 @@
   }
 
   async function poll() {
-    if (polling || busy) return;
+    if (polling || busy || document.visibilityState !== "visible") return;
     polling = true;
     const current = generation;
     try {
       const value = await store.load();
-      if (current !== generation) return;
+      if (current !== generation || document.visibilityState !== "visible") return;
       state = value;
       render();
     } catch (error) {
@@ -1572,7 +1592,10 @@
     try { localStorage.setItem("garden-ambience", String(ambienceEnabled)); } catch (_) { /* Local display preference only. */ }
     updateAmbience();
   });
-  document.addEventListener("visibilitychange", updateAmbience);
+  document.addEventListener("visibilitychange", () => {
+    updateAmbience();
+    if (document.visibilityState === "visible") poll();
+  });
   reducedMotion.addEventListener("change", updateAmbience);
   $("garden-album-prev").addEventListener("click", () => {
     if (gardenView) changeGardenPage((gardenView.albumPage - 1) * GardenLayout.ALBUM_SIZE - gardenPage);

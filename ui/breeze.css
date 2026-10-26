@@ -1,0 +1,40 @@
+/* A small ellipse lies on the ground; only its coarse transform changes with a gust. */
+.garden-flower::before {
+  content: ""; position: absolute; left: 15%; bottom: -1%; width: 76%; height: 14%;
+  border-radius: 50%; background: var(--ground-shadow, #637a43); opacity: .23;
+  pointer-events: none; z-index: 0; transform-origin: 50% 50%;
+}
+.garden-flower-bloom { display: block; position: relative; width: 100%; height: 100%; z-index: 1; transform-origin: 50% 100%; }
+.garden-miniature .garden-flower::before { opacity: .17; }
+.garden-scene:not(.garden-miniature)[data-motion="true"] #garden-grid[data-breeze="a"] .garden-flower-bloom { animation: flower-gust-a 4500ms ease-in-out; }
+.garden-scene:not(.garden-miniature)[data-motion="true"] #garden-grid[data-breeze="b"] .garden-flower-bloom { animation: flower-gust-b 4500ms ease-in-out; }
+.garden-scene:not(.garden-miniature)[data-motion="true"] #garden-grid[data-breeze="a"] .garden-flower::before { animation: flower-shadow-gust-a 4500ms ease-in-out; }
+.garden-scene:not(.garden-miniature)[data-motion="true"] #garden-grid[data-breeze="b"] .garden-flower::before { animation: flower-shadow-gust-b 4500ms ease-in-out; }
+/* Alternate names restart one CSS timeline for all flowers without a forced layout read. */
+@keyframes flower-gust-a {
+  0%, 100% { transform: rotate(0deg); }
+  24% { transform: rotate(var(--breeze-angle)); }
+  52% { transform: rotate(var(--breeze-return)); }
+  76% { transform: rotate(var(--breeze-settle)); }
+}
+@keyframes flower-gust-b {
+  0%, 100% { transform: rotate(0deg); }
+  24% { transform: rotate(var(--breeze-angle)); }
+  52% { transform: rotate(var(--breeze-return)); }
+  76% { transform: rotate(var(--breeze-settle)); }
+}
+@keyframes flower-shadow-gust-a {
+  0%, 100% { transform: translateX(0) scaleX(1); }
+  24% { transform: translateX(var(--breeze-shadow-x)) scaleX(1.03); }
+  52% { transform: translateX(calc(var(--breeze-shadow-x) * -.4)) scaleX(.985); }
+  76% { transform: translateX(calc(var(--breeze-shadow-x) * .2)) scaleX(1.01); }
+}
+@keyframes flower-shadow-gust-b {
+  0%, 100% { transform: translateX(0) scaleX(1); }
+  24% { transform: translateX(var(--breeze-shadow-x)) scaleX(1.03); }
+  52% { transform: translateX(calc(var(--breeze-shadow-x) * -.4)) scaleX(.985); }
+  76% { transform: translateX(calc(var(--breeze-shadow-x) * .2)) scaleX(1.01); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .garden-flower-bloom, .garden-flower::before { animation: none !important; }
+}

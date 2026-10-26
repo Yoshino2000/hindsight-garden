@@ -6,9 +6,15 @@
 
 让一段日常，长成一座花园。为 [Hindsight](https://github.com/Tomotsugu-dev/Hindsight) 制作的第三方插件：选择已有分类，累计前台使用时间，慢慢等花开。
 
-**[下载 0.16.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.16.0)** · [安装与使用](docs/usage.zh-CN.md) · [开发与验证](docs/verification.md)
+**[下载 0.17.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.17.0)** · [安装与使用](docs/usage.zh-CN.md) · [开发与验证](docs/verification.md)
 
 ![时光花园：完整花圃、专属装饰、顶部动效开关和紧凑切园导航](docs/screenshots/garden.jpg)
+
+## 一阵风，轻轻经过
+
+八种花与隐藏配色一起轻摇，贴地小阴影跟着缓动。一阵风持续 4.5 秒，结束后静歇 3–10 秒；可随时关闭，相册小图保持安静。0.17.0 也修正了慢写入时的计时与旧后台恢复问题，减少大收藏的重复刷新。
+
+![0.17.0：同一阵风中的花朵与贴地阴影](docs/screenshots/breeze.jpg)
 
 ## 等花开，也等一次梦色相遇
 
@@ -74,6 +80,6 @@
 
 下载 ZIP，在 Hindsight「设置 → 插件」中安装，打开「时光花园」即可。需要 Hindsight 0.10.0+；从插件市场安装需 0.10.2+。升级前请备份数据，具体兼容与回退说明见[详细指南](docs/usage.zh-CN.md)。
 
-**仍在开发迭代，基础功能已可用，未经严格全面测试，可能有问题和风险。** 194 项自动测试通过；截图为连接的 Chrome 中的真实插件界面，使用隔离模拟宿主和演示数据，部分种植、生长和图鉴图片保留较早的中文例图。最终 ZIP 尚未原生安装验证，系统通知也未在操作系统中验证。插件运行时不联网，数据保存在本机；卸载时删除插件数据也会删除花园。
+**仍在开发迭代，基础功能已可用，未经严格全面测试，可能有问题和风险。** 本轮检查与最终测试结果见[验证范围](docs/verification.md)及[0.17.0 审查](docs/audit-0170.md)。截图使用隔离模拟宿主和演示数据；除本版风动图外，其余图片沿用 0.16.0 及更早的真实 Chrome 示例，部分旧图为中文。最终 ZIP 尚未原生安装验证，操作系统通知与长期 GPU 表现也未验证。插件运行时不联网，数据保存在本机；卸载时删除插件数据也会删除花园。
 
 [权限与数据](docs/usage.zh-CN.md#权限和数据) · [开发说明](docs/development.md) · [素材来源](docs/artwork.md) · [验证范围](docs/verification.md) · [MIT](LICENSE)

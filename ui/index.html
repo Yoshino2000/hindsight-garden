@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="pond.css" />
     <link rel="stylesheet" href="focus.css" />
     <link rel="stylesheet" href="variants.css" />
+    <link rel="stylesheet" href="breeze.css" />
   </head>
   <body>
     <main class="app">
@@ -757,7 +758,7 @@
               <span id="garden-week-range" class="subtle"></span>
               <button id="garden-week-next" class="button quiet small" type="button">下一页</button>
             </nav>
-            <div class="week-locate"><label for="garden-week-date">日期直达</label><input id="garden-week-date" type="date" aria-label="选择日期定位到所在周"><button id="garden-week-locate" class="button quiet small" type="button">查看</button></div>
+            <div class="week-locate"><label for="garden-week-date">日期直达</label><input id="garden-week-date" type="date" min="1970-01-01" max="9999-12-31" aria-label="选择日期定位到所在周"><button id="garden-week-locate" class="button quiet small" type="button">查看</button></div>
           </section>
           <div id="garden-album-home">
             <div id="garden-album-panel" class="garden-album-panel">
@@ -887,6 +888,7 @@
     <script src="collection.js"></script>
     <script src="focus-status.js"></script>
     <script src="variants.js"></script>
+    <script src="breeze.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

@@ -677,3 +677,39 @@ test("older four-species collections and a growing plant keep their IDs and prog
     "old-sunflower", "old-hydrangea", "old-tulip", "old-daisy",
   ]);
 });
+
+test("queued worker observations cannot undo a newer page action or count through that action", () => {
+  let state = focus(planted(), "reader", 0);
+  state = tick(state, 2000);
+  state = change(state, { type: "pause", paused: true }, 6000);
+  state = change(state, { type: "pause", paused: false }, 7000);
+  state = change(state, { type: "focus", sessionId: SID, observedAt: 5000, event: { app: "reader" } }, 8000);
+  assert.equal(state.focus, null);
+  assert.equal(state.active.progressMs, 2000);
+  state = tick(state, 10000);
+  assert.equal(state.active.progressMs, 2000);
+  state = change(state, { type: "focus", sessionId: SID, observedAt: 10000, event: { app: "reader" } }, 10000);
+  state = tick(state, 12000);
+  assert.equal(state.active.progressMs, 4000);
+});
+
+test("a genuinely fresh post-reversal observation starts a new interval without crediting reversed time", () => {
+  let state = focus(planted(), "reader", 0);
+  state = tick(state, 10000);
+  state = change(state, { type: "focus", sessionId: SID, observedAt: 4000, event: { app: "reader" } }, 4000);
+  assert.equal(state.active.progressMs, 10000);
+  assert.equal(state.focusStats.streakMs, 0);
+  state = tick(state, 6000);
+  assert.equal(state.active.progressMs, 12000);
+  assert.equal(state.focusStats.streakMs, 2000);
+});
+
+test("a completed-counter overflow leaves all prior plant and effective-time data unchanged", () => {
+  let state = focus(planted(), "reader", 0);
+  state = tick(state, 10000);
+  state.active.progressMs = 59999;
+  state.collection.totalBlooms = Number.MAX_SAFE_INTEGER;
+  const before = JSON.stringify(state);
+  assert.throws(() => tick(state, 10001), /超出可保存范围/);
+  assert.equal(JSON.stringify(state), before);
+});

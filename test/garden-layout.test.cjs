@@ -1,7 +1,7 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createLayout, createView, GEOMETRY } = require("../garden-layout.js");
+const { createLayout, createView, createViewSelector, GEOMETRY } = require("../garden-layout.js");
 const { spawnSync } = require("node:child_process");
 
 function flowers(count) {
@@ -939,6 +939,107 @@ test("local weeks span DST transitions by calendar dates rather than fixed 168-h
   `;
   const result = spawnSync(process.execPath, ["-e", source], {
     env: { ...process.env, TZ: "America/New_York" }, encoding: "utf8", timeout: 10000,
+  });
+  assert.equal(result.status, 0, result.stderr || result.error?.message);
+});
+
+test("an immutable archive selector reuses a view without reading any archive entries on a hit", () => {
+  const plants = Object.freeze(flowers(5001).map((plant) => Object.freeze({
+    ...plant, bloomAt: localAt(2026, 10, 25), targetMs: 60000,
+  })));
+  let reads = 0;
+  const archive = new Proxy(plants, { get(target, property, receiver) {
+    reads++;
+    return Reflect.get(target, property, receiver);
+  } });
+  const select = createViewSelector();
+  const first = select(archive, { mode: "week", now: localAt(2026, 10, 25), page: 200 });
+  const before = reads;
+  const again = select(archive, { mode: "week", now: localAt(2026, 10, 25, 23), page: "200" });
+  assert.strictEqual(again, first);
+  assert.equal(reads, before, "A polling cache hit must not inspect length, filter, ids or records");
+  assert.equal(again.total, 5001);
+  assert.deepEqual(again.layout.plots.map(({ plant }) => plant.id), ["plant-5000"]);
+});
+
+test("a replaced archive invalidates the selector even when ids and length are unchanged", () => {
+  const now = localAt(2026, 10, 25);
+  const plants = Object.freeze([Object.freeze({ ...bloomed("same", now - 60000, now), targetMs: 60000 })]);
+  const select = createViewSelector();
+  const first = select(plants, { mode: "week", now });
+  const changed = Object.freeze([Object.freeze({ ...plants[0], name: "A new name", taskNote: "New memory", variant: "hidden" })]);
+  const next = select(changed, { mode: "week", now });
+  assert.notStrictEqual(next, first);
+  assert.equal(next.layout.plots[0].plant.name, "A new name");
+  assert.equal(next.layout.plots[0].plant.taskNote, "New memory");
+  assert.equal(next.layout.plots[0].plant.variant, "hidden");
+  assert.deepEqual(next, createView(changed, { mode: "week", now }));
+  assert.notStrictEqual(createView(changed, { now }), createView(changed, { now }),
+    "The original API remains uncached");
+});
+
+test("selector pages, scope changes and selected empty weeks retain ordinary view semantics", () => {
+  const now = localAt(2026, 10, 25);
+  const plants = Object.freeze(flowers(61).map((plant, index) => Object.freeze({
+    ...plant, bloomAt: index < 51 ? now : localAt(2026, 10, 15), targetMs: 60000,
+  })));
+  const select = createViewSelector();
+  let previous;
+  for (const options of [
+    { mode: "week", week: "2026-10-19", page: 0, now },
+    { mode: "week", week: "2026-10-19", page: 1, now },
+    { mode: "week", week: "2026-10-12", page: 0, now },
+    { mode: "week", week: "9999-12-27", page: 0, now },
+    { mode: "all", week: "9999-12-27", page: 2, now },
+    { mode: "week", week: "2026-10-12", page: -8, now },
+  ]) {
+    const view = select(plants, options);
+    assert.deepEqual(view, createView(plants, options));
+    assert.notStrictEqual(view, previous);
+    assert.strictEqual(select(plants, { ...options, now: now + 1000 }), view);
+    previous = view;
+  }
+});
+
+test("selector current-week markers refresh across midnight even with a fixed selected empty week", () => {
+  const plants = Object.freeze([]);
+  const select = createViewSelector();
+  const options = { mode: "week", week: "9999-12-27" };
+  const before = select(plants, { ...options, now: localAt(2026, 10, 25, 23, 59, 59, 999) });
+  const afterOptions = { ...options, now: localAt(2026, 10, 26, 0) };
+  const after = select(plants, afterOptions);
+  assert.notStrictEqual(after, before);
+  assert.equal(before.weeks.find((week) => week.current).key, "2026-10-19");
+  assert.equal(after.weeks.find((week) => week.current).key, "2026-10-26");
+  assert.equal(after.week, "9999-12-27");
+  assert.equal(after.layout.total, 0);
+  assert.deepEqual(after, createView(plants, afterOptions));
+});
+
+test("selector invalidates on timezone changes, including two zones sharing the same current offset", () => {
+  const modulePath = require.resolve("../garden-layout.js");
+  const source = `
+    const assert = require("node:assert/strict");
+    const { createView, createViewSelector } = require(${JSON.stringify(modulePath)});
+    const plants = Object.freeze([{ id: "boundary", createdAt: 0, bloomAt: Date.UTC(2026, 9, 25, 23, 30) }]);
+    const options = { mode: "week", now: Date.UTC(2026, 9, 26, 12) };
+    const select = createViewSelector();
+    const utc = select(plants, options);
+    const offset = new Date(options.now).getTimezoneOffset();
+    process.env.TZ = "Africa/Abidjan";
+    assert.equal(new Date(options.now).getTimezoneOffset(), offset);
+    const otherUtc = select(plants, options);
+    assert.notStrictEqual(otherUtc, utc);
+    assert.deepEqual(otherUtc, createView(plants, options));
+    process.env.TZ = "Asia/Shanghai";
+    const shanghai = select(plants, options);
+    assert.notStrictEqual(shanghai, otherUtc);
+    assert.equal(utc.layout.total, 0);
+    assert.equal(shanghai.layout.total, 1);
+    assert.deepEqual(shanghai, createView(plants, options));
+  `;
+  const result = spawnSync(process.execPath, ["-e", source], {
+    env: { ...process.env, TZ: "UTC" }, encoding: "utf8", timeout: 10000,
   });
   assert.equal(result.status, 0, result.stderr || result.error?.message);
 });

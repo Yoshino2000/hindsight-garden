@@ -225,6 +225,31 @@
       albumPage, albumPageCount: Math.ceil(layout.pageCount / ALBUM_SIZE), albumStart };
   }
 
+  // Opt-in for callers holding an immutable archive snapshot. A new archive revision must
+  // replace the array reference, including edits that keep the same length and plant ids.
+  // The ordinary createView API remains uncached and accepts mutable/foreign input.
+  function createViewSelector() {
+    let cached = null;
+    return function selectView(plants, options = {}) {
+      const settings = options && typeof options === "object" ? options : {};
+      const now = calendarTime(settings.now) ?? Date.now();
+      const current = localWeek(now);
+      const mode = settings.mode === "week" ? "week" : "all";
+      const week = readWeek(settings.week)?.key || current.key;
+      const requestedPage = typeof settings.page === "number" ? settings.page
+        : typeof settings.page === "string" ? Number(settings.page) : 0;
+      const page = Math.max(0, Number.isFinite(requestedPage) ? Math.trunc(requestedPage) : 0);
+      // Resolve afresh: an existing Intl formatter retains the timezone from its creation.
+      const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (cached && cached.plants === plants && cached.mode === mode && cached.week === week &&
+          cached.page === page && cached.start === current.start && cached.end === current.end &&
+          cached.zone === zone) return cached.view;
+      const view = createView(plants, { mode, week, page, now });
+      cached = { plants, mode, week, page, start: current.start, end: current.end, zone, view };
+      return view;
+    };
+  }
+
   // A bounded index, independent of flower/garden pagination. Input weeks are newest first.
   function weekPage(weeks, selectedKey) {
     const ordered = [...weeks].reverse();
@@ -240,7 +265,7 @@
     };
   }
 
-  const api = { PAGE_SIZE, ALBUM_SIZE, WEEK_PAGE_SIZE, GEOMETRY, createLayout, createView, weekPage };
+  const api = { PAGE_SIZE, ALBUM_SIZE, WEEK_PAGE_SIZE, GEOMETRY, createLayout, createView, createViewSelector, weekPage };
   root.GardenLayout = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : self);

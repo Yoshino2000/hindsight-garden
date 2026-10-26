@@ -6,6 +6,10 @@
   const ROW_BYTES = 220000;
   const PAGE_ROWS = 200;
   const RESULT_BYTES = 4000000;
+  // SQLite accepts at most 1000 JSON container levels. The existing hot delta adds
+  // three around each record: state object, _archive object and upserts array.
+  const ARCHIVE_JSON_DEPTH = 997;
+  const DEEP_ARCHIVE_ERROR = "这条旧收藏的额外数据嵌套过深，暂时只能查看或移除，无法改名或编辑备注；原始记录已保留。";
   const ARCHIVE_PAGE = "WITH batch AS (SELECT id, value FROM garden_plants WHERE id > ? ORDER BY id LIMIT ?), sized AS (SELECT id, value, SUM(length(CAST(value AS BLOB)) + length(CAST(id AS BLOB)) + 128) OVER (ORDER BY id) AS bytes, ROW_NUMBER() OVER (ORDER BY id) AS item FROM batch) SELECT id, value FROM sized WHERE bytes <= ? OR item = 1 ORDER BY id";
   const TABLES = [
     "CREATE TABLE IF NOT EXISTS garden_store (key TEXT PRIMARY KEY, value TEXT NOT NULL, version INTEGER NOT NULL)",
@@ -27,17 +31,70 @@
     "CREATE TRIGGER IF NOT EXISTS garden_commit_v2 AFTER UPDATE OF value ON garden_store WHEN NEW.key = 'state' AND json_extract(NEW.value, '$.schema') = 2 AND (json_extract(OLD.value, '$.schema') = 1 OR json_type(NEW.value, '$._archive') = 'object') BEGIN INSERT INTO garden_plants (id, value) SELECT json_extract(value, '$.id'), value FROM json_each(OLD.value, '$.garden') WHERE json_extract(OLD.value, '$.schema') = 1; INSERT INTO garden_plants (id, value) SELECT json_extract(value, '$.id'), value FROM json_each(NEW.value, '$._archive.upserts') WHERE 1 ON CONFLICT(id) DO UPDATE SET value = excluded.value; DELETE FROM garden_plants WHERE id IN (SELECT value FROM json_each(NEW.value, '$._archive.deleted')); UPDATE garden_store SET value = json_remove(NEW.value, '$._archive') WHERE key = NEW.key AND version = NEW.version; END",
   ];
 
-  function clone(value) { return JSON.parse(JSON.stringify(value)); }
+  // Archive values have already been parsed as JSON. Copy their plain objects/arrays
+  // iteratively so unusually deep legacy metadata cannot overflow the JS call stack.
+  function clone(value) {
+    const result = Array.isArray(value) ? [] : {};
+    const copies = new WeakMap([[value, result]]);
+    const pending = [[value, result]];
+    while (pending.length) {
+      const [source, target] = pending.pop();
+      for (const key of Object.keys(source)) {
+        const item = source[key];
+        let copy = item;
+        if (item && typeof item === "object") {
+          copy = copies.get(item);
+          if (!copy) {
+            copy = Array.isArray(item) ? [] : {};
+            copies.set(item, copy);
+            pending.push([item, copy]);
+          }
+        }
+        if (key === "__proto__") Object.defineProperty(target, key, { value: copy, enumerable: true, writable: true, configurable: true });
+        else target[key] = copy;
+      }
+    }
+    return result;
+  }
+  function freezeTree(value) {
+    const pending = [value];
+    const seen = new WeakSet();
+    while (pending.length) {
+      const item = pending.pop();
+      if (!item || typeof item !== "object" || seen.has(item)) continue;
+      seen.add(item);
+      for (const child of Object.values(item)) if (child && typeof child === "object") pending.push(child);
+      Object.freeze(item);
+    }
+    return value;
+  }
+  function archiveJson(value) {
+    const pending = [[value, 1]];
+    while (pending.length) {
+      const [item, depth] = pending.pop();
+      if (!item || typeof item !== "object") continue;
+      if (depth > ARCHIVE_JSON_DEPTH) throw new Error(DEEP_ARCHIVE_ERROR);
+      for (const child of Object.values(item))
+        if (child && typeof child === "object") pending.push([child, depth + 1]);
+    }
+    try { return JSON.stringify(value); }
+    catch (error) {
+      if (error instanceof RangeError) throw new Error(DEEP_ARCHIVE_ERROR);
+      throw error;
+    }
+  }
   function bytes(value) { return new TextEncoder().encode(value).length; }
 
   function createStore(hostCall, options = {}) {
     if (typeof hostCall !== "function") throw new Error("请在 Hindsight 中打开时光花园。");
     const timeoutMs = options.timeoutMs || 8000;
+    const readonlyArchive = options.readonlyArchive === true;
     const random = options.random === undefined ? Math.random : options.random;
     if (typeof random !== "function") throw new Error("隐藏配色随机来源不正确。");
     let readyPromise;
     let archiveCache = null;
     let activeRollCandidate = null;
+    let bootClaim = null;
 
     function drawRoll() {
       const roll = random();
@@ -115,6 +172,11 @@
     }
 
     async function commit(state, saved, delta = { upserts: [], deleted: [] }) {
+      if (saved.version !== null && !Number.isSafeInteger(saved.version + 1))
+        throw new Error("花园存储版本已到上限，已有记录已保留，请备份后检查。");
+      const archiveChanges = delta.upserts.length + delta.deleted.length + (saved.legacy ? saved.state.garden.length : 0);
+      if (!Number.isSafeInteger(saved.archiveVersion + archiveChanges))
+        throw new Error("花园归档版本已到上限，已有记录已保留，请备份后检查。");
       const hot = { ...state, schema: 2, garden: [] };
       if (delta.upserts.length || delta.deleted.length) hot._archive = delta;
       const json = JSON.stringify(hot);
@@ -131,9 +193,11 @@
       return result.changes === 1;
     }
 
-    async function readHot() {
+    async function readHot(captureBootOrigin) {
       for (let attempt = 0; attempt < 8; attempt++) {
         const saved = await readStored();
+        if (captureBootOrigin && bootClaim?.id !== captureBootOrigin)
+          bootClaim = { id: captureBootOrigin, previous: saved.state.sessionId };
         if (saved.version === null) {
           // Establish the hot row before any delta: archive changes always use the UPDATE trigger.
           await commit(withActiveRoll(await withArchiveCollection(saved.state)), saved);
@@ -202,7 +266,7 @@
         const first = await readHot();
         if (archiveCache && archiveCache.revision === first.archiveVersion) {
           if (first.state.active && archiveCache.ids.has(first.state.active.id)) throw new Error("花园植物标识重复。");
-          return { ...first.state, garden: clone(archiveCache.plants) };
+          return { ...first.state, garden: readonlyArchive ? archiveCache.plants : clone(archiveCache.plants) };
         }
         const plants = [];
         const ids = new Set();
@@ -225,8 +289,11 @@
         const latest = await readHot();
         if (latest.archiveVersion !== first.archiveVersion) continue;
         if (latest.state.active && ids.has(latest.state.active.id)) throw new Error("花园植物标识重复。");
-        archiveCache = { revision: latest.archiveVersion, plants, ids };
-        return { ...latest.state, garden: clone(plants) };
+        // Another overlapping load may already have published this same revision.
+        if (archiveCache?.revision === latest.archiveVersion)
+          return { ...latest.state, garden: readonlyArchive ? archiveCache.plants : clone(archiveCache.plants) };
+        archiveCache = { revision: latest.archiveVersion, plants: readonlyArchive ? freezeTree(plants) : plants, ids };
+        return { ...latest.state, garden: readonlyArchive ? archiveCache.plants : clone(plants) };
       }
       throw new Error("花园收藏正在频繁变化，请稍后重试。");
     }
@@ -236,7 +303,7 @@
       // at most the one flower they change. Successful results are intentionally partial.
       let plantRoll;
       for (let attempt = 0; attempt < 8; attempt++) {
-        const saved = await readHot();
+        const saved = await readHot(input?.type === "boot" && input.recoverSessionId === undefined ? input.sessionId : null);
         const state = saved.state;
         let existing = null;
         if (["rename", "delete", "note"].includes(input?.type) && state.active?.id !== input.id) {
@@ -245,19 +312,28 @@
         }
         // Only the store supplies new lottery tickets; UI-supplied roll fields are ignored.
         // One request keeps the same candidate through every failed CAS attempt.
-        const action = input?.type === "plant" ? { ...input, variantRoll: plantRoll } : input;
+        let action = input?.type === "plant" ? { ...input, variantRoll: plantRoll } : input;
+        // The first read fixes which former owner this instance intended to replace. A
+        // recovery may retry that claim or its own acknowledged/lost-ack claim, never a later
+        // worker's session. Keep this token in memory, outside persisted garden state.
+        if (input?.type === "boot" && input.recoverSessionId !== undefined && bootClaim?.id === input.sessionId)
+          action = { ...input, expectedPreviousSessionId: bootClaim.previous };
         const result = root.GardenCore.reduce(state, action, now);
+        if (result.ignored) return { ...result, partial: true };
         if (input.type === "plant" && await findFlower(result.state.active.id)) throw new Error("植物标识重复。");
         if (input.type === "plant" && plantRoll === undefined) {
           plantRoll = drawRoll();
           result.state.active.variantRoll = plantRoll;
         }
-        const upserts = result.state.garden.map((plant) => existing?.id === plant.id ? { ...existing, ...plant } : plant)
-          .filter((plant) => !existing || JSON.stringify(plant) !== JSON.stringify(existing));
-        const deleted = existing && !result.state.garden.some((plant) => plant.id === existing.id) ? [existing.id] : [];
-        for (const plant of upserts) {
-          if (bytes(JSON.stringify(plant)) > ROW_BYTES) throw new Error("单株收藏记录超出存储接口限制，已保留原数据。");
+        const upserts = [];
+        for (const value of result.state.garden) {
+          const plant = existing?.id === value.id ? { ...existing, ...value } : value;
+          const json = archiveJson(plant);
+          if (existing && json === archiveJson(existing)) continue;
+          if (bytes(json) > ROW_BYTES) throw new Error("单株收藏记录超出存储接口限制，已保留原数据。");
+          upserts.push(plant);
         }
+        const deleted = existing && !result.state.garden.some((plant) => plant.id === existing.id) ? [existing.id] : [];
         if (await commit(result.state, saved, { upserts, deleted })) return { ...result, partial: true };
       }
       throw new Error("花园正被其他窗口更新，请稍后重试。");
