@@ -296,3 +296,48 @@ for (const timezone of ["UTC", "Pacific/Tongatapu"]) {
     assert.equal(result.status, 0, result.stderr || result.error?.message);
   });
 }
+
+test("a bloom is revealed while the page is open, and on opening only when newer than the last reveal", () => {
+  const scope = {};
+  vm.createContext(scope);
+  vm.runInContext(productionFunction("bloomRevealDue"), scope);
+  const due = (bloom, stored, opening) => vm.runInContext("bloomRevealDue", scope)(bloom, stored, opening);
+  const bloom = { id: "plant-1", at: 5000 };
+  assert.equal(due(null, null, false), false);
+  assert.equal(due(bloom, null, false), true, "an open page reveals a new bloom");
+  assert.equal(due(bloom, 5000, false), false, "the same bloom is not revealed twice");
+  assert.equal(due(bloom, null, true), false, "a first visit records the current bloom quietly");
+  assert.equal(due(bloom, 4000, true), true, "opening after an unseen bloom reveals it");
+  assert.equal(due(bloom, 6000, true), false);
+  assert.equal(due(bloom, Number.NaN, true), false);
+});
+
+test("visiting a revealed flower opens its bloom week, finds its garden page and shows its details", () => {
+  const f = renderFixture(); f.render();
+  f.scope.document.body = { classList: { contains: () => false } };
+  f.scope.tab = () => {};
+  vm.runInContext(productionFunction("showGardenFlower"), f.scope);
+  assert.equal(vm.runInContext('showGardenFlower("plant-27")', f.scope), true);
+  assert.equal(f.scope.gardenMode, "week");
+  assert.equal(f.scope.gardenWeek, layout.localWeek(Date.now()).key);
+  assert.equal(f.scope.gardenPage, 1);
+  assert.equal(f.scope.selectedFlower, "plant-27");
+  assert.equal(f.$("flower-drawer").hidden, false);
+  assert.equal(vm.runInContext('showGardenFlower("missing")', f.scope), false);
+});
+
+test("duration shortcuts mark only the button that matches the typed minutes", () => {
+  const buttons = [30, 60, 90].map(minutes => {
+    const attributes = new Map();
+    return { dataset: { minutes: String(minutes) }, attributes, setAttribute: (name, value) => attributes.set(name, value) };
+  });
+  const nodes = { "target-minutes": { value: "60" }, "minute-presets": { children: buttons } };
+  const scope = { $: id => nodes[id] };
+  vm.createContext(scope);
+  vm.runInContext(productionFunction("syncMinutePresets"), scope);
+  vm.runInContext("syncMinutePresets()", scope);
+  assert.deepEqual(buttons.map(button => button.attributes.get("aria-pressed")), ["false", "true", "false"]);
+  nodes["target-minutes"].value = "75";
+  vm.runInContext("syncMinutePresets()", scope);
+  assert.deepEqual(buttons.map(button => button.attributes.get("aria-pressed")), ["false", "false", "false"]);
+});

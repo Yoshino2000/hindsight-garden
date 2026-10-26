@@ -6,9 +6,9 @@
 
 让一段日常，长成一座花园。为 [Hindsight](https://github.com/Tomotsugu-dev/Hindsight) 制作的第三方插件：选择已有分类，累计前台使用时间，慢慢等花开。
 
-**[下载 0.19.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.19.0)** · [安装与使用](docs/usage.zh-CN.md) · [开发与验证](docs/verification.md)
+**[下载 0.20.0](https://github.com/Yoshino2000/hindsight-garden/releases/tag/0.20.0)** · [安装与使用](docs/usage.zh-CN.md) · [开发与验证](docs/verification.md)
 
-0.18.0：安装包从 29 MB 缩小到 12 MB，后台空闲时少写数据库，说明文字更简洁。[本版说明](docs/features-0180.md)
+0.20.0：播种时一键选常用时长；花开那一刻弹出开花卡片，隐藏配色有单独的揭晓效果。[本版说明](docs/features-0200.md)
 
 ![时光花园：完整花圃、专属装饰、顶部动效开关和紧凑切园导航](docs/screenshots/garden.jpg)
 

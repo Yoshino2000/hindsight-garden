@@ -265,7 +265,7 @@
     };
   }
 
-  const api = { PAGE_SIZE, ALBUM_SIZE, WEEK_PAGE_SIZE, GEOMETRY, createLayout, createView, createViewSelector, weekPage };
+  const api = { PAGE_SIZE, ALBUM_SIZE, WEEK_PAGE_SIZE, GEOMETRY, createLayout, createView, createViewSelector, weekPage, localWeek };
   root.GardenLayout = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : self);

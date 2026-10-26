@@ -193,3 +193,9 @@ See [feature notes](features-0180.md). Schema 2, achievement revision 4, seven p
 ### Runtime artwork sizes
 
 The original artwork stays byte-for-byte in `assets-source/`. `scripts/resize-assets.py` writes the runtime copies in `assets/`, each sized for its largest on-screen use at 3× device pixels: the 200 px pot strips, the 135 px flower drawer, the 790 px wide scene props, 87 px theme art, 78 × 104 px milestone badges, 28 px birds and 32 px butterflies. CSS and SVG address artwork by proportion or by source coordinates, so the resize changes resolution only. Resampling uses premultiplied alpha, so outlines gain no halo. The swing keeps its original pixels because its foot shadows are tested against exact atlas pixels. The unused legacy `assets/ambience/bird.png` is no longer packaged. After regenerating, run `npm test` and compare scenes in the preview.
+
+## 0.20.0 duration shortcuts and bloom reveal
+
+The planting form's duration buttons only write `#target-minutes` and dispatch an `input` event, so plan previews and validation follow the same path as typing. `syncMinutePresets` sets `aria-pressed` after typing, plan loads and form resets.
+
+`render()` compares `state.lastBloom.at` with the page's last seen value and with the `garden-bloom-seen` local preference. `bloomRevealDue` reveals every bloom an open page observes; on the first render it reveals only a bloom newer than the stored value, so a first visit or cleared storage never replays an old bloom. The stored value is a per-browser convenience, never collection data. `showBloom` reuses `gardenArtwork` (including hidden palettes); `showGardenFlower` selects the bloom week via `GardenLayout.localWeek`, advances garden pages until the flower is visible and opens its drawer. `ui/bloom.css` animates transform/opacity once; `data-motion` follows the ambience toggle and reduced motion.

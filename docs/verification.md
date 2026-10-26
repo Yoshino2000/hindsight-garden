@@ -1,10 +1,22 @@
 # Verification
 
-Version: **0.19.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
+Version: **0.20.0**. Basic functionality is usable; development and iteration continue. This is an experimental personal plugin, not an exhaustive or security-audited release.
 
 Verified across 2026-10-25/26 using Node 24.15.0, Python 3.14.4 and connected desktop Chrome. No native computer-control automation was used.
 
-## Current 0.19.0 results
+## Current 0.20.0 results
+
+Verified on 2026-10-26 using Node 24.15.0, Python 3.14.4 and the simulated host in the Claude desktop browser pane, with synthetic data only.
+
+- **242 automated tests pass, zero skipped.** New cases cover when a bloom is revealed (open page, reopening after an unseen bloom, no repeat, quiet first visit), opening a revealed flower on page 2 of its bloom week with its details, and the duration-shortcut highlight.
+- A real one-minute tulip grew from simulated focus events and bloomed in the worker. The open page showed the card with the right name, species and goal time, moved focus to **Visit the garden** and cleared the stale planting notice. **Visit the garden** opened this week's garden with the flower's drawer.
+- Reloading after resetting the stored reveal showed the card once, statically with motion off (no running animations); reloading again did not show it.
+- Paused Web Animations sampled the timeline: the card is in by 0.36 s, the flower rises with a 2% overshoot and settles, petals travel 74 px and fade, and every animation ends static. The hidden-palette card (glow, sparkles, badge) was checked with a demo hidden flower.
+- At 460 px the duration shortcuts wrap below the input without horizontal overflow.
+
+The 0.20.0 ZIP has **not** been installed in native Hindsight; OS notifications and the native page's behavior after a bloom remain unverified.
+
+## Previous 0.19.0 results
 
 Verified on 2026-10-26 using Node 24.15.0, Python 3.14.4 and the simulated host in the Claude desktop browser pane, with synthetic data only.
 

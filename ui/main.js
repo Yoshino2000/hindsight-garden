@@ -78,6 +78,11 @@
     cosmos: [183, 178, 939, 896],
     lily: [247, 208, 797, 814],
   };
+  // Petal confetti for the bloom reveal; hidden blooms use their palette colour instead.
+  const BLOOM_PETALS = {
+    sunflower: "#f3c34a", hydrangea: "#a9b8ee", tulip: "#f29b93", daisy: "#f0d77c",
+    rose: "#ec8fa1", lavender: "#b69be0", cosmos: "#f2a5c7", lily: "#f3bccb",
+  };
   const store = GardenStore.createStore((method, params) =>
     hindsight.call(method, params),
     { readonlyArchive: true },
@@ -103,6 +108,7 @@
   let ruleCounter = 0;
   let seenPenalty = null;
   let seenBloom = null;
+  let bloomReturnFocus = null;
   let firstRender = true;
   let gardenSignature = "";
   let gardenPage = 0;
@@ -483,6 +489,7 @@
     if (radio) radio.checked = true;
     previewSpecies(plan.species);
     $("target-minutes").value = String(plan.targetMinutes);
+    syncMinutePresets();
     $("rules").replaceChildren();
     for (const rule of plan.rules) addRule("rules", rule, false);
     $("penalty-enabled").checked = plan.penalty.enabled;
@@ -1227,10 +1234,70 @@
       seenPenalty = state.lastPenalty.at;
     }
     if (state.lastBloom && state.lastBloom.at !== seenBloom) {
-      if (!firstRender) notice(t("有一朵花开了，已为你留在「我的花园」。"));
+      let stored = null;
+      try {
+        const raw = localStorage.getItem("garden-bloom-seen");
+        stored = raw === null ? null : Number(raw);
+      } catch (_) { /* Without local memory, only blooms seen while the page is open are revealed. */ }
+      const shown = bloomRevealDue(state.lastBloom, stored, firstRender) && showBloom(state.lastBloom.id);
+      if (!firstRender) notice(shown ? "" : t("有一朵花开了，已为你留在「我的花园」。"));
       seenBloom = state.lastBloom.at;
+      try { localStorage.setItem("garden-bloom-seen", String(seenBloom)); } catch (_) { /* Optional. */ }
     }
     firstRender = false;
+  }
+
+  // A bloom observed by an open page is always revealed. When the page opens, only a bloom newer
+  // than the last one this browser revealed is shown; a first visit records the current one quietly.
+  function bloomRevealDue(bloom, stored, opening) {
+    if (!bloom || bloom.at === stored) return false;
+    return !opening || (Number.isFinite(stored) && bloom.at > stored);
+  }
+
+  function showBloom(id) {
+    const plant = state.garden.find((item) => item.id === id);
+    if (!plant) return false;
+    const variant = C.variantOf(plant);
+    const palette = variant === "hidden" ? GardenVariants.PALETTES[plant.species] : null;
+    const reveal = $("bloom-reveal");
+    $("bloom-reveal-art").replaceChildren(gardenArtwork(plant.species, variant));
+    $("bloom-reveal-title").textContent = plant.name;
+    $("bloom-reveal-meta").textContent = t("{0} · 累计 {1}", species(plant.species).name, minutes(plant.targetMs));
+    $("bloom-reveal-variant").hidden = !palette;
+    $("bloom-reveal-variant").textContent = palette ? t("✧ 遇见隐藏配色：{0}", t(palette.name)) : "";
+    reveal.dataset.plantId = plant.id;
+    reveal.dataset.variant = variant;
+    reveal.dataset.motion = String(ambienceEnabled && !reducedMotion.matches);
+    reveal.style.setProperty("--bloom-petal", palette?.color || BLOOM_PETALS[species(plant.species).id]);
+    if (reveal.hidden) bloomReturnFocus = document.activeElement;
+    else { reveal.hidden = true; void reveal.offsetWidth; }
+    reveal.hidden = false;
+    $("bloom-reveal-garden").focus({ preventScroll: true });
+    return true;
+  }
+
+  function closeBloom(restoreFocus = true) {
+    if ($("bloom-reveal").hidden) return;
+    $("bloom-reveal").hidden = true;
+    $("bloom-reveal-art").replaceChildren();
+    if (restoreFocus && bloomReturnFocus?.isConnected) bloomReturnFocus.focus({ preventScroll: true });
+    bloomReturnFocus = null;
+  }
+
+  // Open the garden page that holds a flower and show its details.
+  function showGardenFlower(id) {
+    const plant = state?.garden.find((item) => item.id === id);
+    if (!plant) return false;
+    if (document.body.classList.contains("compact")) compact(false);
+    tab("garden");
+    const at = Number.isSafeInteger(plant.bloomAt) ? plant.bloomAt : plant.createdAt;
+    changeGardenScope("week", Number.isSafeInteger(at) ? GardenLayout.localWeek(at).key : "");
+    const visible = () => gardenView.layout.plots.some((plot) => plot.plant.id === id);
+    while (!visible() && gardenPage + 1 < gardenView.layout.pageCount) changeGardenPage(1);
+    if (!visible()) return false;
+    selectedFlower = id;
+    renderFlower();
+    return true;
   }
 
   async function command(input, success) {
@@ -1422,6 +1489,13 @@
     $("penalty-amount").max = "100";
     for (const input of $("plant-form").querySelectorAll("input"))
       input.setCustomValidity("");
+    syncMinutePresets();
+  }
+
+  function syncMinutePresets() {
+    const value = $("target-minutes").value;
+    for (const button of $("minute-presets").children)
+      button.setAttribute("aria-pressed", String(button.dataset.minutes === value));
   }
 
   function openPlant() {
@@ -1588,6 +1662,28 @@
   );
   $("start-plant").addEventListener("click", openPlant);
   $("recommend-name").addEventListener("click", recommendName);
+  for (const button of $("minute-presets").children) {
+    button.setAttribute("aria-label", t("{0} 分钟", Number(button.dataset.minutes)));
+    button.addEventListener("click", () => {
+      $("target-minutes").value = button.dataset.minutes;
+      $("target-minutes").setCustomValidity("");
+      $("target-minutes").dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  }
+  $("target-minutes").addEventListener("input", syncMinutePresets);
+  $("bloom-reveal-close").addEventListener("click", () => closeBloom());
+  $("bloom-reveal").querySelector(".bloom-reveal-backdrop").addEventListener("click", () => closeBloom());
+  $("bloom-reveal-garden").addEventListener("click", () => {
+    const id = $("bloom-reveal").dataset.plantId;
+    closeBloom(false);
+    if (!showGardenFlower(id)) $("tab-garden").focus({ preventScroll: true });
+  });
+  $("bloom-reveal").addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    event.stopPropagation();
+    closeBloom();
+  });
   $("garden-start").addEventListener("click", () => tab("current", true));
   $("garden-prev").addEventListener("click", () => changeGardenPage(-1));
   $("garden-next").addEventListener("click", () => changeGardenPage(1));

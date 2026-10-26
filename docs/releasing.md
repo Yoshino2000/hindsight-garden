@@ -89,3 +89,7 @@ The final ZIP has not been installed in native Hindsight; native worker timer ca
 ## 0.19.0 publication
 
 Publish 0.19.0 as a development prerelease from `main`, attaching the ZIP and its `.sha256`. The only change is the planting form's column split (38 : 62 → 42 : 58 in the normal view). Data, permissions, quota, artwork and icon are unchanged. Native installation remains unverified; market listing updates are a separate step.
+
+## 0.20.0 publication
+
+Publish 0.20.0 as a development prerelease from `main`, attaching the ZIP and its `.sha256`. Link [feature notes](features-0200.md). Describe the 30/60/90/120/180-minute shortcuts and the bloom card (once per bloom, a catch-up reveal on the next visit, a still card with motion off, hidden-palette treatment, **Visit the garden**). `ui/bloom.css` and `docs/features-0200.md` join the allowlist. Data, permissions, quota and artwork are unchanged; the last revealed bloom is a local browser preference only. Native installation remains unverified; market listing updates are a separate step.
